@@ -1,0 +1,13 @@
+prefix=/Users/fengf/Desktop/FIRE6/extra/gperftools-2.7/../../usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: gperftools
+Version: 2.7
+Description: Performance tools for C++
+URL: http://code.google.com/p/gperftools/
+Requires:
+Libs: -L${libdir} -lprofiler
+Libs.private: -D_THREAD_SAFE  
+Cflags: -I${includedir}
