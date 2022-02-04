@@ -215,7 +215,7 @@
 /* #undef HAVE___INT64 */
 
 /* prefix where we look for installed files */
-#define INSTALL_PREFIX "/Users/fengf/Desktop/FIRE6/extra/gperftools-2.7/../../usr"
+#define INSTALL_PREFIX "/Volumes/DATA/CUMTB/Projects/FIRE/extra/gperftools-2.7/../../usr"
 
 /* Define to 1 if int32_t is equivalent to intptr_t */
 /* #undef INT32_EQUALS_INTPTR */

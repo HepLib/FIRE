@@ -2274,7 +2274,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
         } else if (str.substr(0, 5) == "#wrap") {
             common::wrap_databases = true;
         } else
-        if (str.substr(0, 6) == "#prime") { // TODO: check here
+        if (str.substr(0, 6) == "#prime") {
             #if defined(PRIME) || defined(MPQ)
                 if (common::prime) {
                     cout << "Option #prime ignored: either duplicate line or provided as an option" << endl
@@ -2328,12 +2328,14 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 fclose(config_file);
                 return 1;
             }
-#if defined(PRIME) || defined(MPQ) // TODO: check here
+#if defined(PRIME) || defined(MPQ)
+#ifdef PRIME
             if (!common::prime) {
                 cerr << "no proper #prime setting, exiting" << endl;
                 fclose(config_file);
                 return 1;
             }
+#endif
             if (variables!="") {
                 cerr << "not all variables have values, exiting" << endl;
                 cout<<variables<<endl;
@@ -3171,8 +3173,6 @@ pair<int,int> parseArgcArgv(int argc, char *argv[], bool main) {
                 sscanf(curpos, "%hu", &common::prime_number);
                 if (main) printf("Using prime number %d\n", common::prime_number);
                 common::prime = primes[common::prime_number];
-            #elif defined(MPQ)
-                common::prime = primes[1]; // TODO: check here
             #else
                 unsigned short value;
                 sscanf(curpos, "%hu", &value);

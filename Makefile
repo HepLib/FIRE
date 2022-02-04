@@ -26,7 +26,7 @@ test:
 	make -f tests.makefile
 
 .PHONY: cleanall
-cleanall: clean cleanbin cleandepall
+cleanall: clean cleandepall
 
 .PHONY: clean
 clean:
@@ -34,12 +34,6 @@ clean:
 	rm -f poly/*.o
 	rm -f prime/*.o
 	rm -f MPQ/*.o
-
-.PHONY: cleanbin
-cleanbin:
-	cd mpi && $(MAKE) clean
-	rm -f poly/FIRE6 poly/FLAME6 poly/Ftool6
-	rm -f prime/FIRE6 prime/FLAME6 prime/Ftool6
 
 dep: depend
 
@@ -54,6 +48,8 @@ depend:
 	cd extra/snappy-1.1.7/ && mkdir -p build && cd build && cmake ../
 	$(MAKE) -C ./extra/snappy-1.1.7/build
 	$(MAKE) -C ./extra/snappy-1.1.7/build DESTDIR=../../../ install
+	#cp extra/kyotocabinet-1.2.77/kccachedb.h.threadsafe.in extra/kyotocabinet-1.2.77/kccachedb.h
+	cp extra/kyotocabinet-1.2.77/kccachedb.h.in extra/kyotocabinet-1.2.77/kccachedb.h
 	cd extra/kyotocabinet-1.2.77/ && ./configure --prefix=`pwd`/../../usr/
 	$(ASIE) $(MAKE) -C ./extra/kyotocabinet-1.2.77
 	$(MAKE) -C ./extra/kyotocabinet-1.2.77 install
@@ -78,6 +74,7 @@ cleandepall: cleandep
 	rm -rf usr/bin/*
 	
 cleandep:
+	$(MAKE) -C ./extra/gperftools-2.7 clean
 	if [ -f extra/kyotocabinet-1.2.77/Makefile ]; then $(MAKE) -C ./extra/kyotocabinet-1.2.77 distclean; fi;
 	rm -rf extra/snappy-1.1.7/build
 	$(MAKE) -C ./extra/lz4-1.9.2 PREFIX=`pwd`/usr/ clean
