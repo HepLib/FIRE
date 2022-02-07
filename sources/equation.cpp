@@ -131,6 +131,13 @@ void p_get_internal(const point &p, I &terms, unsigned short dsector, unsigned s
 #ifdef PRIME
         c.n = *reinterpret_cast<unsigned long long *>(pos);
         pos += sizeof(unsigned long long);
+#elif MPQ
+        char *end = pos;
+        while (*end != '|') ++end;
+        *end = '\0';
+        c.s.set_str(string(pos),62); // note the 62 base
+        pos = end;
+        ++pos;
 #else
         char *end = pos;
         while (*end != '|') ++end;

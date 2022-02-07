@@ -102,9 +102,12 @@ int common::msiz = 26;
 
 unsigned short common::global_pn = 0;
 unsigned int common::threads_number = 0;
+bool common::threads_number_noargs = true;
 unsigned int common::lthreads_number = 1;
+bool common::lthreads_number_noargs = true;
 unsigned int common::sthreads_number = 0;
 unsigned int common::fthreads_number = 0;
+bool common::fthreads_number_noargs = true;
 unsigned int common::f_queues = 1;
 
 

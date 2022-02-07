@@ -13,7 +13,7 @@ void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char lev
     string_size = n * sizeof(unsigned long long); // we will just put our number into the buffer
 #elif defined(MPQ)
     for (auto itr = termsB; itr != termsE; ++itr) {
-        string_size += (itr->second.s.get_str().size() + 1);
+        string_size += (itr->second.s.get_str(62).size() + 1); // note the 62 base
     }
 #else
     for (auto itr = termsB; itr != termsE; ++itr) {
@@ -64,7 +64,7 @@ void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char lev
         *reinterpret_cast<unsigned long long *>(pos) = itr->second.n;
         pos += sizeof(unsigned long long);
 #elif defined(MPQ)
-        auto s = itr->second.s.get_str();
+        auto s = itr->second.s.get_str(62); // note the 62 base
         strncpy(pos, s.c_str(), s.size());
         pos += s.size();
         *pos = '|';

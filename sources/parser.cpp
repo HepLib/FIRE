@@ -2101,7 +2101,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 << "Depending on the ./configure options one can also have zlib, snappy, zstd." << endl;
                 abort();
             }
-        } else if (str.substr(0, 8) == "#threads") {
+        } else if (str.substr(0, 8) == "#threads" && common::threads_number_noargs) {
             size_t pos = 8;
             while (str[pos] == ' ') pos++;
             str = str.substr(pos);
@@ -2115,8 +2115,8 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             str = str.substr(pos);
             s2u(str.c_str(), common::sthreads_number);
         } else
-        if (str.substr(0, 9) == "#lthreads") {
-            #ifdef FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD
+        if (str.substr(0, 9) == "#lthreads" && common::lthreads_number_noargs) {
+            #if defined(FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD) || defined(FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC) 
                 size_t pos = 9;
                 while (str[pos] == ' ') pos++;
                 str = str.substr(pos);
@@ -2147,7 +2147,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             int pos_pref;
             s2i(str.c_str(), pos_pref);
             common::pos_pref = pos_pref;
-        } else if (str.substr(0, 9) == "#fthreads") {
+        } else if (str.substr(0, 9) == "#fthreads" && common::fthreads_number_noargs) {
             size_t pos = 9;
             while (str[pos] == ' ') pos++;
 #if !defined(PRIME) && !defined(MPQ)
@@ -3078,9 +3078,17 @@ vector<COEFF> split_coeff(const string &s) {
             c.n = mod(coeff);
         }
 #elif defined(MPQ)
-        coeff = ReplaceAll(coeff, "(", "");
-        coeff = ReplaceAll(coeff, ")", "");
-        c.s = coeff;
+        if (coeff.empty()) {
+            c.s = 0;
+        } else {
+            coeff += "(1)";
+            coeff = ReplaceAll(coeff, " ", "");
+            if (*coeff.begin() == '+') {
+                coeff = "0" + coeff;
+            }
+            calc_wrapper(coeff, 0);
+            c.s = coeff;
+        }
 #else
         c.s = coeff;
 #endif
@@ -3096,6 +3104,52 @@ pair<int,int> parseArgcArgv(int argc, char *argv[], bool main) {
     int thread_number = -1;
     int sector = 0;
     for (int i = 1; i < argc; ++i) {
+        
+        // added -- BEGIN
+        if ((i + 1 != argc) && (!strcmp(argv[i],"-threads"))) {
+            s2u(argv[i + 1], common::threads_number);
+            if (common::sthreads_number == 0) common::sthreads_number = common::threads_number;
+            if (common::fthreads_number == 0) common::fthreads_number = common::threads_number;
+            if (main) cout << "Threads: " << common::threads_number << endl;
+            common::threads_number_noargs = false;
+        }
+        
+        if ((i + 1 != argc) && (!strcmp(argv[i],"-lthreads"))) {
+            s2u(argv[i + 1], common::lthreads_number);
+            if (main) cout << "Level Threads: " << common::lthreads_number << endl;
+            common::lthreads_number_noargs = false;
+        }
+
+        if ((i + 1 != argc) && (!strcmp(argv[i],"-fthreads"))) {
+#if !defined(PRIME) && !defined(MPQ)
+            bool fermat_separate = false;
+#endif
+            string str = argv[i + 1];
+            int pos = 0;
+            if (str[pos] == 's') {
+#if defined(PRIME) || defined(MPQ)
+                if (!sector) cout<<"Separate fermat mode is ignored in prime version"<<endl;
+#else
+                fermat_separate = true;
+#endif
+                pos++;
+            }
+            str = str.substr(pos);
+            s2u(str.c_str(), common::fthreads_number);
+            if (main) cout << "Fermat: " << common::fthreads_number;
+#if !defined(PRIME) && !defined(MPQ)
+            if (fermat_separate) {
+                common::receive_from_child = false;
+                common::send_to_parent = false;
+                if (main) cout << " separate";
+            }
+#endif
+            if (main) cout << endl;
+            common::fthreads_number_noargs = false;
+        }
+        
+        // added -- END
+        
         if ((i + 1 != argc) && (!strcmp(argv[i],"-c"))) {
             common::config_file = string(argv[i + 1]);
         }
