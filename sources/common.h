@@ -642,13 +642,11 @@ public:
      * Number of threads.
      */
     static unsigned int threads_number;
-    static bool threads_number_noargs;
 
     /**
      * Number of level workers inside a sector. Equals to 1 by default.
      */
     static unsigned int lthreads_number;
-    static bool lthreads_number_noargs;
 
     /**
      * Number of threads working during substitution stage.
@@ -662,7 +660,6 @@ public:
      * Number of fermat processes.
      */
     static unsigned int fthreads_number;
-    static bool fthreads_number_noargs;
 
     /**
      * Number of fermat separate queues. Equals to 1 by default, which means all sectors use same fermat queue.
