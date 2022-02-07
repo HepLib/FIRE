@@ -3,8 +3,8 @@ vpath %.h ../sources
 
 CC= g++
 cc= gcc
-CFLAGS = -O3 -Wall -Wno-strict-aliasing -std=c++11 -I../usr/include -DPRIME -DWITH_SNAPPY -DWITH_ZLIB
-#CFLAGS = -O3 -Wall -Wno-strict-aliasing -std=c++11 -I../usr/include -DPRIME -DWITH_SNAPPY -DWITH_ZLIB -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
+CFLAGS = -Wno-maybe-uninitialized -O3 -Wall -Wno-strict-aliasing -std=c++11 -I../usr/include -DPRIME -DWITH_SNAPPY -DWITH_ZLIB -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC
+#CFLAGS = -Wno-maybe-uninitialized -O3 -Wall -Wno-strict-aliasing -std=c++11 -I../usr/include -DPRIME -DWITH_SNAPPY -DWITH_ZLIB -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
