@@ -4,6 +4,10 @@
  *  This file is a part of the FIRE package.
  */
 
+#ifdef MPQBin
+size_t mpq_size(const mpq_class & q);
+void mpq_write(const mpq_class & q, char* &pos);
+#endif
 
 template<class I>
 void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char level, unsigned short fixed_database_sector) {
@@ -11,9 +15,13 @@ void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char lev
     unsigned int string_size = 0;
 #ifdef PRIME
     string_size = n * sizeof(unsigned long long); // we will just put our number into the buffer
-#elif defined(MPQ)
+#elif defined(MPQStr)
     for (auto itr = termsB; itr != termsE; ++itr) {
         string_size += (itr->second.s.get_str(62).size() + 1); // note the 62 base
+    }
+#elif defined(MPQBin)
+    for (auto itr = termsB; itr != termsE; ++itr) {
+        string_size += mpq_size(itr->second.s);
     }
 #else
     for (auto itr = termsB; itr != termsE; ++itr) {
@@ -59,16 +67,19 @@ void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char lev
         }
     }
     char *pos = buf + 3 + points_size; // preparing a string of coeffs
+
     for (auto itr = termsB; itr != termsE; ++itr) {
 #ifdef PRIME
         *reinterpret_cast<unsigned long long *>(pos) = itr->second.n;
         pos += sizeof(unsigned long long);
-#elif defined(MPQ)
+#elif defined(MPQStr)
         auto s = itr->second.s.get_str(62); // note the 62 base
         strncpy(pos, s.c_str(), s.size());
         pos += s.size();
         *pos = '|';
         ++pos;
+#elif defined(MPQBin)
+        mpq_write(itr->second.s, pos);
 #else
         strncpy(pos, itr->second.s.c_str(), itr->second.s.size());
         pos += itr->second.s.size();
@@ -76,6 +87,7 @@ void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char lev
         ++pos;
 #endif
     }
+
     *pos = '\0'; // do we really need it? we won't be interpreting the contents as a string any longer
 
 

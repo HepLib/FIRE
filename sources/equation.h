@@ -17,6 +17,10 @@
 
 #include "FSBAllocator.hh"
 
+#ifdef MPQ
+#define MPQBin
+#endif
+
 #define ALLOCATOR1 FSBAllocator2<pair<const point, vector<pair<point,COEFF> > > >
 ///<faster allocation for maps
 #define ALLOCATOR2 allocator<pair<point,COEFF> >

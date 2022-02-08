@@ -120,6 +120,53 @@ void p_get(const point &p, list<pair<point, COEFF>, ALLOCATOR2> &terms, unsigned
     p_get_internal(p, terms, dsector, len, res);
 }
 
+#ifdef MPQBin
+size_t mpq_size(const mpq_class & q) {
+    if(sizeof(char)!=1) throw std::runtime_error("char size is NOT 1!");
+    size_t s1 = (mpz_sizeinbase(q.get_num().get_mpz_t(), 2) + CHAR_BIT-1) / CHAR_BIT;
+    size_t s2 = (mpz_sizeinbase(q.get_den().get_mpz_t(), 2) + CHAR_BIT-1) / CHAR_BIT;
+    return sizeof(bool)+2*sizeof(size_t)+s1+s2;
+}
+void mpq_write(const mpq_class & q, char* &pos) {
+    if(sizeof(char)!=1) throw std::runtime_error("char size is NOT 1!");
+    bool neg = q.get_num() < 0;
+    memcpy(pos, &neg, sizeof(neg));
+    pos += sizeof(bool);
+    size_t c;
+    
+    c = (mpz_sizeinbase(q.get_num().get_mpz_t(), 2) + CHAR_BIT-1) / CHAR_BIT;
+    memcpy(pos, &c, sizeof(size_t));
+    pos += sizeof(size_t);
+    mpz_export(pos, &c, 1, 1, 0, 0, q.get_num().get_mpz_t());
+    pos += c;
+    
+    c = (mpz_sizeinbase(q.get_den().get_mpz_t(), 2) + CHAR_BIT-1) / CHAR_BIT;
+    memcpy(pos, &c, sizeof(size_t));
+    pos += sizeof(size_t);
+    mpz_export(pos, &c, 1, 1, 0, 0, q.get_den().get_mpz_t());
+    pos += c;
+}
+mpq_class mpq_read(char* &pos) {
+    if(sizeof(char)!=1) throw std::runtime_error("char size is NOT 1!");
+    bool neg;
+    mpz_class num, den;
+    memcpy(&neg, pos, sizeof(neg));
+    pos += sizeof(bool);
+    size_t c;
+    memcpy(&c, pos, sizeof(size_t));
+    pos += sizeof(size_t);
+    mpz_import(num.get_mpz_t(), c, 1, 1, 0, 0, pos);
+    pos += c;
+    memcpy(&c, pos, sizeof(size_t));
+    pos += sizeof(size_t);
+    mpz_import(den.get_mpz_t(), c, 1, 1, 0, 0, pos);
+    pos += c;
+    mpq_class res = mpq_class(num)/mpq_class(den);
+    if(neg) res = -res;
+    return res;
+}
+#endif
+
 // get monoms and coefficients from a point (Feynman integral). database access used
 template<class I>
 void p_get_internal(const point &p, I &terms, unsigned short dsector, unsigned short len, char* res) {
@@ -131,13 +178,15 @@ void p_get_internal(const point &p, I &terms, unsigned short dsector, unsigned s
 #ifdef PRIME
         c.n = *reinterpret_cast<unsigned long long *>(pos);
         pos += sizeof(unsigned long long);
-#elif MPQ
+#elif defined(MPQStr)
         char *end = pos;
         while (*end != '|') ++end;
         *end = '\0';
         c.s.set_str(string(pos),62); // note the 62 base
         pos = end;
         ++pos;
+#elif defined(MPQBin)
+        c.s = mpq_read(pos);
 #else
         char *end = pos;
         while (*end != '|') ++end;
