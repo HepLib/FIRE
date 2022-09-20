@@ -1,1 +1,1 @@
-../mpn/arm64/gcd_11.asm
+../mpn/x86_64/gcd_11.asm

@@ -9,7 +9,6 @@
 #define FUNCTIONS_H_INCLUDED
 
 #include "equation.h"
-#include "FSBAllocator.hh"
 
 // for function implementations see functions.cpp
 /**
@@ -85,6 +84,7 @@ void apply_table(const vector<pair<point, COEFF> > &terms, bool forward_mode, bo
  */
 set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_more> &to_test, unsigned short sector_number);
 
+#if defined(PolyMode)
 /**
  * Obtain the list of integrals a set of integrals is expressed by,
  * then substitute everything possible starting from smallest integrals.
@@ -96,6 +96,7 @@ set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_mor
  */
 bool express_and_pass_back(map<point, vector<pair<point, COEFF> >, indirect_more, ALLOCATOR1 > &to_test,
                            unsigned short sector, unsigned int thread_number);
+#endif
 
 /**
  * Backward reduction stage after the whole reduction.
@@ -107,7 +108,7 @@ bool express_and_pass_back(map<point, vector<pair<point, COEFF> >, indirect_more
 void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_more>::const_reverse_iterator ritr,
           unsigned short fixed_database_sector);
 
-#if defined(PRIME) || defined(MPQ) || defined(DOXYGEN_DOCUMENTATION)
+#if !defined(PolyMode) || defined(DOXYGEN_DOCUMENTATION)
 /**
  * @brief Create tail masking and virtual integrals.
  *
@@ -123,7 +124,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
 list<pair<point, COEFF>, ALLOCATOR2 >::iterator
 split(list<pair<point, COEFF>, ALLOCATOR2 > &terms, unsigned short sector_number);
 #endif
-#if (!defined(PRIME) && !defined(MPQ)) || defined(DOXYGEN_DOCUMENTATION)
+#if defined(PolyMode) || defined(DOXYGEN_DOCUMENTATION)
 /**
  * @brief Create tail masking and virtual integrals.
  *
@@ -138,7 +139,7 @@ split(list<pair<point, COEFF>, ALLOCATOR2 > &terms, unsigned short sector_number
 void split(vector<pair<point, COEFF> > &terms, unsigned short sector_number);
 #endif
 
-#if defined(PRIME) || defined(MPQ) || defined(DOXYGEN_DOCUMENTATION)
+#if !defined(PolyMode) || defined(DOXYGEN_DOCUMENTATION)
 /**
  * Wrapper for templated add_to(), for case when the added terms are in vector. Only in PRIME version of FIRE.
  * @param terms1 equation that is to be changed (a -> a + c*b)
@@ -170,7 +171,7 @@ void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, const list<pair<point
 template<class I>
 void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, I termsB, I termsE, const COEFF &coeff, bool skip_last);
 #endif
-#if (!defined(PRIME) && !defined(MPQ)) || defined(DOXYGEN_DOCUMENTATION)
+#if defined(PolyMode) || defined(DOXYGEN_DOCUMENTATION)
 /**
  * Sum terms1 and terms2 and write result to rterms.
  * Used in non-PRIME version of FIRE.

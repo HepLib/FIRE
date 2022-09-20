@@ -395,7 +395,7 @@ on `(hostname || uname -n) 2>/dev/null | sed 1q`
 # Files that config.status was made for.
 config_files=" demos/pexpr-config.h:demos/pexpr-config-h.in demos/calc/calc-config.h:demos/calc/calc-config-h.in Makefile mpf/Makefile mpn/Makefile mpq/Makefile mpz/Makefile printf/Makefile scanf/Makefile rand/Makefile cxx/Makefile tests/Makefile tests/devel/Makefile tests/mpf/Makefile tests/mpn/Makefile tests/mpq/Makefile tests/mpz/Makefile tests/rand/Makefile tests/misc/Makefile tests/cxx/Makefile doc/Makefile tune/Makefile demos/Makefile demos/calc/Makefile demos/expr/Makefile gmp.h:gmp-h.in gmp.pc:gmp.pc.in gmpxx.pc:gmpxx.pc.in"
 config_headers=" config.h:config.in"
-config_links=" mpn/add.c:mpn/generic/add.c mpn/add_1.c:mpn/generic/add_1.c mpn/add_n.asm:mpn/arm64/aors_n.asm mpn/sub.c:mpn/generic/sub.c mpn/sub_1.c:mpn/generic/sub_1.c mpn/sub_n.asm:mpn/arm64/aors_n.asm mpn/cnd_add_n.asm:mpn/arm64/cnd_aors_n.asm mpn/cnd_sub_n.asm:mpn/arm64/cnd_aors_n.asm mpn/cnd_swap.c:mpn/generic/cnd_swap.c mpn/neg.c:mpn/generic/neg.c mpn/com.asm:mpn/arm64/com.asm mpn/mul_1.asm:mpn/arm64/mul_1.asm mpn/addmul_1.asm:mpn/arm64/aorsmul_1.asm mpn/submul_1.asm:mpn/arm64/aorsmul_1.asm mpn/add_err1_n.c:mpn/generic/add_err1_n.c mpn/add_err2_n.c:mpn/generic/add_err2_n.c mpn/add_err3_n.c:mpn/generic/add_err3_n.c mpn/sub_err1_n.c:mpn/generic/sub_err1_n.c mpn/sub_err2_n.c:mpn/generic/sub_err2_n.c mpn/sub_err3_n.c:mpn/generic/sub_err3_n.c mpn/lshift.asm:mpn/arm64/lshift.asm mpn/rshift.asm:mpn/arm64/rshift.asm mpn/dive_1.c:mpn/generic/dive_1.c mpn/diveby3.c:mpn/generic/diveby3.c mpn/divis.c:mpn/generic/divis.c mpn/divrem.c:mpn/generic/divrem.c mpn/divrem_1.c:mpn/generic/divrem_1.c mpn/divrem_2.c:mpn/generic/divrem_2.c mpn/fib2_ui.c:mpn/generic/fib2_ui.c mpn/fib2m.c:mpn/generic/fib2m.c mpn/mod_1.c:mpn/generic/mod_1.c mpn/mod_34lsub1.asm:mpn/arm64/mod_34lsub1.asm mpn/mode1o.c:mpn/generic/mode1o.c mpn/pre_divrem_1.c:mpn/generic/pre_divrem_1.c mpn/pre_mod_1.c:mpn/generic/pre_mod_1.c mpn/dump.c:mpn/generic/dump.c mpn/mod_1_1.c:mpn/generic/mod_1_1.c mpn/mod_1_2.c:mpn/generic/mod_1_2.c mpn/mod_1_3.c:mpn/generic/mod_1_3.c mpn/mod_1_4.c:mpn/generic/mod_1_4.c mpn/lshiftc.asm:mpn/arm64/lshiftc.asm mpn/mul.c:mpn/generic/mul.c mpn/mul_fft.c:mpn/generic/mul_fft.c mpn/mul_n.c:mpn/generic/mul_n.c mpn/sqr.c:mpn/generic/sqr.c mpn/mul_basecase.c:mpn/generic/mul_basecase.c mpn/sqr_basecase.c:mpn/generic/sqr_basecase.c mpn/nussbaumer_mul.c:mpn/generic/nussbaumer_mul.c mpn/mulmid_basecase.c:mpn/generic/mulmid_basecase.c mpn/toom42_mulmid.c:mpn/generic/toom42_mulmid.c mpn/mulmid_n.c:mpn/generic/mulmid_n.c mpn/mulmid.c:mpn/generic/mulmid.c mpn/random.c:mpn/generic/random.c mpn/random2.c:mpn/generic/random2.c mpn/pow_1.c:mpn/generic/pow_1.c mpn/rootrem.c:mpn/generic/rootrem.c mpn/sqrtrem.c:mpn/generic/sqrtrem.c mpn/sizeinbase.c:mpn/generic/sizeinbase.c mpn/get_str.c:mpn/generic/get_str.c mpn/set_str.c:mpn/generic/set_str.c mpn/compute_powtab.c:mpn/generic/compute_powtab.c mpn/scan0.c:mpn/generic/scan0.c mpn/scan1.c:mpn/generic/scan1.c mpn/popcount.asm:mpn/arm64/popcount.asm mpn/hamdist.asm:mpn/arm64/hamdist.asm mpn/cmp.c:mpn/generic/cmp.c mpn/zero_p.c:mpn/generic/zero_p.c mpn/perfsqr.c:mpn/generic/perfsqr.c mpn/perfpow.c:mpn/generic/perfpow.c mpn/strongfibo.c:mpn/generic/strongfibo.c mpn/gcd_11.asm:mpn/arm64/gcd_11.asm mpn/gcd_22.asm:mpn/arm64/gcd_22.asm mpn/gcd_1.c:mpn/generic/gcd_1.c mpn/gcd.c:mpn/generic/gcd.c mpn/gcdext_1.c:mpn/generic/gcdext_1.c mpn/gcdext.c:mpn/generic/gcdext.c mpn/gcd_subdiv_step.c:mpn/generic/gcd_subdiv_step.c mpn/gcdext_lehmer.c:mpn/generic/gcdext_lehmer.c mpn/div_q.c:mpn/generic/div_q.c mpn/tdiv_qr.c:mpn/generic/tdiv_qr.c mpn/jacbase.c:mpn/generic/jacbase.c mpn/jacobi_2.c:mpn/generic/jacobi_2.c mpn/jacobi.c:mpn/generic/jacobi.c mpn/get_d.c:mpn/generic/get_d.c mpn/matrix22_mul.c:mpn/generic/matrix22_mul.c mpn/matrix22_mul1_inverse_vector.c:mpn/generic/matrix22_mul1_inverse_vector.c mpn/hgcd_matrix.c:mpn/generic/hgcd_matrix.c mpn/hgcd2.c:mpn/generic/hgcd2.c mpn/hgcd_step.c:mpn/generic/hgcd_step.c mpn/hgcd_reduce.c:mpn/generic/hgcd_reduce.c mpn/hgcd.c:mpn/generic/hgcd.c mpn/hgcd_appr.c:mpn/generic/hgcd_appr.c mpn/hgcd2_jacobi.c:mpn/generic/hgcd2_jacobi.c mpn/hgcd_jacobi.c:mpn/generic/hgcd_jacobi.c mpn/mullo_n.c:mpn/generic/mullo_n.c mpn/mullo_basecase.c:mpn/generic/mullo_basecase.c mpn/sqrlo.c:mpn/generic/sqrlo.c mpn/sqrlo_basecase.c:mpn/generic/sqrlo_basecase.c mpn/toom22_mul.c:mpn/generic/toom22_mul.c mpn/toom32_mul.c:mpn/generic/toom32_mul.c mpn/toom42_mul.c:mpn/generic/toom42_mul.c mpn/toom52_mul.c:mpn/generic/toom52_mul.c mpn/toom62_mul.c:mpn/generic/toom62_mul.c mpn/toom33_mul.c:mpn/generic/toom33_mul.c mpn/toom43_mul.c:mpn/generic/toom43_mul.c mpn/toom53_mul.c:mpn/generic/toom53_mul.c mpn/toom54_mul.c:mpn/generic/toom54_mul.c mpn/toom63_mul.c:mpn/generic/toom63_mul.c mpn/toom44_mul.c:mpn/generic/toom44_mul.c mpn/toom6h_mul.c:mpn/generic/toom6h_mul.c mpn/toom6_sqr.c:mpn/generic/toom6_sqr.c mpn/toom8h_mul.c:mpn/generic/toom8h_mul.c mpn/toom8_sqr.c:mpn/generic/toom8_sqr.c mpn/toom_couple_handling.c:mpn/generic/toom_couple_handling.c mpn/toom2_sqr.c:mpn/generic/toom2_sqr.c mpn/toom3_sqr.c:mpn/generic/toom3_sqr.c mpn/toom4_sqr.c:mpn/generic/toom4_sqr.c mpn/toom_eval_dgr3_pm1.c:mpn/generic/toom_eval_dgr3_pm1.c mpn/toom_eval_dgr3_pm2.c:mpn/generic/toom_eval_dgr3_pm2.c mpn/toom_eval_pm1.c:mpn/generic/toom_eval_pm1.c mpn/toom_eval_pm2.c:mpn/generic/toom_eval_pm2.c mpn/toom_eval_pm2exp.c:mpn/generic/toom_eval_pm2exp.c mpn/toom_eval_pm2rexp.c:mpn/generic/toom_eval_pm2rexp.c mpn/toom_interpolate_5pts.c:mpn/generic/toom_interpolate_5pts.c mpn/toom_interpolate_6pts.c:mpn/generic/toom_interpolate_6pts.c mpn/toom_interpolate_7pts.c:mpn/generic/toom_interpolate_7pts.c mpn/toom_interpolate_8pts.c:mpn/generic/toom_interpolate_8pts.c mpn/toom_interpolate_12pts.c:mpn/generic/toom_interpolate_12pts.c mpn/toom_interpolate_16pts.c:mpn/generic/toom_interpolate_16pts.c mpn/invertappr.c:mpn/generic/invertappr.c mpn/invert.c:mpn/generic/invert.c mpn/binvert.c:mpn/generic/binvert.c mpn/mulmod_bnm1.c:mpn/generic/mulmod_bnm1.c mpn/sqrmod_bnm1.c:mpn/generic/sqrmod_bnm1.c mpn/div_qr_1.c:mpn/generic/div_qr_1.c mpn/div_qr_1n_pi1.c:mpn/generic/div_qr_1n_pi1.c mpn/div_qr_2.c:mpn/generic/div_qr_2.c mpn/div_qr_2n_pi1.c:mpn/generic/div_qr_2n_pi1.c mpn/div_qr_2u_pi1.c:mpn/generic/div_qr_2u_pi1.c mpn/sbpi1_div_q.c:mpn/generic/sbpi1_div_q.c mpn/sbpi1_div_qr.c:mpn/generic/sbpi1_div_qr.c mpn/sbpi1_divappr_q.c:mpn/generic/sbpi1_divappr_q.c mpn/dcpi1_div_q.c:mpn/generic/dcpi1_div_q.c mpn/dcpi1_div_qr.c:mpn/generic/dcpi1_div_qr.c mpn/dcpi1_divappr_q.c:mpn/generic/dcpi1_divappr_q.c mpn/mu_div_qr.c:mpn/generic/mu_div_qr.c mpn/mu_divappr_q.c:mpn/generic/mu_divappr_q.c mpn/mu_div_q.c:mpn/generic/mu_div_q.c mpn/bdiv_q_1.asm:mpn/arm64/bdiv_q_1.asm mpn/sbpi1_bdiv_q.c:mpn/generic/sbpi1_bdiv_q.c mpn/sbpi1_bdiv_qr.c:mpn/generic/sbpi1_bdiv_qr.c mpn/sbpi1_bdiv_r.c:mpn/generic/sbpi1_bdiv_r.c mpn/dcpi1_bdiv_q.c:mpn/generic/dcpi1_bdiv_q.c mpn/dcpi1_bdiv_qr.c:mpn/generic/dcpi1_bdiv_qr.c mpn/mu_bdiv_q.c:mpn/generic/mu_bdiv_q.c mpn/mu_bdiv_qr.c:mpn/generic/mu_bdiv_qr.c mpn/bdiv_q.c:mpn/generic/bdiv_q.c mpn/bdiv_qr.c:mpn/generic/bdiv_qr.c mpn/broot.c:mpn/generic/broot.c mpn/brootinv.c:mpn/generic/brootinv.c mpn/bsqrt.c:mpn/generic/bsqrt.c mpn/bsqrtinv.c:mpn/generic/bsqrtinv.c mpn/divexact.c:mpn/generic/divexact.c mpn/bdiv_dbm1c.asm:mpn/arm64/bdiv_dbm1c.asm mpn/redc_1.c:mpn/generic/redc_1.c mpn/redc_2.c:mpn/generic/redc_2.c mpn/redc_n.c:mpn/generic/redc_n.c mpn/powm.c:mpn/generic/powm.c mpn/powlo.c:mpn/generic/powlo.c mpn/sec_powm.c:mpn/generic/sec_powm.c mpn/sec_mul.c:mpn/generic/sec_mul.c mpn/sec_sqr.c:mpn/generic/sec_sqr.c mpn/sec_div_qr.c:mpn/generic/sec_div.c mpn/sec_div_r.c:mpn/generic/sec_div.c mpn/sec_pi1_div_qr.c:mpn/generic/sec_pi1_div.c mpn/sec_pi1_div_r.c:mpn/generic/sec_pi1_div.c mpn/sec_add_1.c:mpn/generic/sec_aors_1.c mpn/sec_sub_1.c:mpn/generic/sec_aors_1.c mpn/sec_invert.c:mpn/generic/sec_invert.c mpn/trialdiv.c:mpn/generic/trialdiv.c mpn/remove.c:mpn/generic/remove.c mpn/and_n.asm:mpn/arm64/logops_n.asm mpn/andn_n.asm:mpn/arm64/logops_n.asm mpn/nand_n.asm:mpn/arm64/logops_n.asm mpn/ior_n.asm:mpn/arm64/logops_n.asm mpn/iorn_n.asm:mpn/arm64/logops_n.asm mpn/nior_n.asm:mpn/arm64/logops_n.asm mpn/xor_n.asm:mpn/arm64/logops_n.asm mpn/xnor_n.asm:mpn/arm64/logops_n.asm mpn/copyi.asm:mpn/arm64/copyi.asm mpn/copyd.asm:mpn/arm64/copyd.asm mpn/zero.c:mpn/generic/zero.c mpn/sec_tabselect.asm:mpn/arm64/sec_tabselect.asm mpn/comb_tables.c:mpn/generic/comb_tables.c mpn/invert_limb.asm:mpn/arm64/invert_limb.asm mpn/sqr_diag_addlsh1.asm:mpn/arm64/sqr_diag_addlsh1.asm mpn/addlsh1_n.asm:mpn/arm64/aorsorrlsh1_n.asm mpn/sublsh1_n.asm:mpn/arm64/aorsorrlsh1_n.asm mpn/rsblsh1_n.asm:mpn/arm64/aorsorrlsh1_n.asm mpn/rsh1add_n.asm:mpn/arm64/rsh1aors_n.asm mpn/rsh1sub_n.asm:mpn/arm64/rsh1aors_n.asm mpn/addlsh2_n.asm:mpn/arm64/aorsorrlsh2_n.asm mpn/sublsh2_n.asm:mpn/arm64/aorsorrlsh2_n.asm mpn/rsblsh2_n.asm:mpn/arm64/aorsorrlsh2_n.asm mpn/add_n_sub_n.c:mpn/generic/add_n_sub_n.c gmp-mparam.h:mpn/arm64/gmp-mparam.h"
+config_links=" mpn/invert_limb_table.asm:mpn/x86_64/invert_limb_table.asm mpn/add.c:mpn/generic/add.c mpn/add_1.c:mpn/generic/add_1.c mpn/add_n.asm:mpn/x86_64/aors_n.asm mpn/sub.c:mpn/generic/sub.c mpn/sub_1.c:mpn/generic/sub_1.c mpn/sub_n.asm:mpn/x86_64/aors_n.asm mpn/cnd_add_n.asm:mpn/x86_64/cnd_aors_n.asm mpn/cnd_sub_n.asm:mpn/x86_64/cnd_aors_n.asm mpn/cnd_swap.c:mpn/generic/cnd_swap.c mpn/neg.c:mpn/generic/neg.c mpn/com.asm:mpn/x86_64/com.asm mpn/mul_1.asm:mpn/x86_64/mul_1.asm mpn/addmul_1.asm:mpn/x86_64/aorsmul_1.asm mpn/submul_1.asm:mpn/x86_64/aorsmul_1.asm mpn/add_err1_n.asm:mpn/x86_64/aors_err1_n.asm mpn/add_err2_n.asm:mpn/x86_64/aors_err2_n.asm mpn/add_err3_n.asm:mpn/x86_64/aors_err3_n.asm mpn/sub_err1_n.asm:mpn/x86_64/aors_err1_n.asm mpn/sub_err2_n.asm:mpn/x86_64/aors_err2_n.asm mpn/sub_err3_n.asm:mpn/x86_64/aors_err3_n.asm mpn/lshift.asm:mpn/x86_64/lshift.asm mpn/rshift.asm:mpn/x86_64/rshift.asm mpn/dive_1.asm:mpn/x86_64/dive_1.asm mpn/diveby3.c:mpn/generic/diveby3.c mpn/divis.c:mpn/generic/divis.c mpn/divrem.c:mpn/generic/divrem.c mpn/divrem_1.asm:mpn/x86_64/divrem_1.asm mpn/divrem_2.asm:mpn/x86_64/divrem_2.asm mpn/fib2_ui.c:mpn/generic/fib2_ui.c mpn/fib2m.c:mpn/generic/fib2m.c mpn/mod_1.c:mpn/generic/mod_1.c mpn/mod_34lsub1.asm:mpn/x86_64/mod_34lsub1.asm mpn/mode1o.asm:mpn/x86_64/mode1o.asm mpn/pre_mod_1.c:mpn/generic/pre_mod_1.c mpn/dump.c:mpn/generic/dump.c mpn/mod_1_1.asm:mpn/x86_64/mod_1_1.asm mpn/mod_1_2.asm:mpn/x86_64/mod_1_2.asm mpn/mod_1_3.c:mpn/generic/mod_1_3.c mpn/mod_1_4.asm:mpn/x86_64/mod_1_4.asm mpn/lshiftc.asm:mpn/x86_64/lshiftc.asm mpn/mul.c:mpn/generic/mul.c mpn/mul_fft.c:mpn/generic/mul_fft.c mpn/mul_n.c:mpn/generic/mul_n.c mpn/sqr.c:mpn/generic/sqr.c mpn/mul_basecase.asm:mpn/x86_64/k8/mul_basecase.asm mpn/sqr_basecase.asm:mpn/x86_64/k8/sqr_basecase.asm mpn/nussbaumer_mul.c:mpn/generic/nussbaumer_mul.c mpn/mulmid_basecase.asm:mpn/x86_64/k8/mulmid_basecase.asm mpn/toom42_mulmid.c:mpn/generic/toom42_mulmid.c mpn/mulmid_n.c:mpn/generic/mulmid_n.c mpn/mulmid.c:mpn/generic/mulmid.c mpn/random.c:mpn/generic/random.c mpn/random2.c:mpn/generic/random2.c mpn/pow_1.c:mpn/generic/pow_1.c mpn/rootrem.c:mpn/generic/rootrem.c mpn/sqrtrem.c:mpn/generic/sqrtrem.c mpn/sizeinbase.c:mpn/generic/sizeinbase.c mpn/get_str.c:mpn/generic/get_str.c mpn/set_str.c:mpn/generic/set_str.c mpn/compute_powtab.c:mpn/generic/compute_powtab.c mpn/scan0.c:mpn/generic/scan0.c mpn/scan1.c:mpn/generic/scan1.c mpn/popcount.asm:mpn/x86_64/popham.asm mpn/hamdist.asm:mpn/x86_64/popham.asm mpn/cmp.c:mpn/generic/cmp.c mpn/zero_p.c:mpn/generic/zero_p.c mpn/perfsqr.c:mpn/generic/perfsqr.c mpn/perfpow.c:mpn/generic/perfpow.c mpn/strongfibo.c:mpn/generic/strongfibo.c mpn/gcd_11.asm:mpn/x86_64/gcd_11.asm mpn/gcd_22.asm:mpn/x86_64/gcd_22.asm mpn/gcd_1.c:mpn/generic/gcd_1.c mpn/gcd.c:mpn/generic/gcd.c mpn/gcdext_1.c:mpn/generic/gcdext_1.c mpn/gcdext.c:mpn/generic/gcdext.c mpn/gcd_subdiv_step.c:mpn/generic/gcd_subdiv_step.c mpn/gcdext_lehmer.c:mpn/generic/gcdext_lehmer.c mpn/div_q.c:mpn/generic/div_q.c mpn/tdiv_qr.c:mpn/generic/tdiv_qr.c mpn/jacbase.c:mpn/generic/jacbase.c mpn/jacobi_2.c:mpn/generic/jacobi_2.c mpn/jacobi.c:mpn/generic/jacobi.c mpn/get_d.c:mpn/generic/get_d.c mpn/matrix22_mul.c:mpn/generic/matrix22_mul.c mpn/matrix22_mul1_inverse_vector.c:mpn/generic/matrix22_mul1_inverse_vector.c mpn/hgcd_matrix.c:mpn/generic/hgcd_matrix.c mpn/hgcd2.c:mpn/generic/hgcd2.c mpn/hgcd_step.c:mpn/generic/hgcd_step.c mpn/hgcd_reduce.c:mpn/generic/hgcd_reduce.c mpn/hgcd.c:mpn/generic/hgcd.c mpn/hgcd_appr.c:mpn/generic/hgcd_appr.c mpn/hgcd2_jacobi.c:mpn/generic/hgcd2_jacobi.c mpn/hgcd_jacobi.c:mpn/generic/hgcd_jacobi.c mpn/mullo_n.c:mpn/generic/mullo_n.c mpn/mullo_basecase.asm:mpn/x86_64/k8/mullo_basecase.asm mpn/sqrlo.c:mpn/generic/sqrlo.c mpn/sqrlo_basecase.c:mpn/generic/sqrlo_basecase.c mpn/toom22_mul.c:mpn/generic/toom22_mul.c mpn/toom32_mul.c:mpn/generic/toom32_mul.c mpn/toom42_mul.c:mpn/generic/toom42_mul.c mpn/toom52_mul.c:mpn/generic/toom52_mul.c mpn/toom62_mul.c:mpn/generic/toom62_mul.c mpn/toom33_mul.c:mpn/generic/toom33_mul.c mpn/toom43_mul.c:mpn/generic/toom43_mul.c mpn/toom53_mul.c:mpn/generic/toom53_mul.c mpn/toom54_mul.c:mpn/generic/toom54_mul.c mpn/toom63_mul.c:mpn/generic/toom63_mul.c mpn/toom44_mul.c:mpn/generic/toom44_mul.c mpn/toom6h_mul.c:mpn/generic/toom6h_mul.c mpn/toom6_sqr.c:mpn/generic/toom6_sqr.c mpn/toom8h_mul.c:mpn/generic/toom8h_mul.c mpn/toom8_sqr.c:mpn/generic/toom8_sqr.c mpn/toom_couple_handling.c:mpn/generic/toom_couple_handling.c mpn/toom2_sqr.c:mpn/generic/toom2_sqr.c mpn/toom3_sqr.c:mpn/generic/toom3_sqr.c mpn/toom4_sqr.c:mpn/generic/toom4_sqr.c mpn/toom_eval_dgr3_pm1.c:mpn/generic/toom_eval_dgr3_pm1.c mpn/toom_eval_dgr3_pm2.c:mpn/generic/toom_eval_dgr3_pm2.c mpn/toom_eval_pm1.c:mpn/generic/toom_eval_pm1.c mpn/toom_eval_pm2.c:mpn/generic/toom_eval_pm2.c mpn/toom_eval_pm2exp.c:mpn/generic/toom_eval_pm2exp.c mpn/toom_eval_pm2rexp.c:mpn/generic/toom_eval_pm2rexp.c mpn/toom_interpolate_5pts.c:mpn/generic/toom_interpolate_5pts.c mpn/toom_interpolate_6pts.c:mpn/generic/toom_interpolate_6pts.c mpn/toom_interpolate_7pts.c:mpn/generic/toom_interpolate_7pts.c mpn/toom_interpolate_8pts.c:mpn/generic/toom_interpolate_8pts.c mpn/toom_interpolate_12pts.c:mpn/generic/toom_interpolate_12pts.c mpn/toom_interpolate_16pts.c:mpn/generic/toom_interpolate_16pts.c mpn/invertappr.c:mpn/generic/invertappr.c mpn/invert.c:mpn/generic/invert.c mpn/binvert.c:mpn/generic/binvert.c mpn/mulmod_bnm1.c:mpn/generic/mulmod_bnm1.c mpn/sqrmod_bnm1.c:mpn/generic/sqrmod_bnm1.c mpn/div_qr_1.c:mpn/generic/div_qr_1.c mpn/div_qr_1n_pi1.asm:mpn/x86_64/k8/div_qr_1n_pi1.asm mpn/div_qr_2.c:mpn/generic/div_qr_2.c mpn/div_qr_2n_pi1.asm:mpn/x86_64/div_qr_2n_pi1.asm mpn/div_qr_2u_pi1.asm:mpn/x86_64/div_qr_2u_pi1.asm mpn/sbpi1_div_q.c:mpn/generic/sbpi1_div_q.c mpn/sbpi1_div_qr.c:mpn/generic/sbpi1_div_qr.c mpn/sbpi1_divappr_q.c:mpn/generic/sbpi1_divappr_q.c mpn/dcpi1_div_q.c:mpn/generic/dcpi1_div_q.c mpn/dcpi1_div_qr.c:mpn/generic/dcpi1_div_qr.c mpn/dcpi1_divappr_q.c:mpn/generic/dcpi1_divappr_q.c mpn/mu_div_qr.c:mpn/generic/mu_div_qr.c mpn/mu_divappr_q.c:mpn/generic/mu_divappr_q.c mpn/mu_div_q.c:mpn/generic/mu_div_q.c mpn/bdiv_q_1.asm:mpn/x86_64/k8/bdiv_q_1.asm mpn/sbpi1_bdiv_q.c:mpn/generic/sbpi1_bdiv_q.c mpn/sbpi1_bdiv_qr.c:mpn/generic/sbpi1_bdiv_qr.c mpn/sbpi1_bdiv_r.c:mpn/generic/sbpi1_bdiv_r.c mpn/dcpi1_bdiv_q.c:mpn/generic/dcpi1_bdiv_q.c mpn/dcpi1_bdiv_qr.c:mpn/generic/dcpi1_bdiv_qr.c mpn/mu_bdiv_q.c:mpn/generic/mu_bdiv_q.c mpn/mu_bdiv_qr.c:mpn/generic/mu_bdiv_qr.c mpn/bdiv_q.c:mpn/generic/bdiv_q.c mpn/bdiv_qr.c:mpn/generic/bdiv_qr.c mpn/broot.c:mpn/generic/broot.c mpn/brootinv.c:mpn/generic/brootinv.c mpn/bsqrt.c:mpn/generic/bsqrt.c mpn/bsqrtinv.c:mpn/generic/bsqrtinv.c mpn/divexact.c:mpn/generic/divexact.c mpn/bdiv_dbm1c.asm:mpn/x86_64/bdiv_dbm1c.asm mpn/redc_1.asm:mpn/x86_64/k8/redc_1.asm mpn/redc_2.c:mpn/generic/redc_2.c mpn/redc_n.c:mpn/generic/redc_n.c mpn/powm.c:mpn/generic/powm.c mpn/powlo.c:mpn/generic/powlo.c mpn/sec_powm.c:mpn/generic/sec_powm.c mpn/sec_mul.c:mpn/generic/sec_mul.c mpn/sec_sqr.c:mpn/generic/sec_sqr.c mpn/sec_div_qr.c:mpn/generic/sec_div.c mpn/sec_div_r.c:mpn/generic/sec_div.c mpn/sec_pi1_div_qr.c:mpn/generic/sec_pi1_div.c mpn/sec_pi1_div_r.c:mpn/generic/sec_pi1_div.c mpn/sec_add_1.c:mpn/generic/sec_aors_1.c mpn/sec_sub_1.c:mpn/generic/sec_aors_1.c mpn/sec_invert.c:mpn/generic/sec_invert.c mpn/trialdiv.c:mpn/generic/trialdiv.c mpn/remove.c:mpn/generic/remove.c mpn/and_n.asm:mpn/x86_64/logops_n.asm mpn/andn_n.asm:mpn/x86_64/logops_n.asm mpn/nand_n.asm:mpn/x86_64/logops_n.asm mpn/ior_n.asm:mpn/x86_64/logops_n.asm mpn/iorn_n.asm:mpn/x86_64/logops_n.asm mpn/nior_n.asm:mpn/x86_64/logops_n.asm mpn/xor_n.asm:mpn/x86_64/logops_n.asm mpn/xnor_n.asm:mpn/x86_64/logops_n.asm mpn/copyi.asm:mpn/x86_64/copyi.asm mpn/copyd.asm:mpn/x86_64/copyd.asm mpn/zero.c:mpn/generic/zero.c mpn/sec_tabselect.asm:mpn/x86_64/sec_tabselect.asm mpn/comb_tables.c:mpn/generic/comb_tables.c mpn/invert_limb.asm:mpn/x86_64/invert_limb.asm mpn/sqr_diag_addlsh1.asm:mpn/x86_64/sqr_diag_addlsh1.asm mpn/mul_2.asm:mpn/x86_64/mul_2.asm mpn/addmul_2.asm:mpn/x86_64/k8/addmul_2.asm mpn/addlsh1_n.asm:mpn/x86_64/aorrlsh1_n.asm mpn/sublsh1_n.asm:mpn/x86_64/sublsh1_n.asm mpn/rsblsh1_n.asm:mpn/x86_64/aorrlsh1_n.asm mpn/rsh1add_n.asm:mpn/x86_64/rsh1aors_n.asm mpn/rsh1sub_n.asm:mpn/x86_64/rsh1aors_n.asm mpn/addlsh2_n.asm:mpn/x86_64/aorrlsh2_n.asm mpn/rsblsh2_n.asm:mpn/x86_64/aorrlsh2_n.asm mpn/addlsh_n.asm:mpn/x86_64/k8/aorrlsh_n.asm mpn/rsblsh_n.asm:mpn/x86_64/k8/aorrlsh_n.asm mpn/add_n_sub_n.c:mpn/generic/add_n_sub_n.c mpn/addaddmul_1msb0.asm:mpn/x86_64/addaddmul_1msb0.asm gmp-mparam.h:mpn/x86_64/k8/gmp-mparam.h"
 config_commands=" libtool"
 
 ac_cs_usage="\
@@ -433,7 +433,7 @@ Report bugs to <gmp-bugs@gmplib.org, see https://gmplib.org/manual/Reporting-Bug
 GNU MP home page: <http://www.gnu.org/software/gmp/>.
 General help using GNU software: <http://www.gnu.org/gethelp/>."
 
-ac_cs_config="'--enable-cxx' '--prefix=/Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/../../usr/' 'CC=gcc' 'CXX=g++'"
+ac_cs_config="'--enable-cxx' '--prefix=/var/tmp/usr/FIRE/extra/gmp-6.2.1/../../usr/'"
 ac_cs_version="\
 GNU MP config.status 6.2.1
 configured by ./configure, generated by GNU Autoconf 2.69,
@@ -443,11 +443,11 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1'
+ac_pwd='/var/tmp/usr/FIRE/extra/gmp-6.2.1'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
-MKDIR_P='./install-sh -c -d'
-AWK='awk'
+MKDIR_P='/bin/mkdir -p'
+AWK='gawk'
 test -n "$AWK" || AWK=awk
 # The default lists apply if the user does not specify any file.
 ac_need_defaults=:
@@ -525,7 +525,7 @@ if $ac_cs_silent; then
 fi
 
 if $ac_cs_recheck; then
-  set X /bin/sh './configure'  '--enable-cxx' '--prefix=/Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/../../usr/' 'CC=gcc' 'CXX=g++' $ac_configure_extra_args --no-create --no-recursion
+  set X /bin/sh './configure'  '--enable-cxx' '--prefix=/var/tmp/usr/FIRE/extra/gmp-6.2.1/../../usr/' $ac_configure_extra_args --no-create --no-recursion
   shift
   $as_echo "running CONFIG_SHELL=/bin/sh $*" >&6
   CONFIG_SHELL='/bin/sh'
@@ -554,7 +554,7 @@ _ASBOX
 sed_quote_subst='s/\(["`$\\]\)/\\\1/g'
 double_quote_subst='s/\(["`\\]\)/\\\1/g'
 delay_variable_subst='s/\\\\\\\\\\\$/\\\\\\$/g'
-NM='/usr/bin/nm -B'
+NM='/var/tmp/gnu/bin/nm -B'
 AS='as'
 DLLTOOL='dlltool'
 OBJDUMP='objdump'
@@ -563,25 +563,25 @@ macro_revision='2.4.6'
 enable_shared='yes'
 enable_static='yes'
 pic_mode='default'
-enable_fast_install='needless'
+enable_fast_install='yes'
 shared_archive_member_spec=''
 SHELL='/bin/sh'
 ECHO='printf %s\n'
 PATH_SEPARATOR=':'
 host_alias=''
-host='aarch64-apple-darwin21.3.0'
-host_os='darwin21.3.0'
+host='x86_64-pc-linux-gnu'
+host_os='linux-gnu'
 build_alias=''
-build='aarch64-apple-darwin21.3.0'
-build_os='darwin21.3.0'
-SED='/usr/bin/sed'
-Xsed='/usr/bin/sed -e 1s/^X//'
-GREP='/usr/bin/grep'
-EGREP='/usr/bin/grep -E'
-FGREP='/usr/bin/grep -F'
-LD='/usr/bin/ld'
+build='x86_64-pc-linux-gnu'
+build_os='linux-gnu'
+SED='/bin/sed'
+Xsed='/bin/sed -e 1s/^X//'
+GREP='/bin/grep'
+EGREP='/bin/grep -E'
+FGREP='/bin/grep -F'
+LD='/var/tmp/gnu/x86_64-pc-linux-gnu/bin/ld -m elf_x86_64'
 LN_S='ln -s'
-max_cmd_len='786432'
+max_cmd_len='3458764513820540925'
 ac_objext='o'
 exeext=''
 lt_unset='unset'
@@ -590,7 +590,7 @@ lt_NL2SP='tr \015\012 \040\040'
 lt_cv_to_host_file_cmd='func_convert_file_noop'
 lt_cv_to_tool_file_cmd='func_convert_file_noop'
 reload_flag=' -r'
-reload_cmds='$LTCC $LTCFLAGS -nostdlib $wl-r -o $output$reload_objs'
+reload_cmds='$LD$reload_flag -o $output$reload_objs'
 deplibs_check_method='pass_all'
 file_magic_cmd='$MAGIC_CMD'
 file_magic_glob=''
@@ -598,22 +598,22 @@ want_nocaseglob='no'
 sharedlib_from_linklib_cmd='printf %s\n'
 AR='ar'
 AR_FLAGS='cq'
-archiver_list_spec=''
+archiver_list_spec='@'
 STRIP='strip'
 RANLIB='ranlib'
 old_postinstall_cmds='chmod 644 $oldlib~$RANLIB $tool_oldlib'
 old_postuninstall_cmds=''
 old_archive_cmds='$AR $AR_FLAGS $oldlib$oldobjs~$RANLIB $tool_oldlib'
-lock_old_archive_extraction='yes'
+lock_old_archive_extraction='no'
 CC='gcc'
-CFLAGS='-O2 -pedantic -march=armv8-a'
+CFLAGS='-O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8'
 compiler='g++'
 GCC='yes'
-lt_cv_sys_global_symbol_pipe='sed -n -e '\''s/^.*[	 ]\([BCDEGRST][BCDEGRST]*\)[	 ][	 ]*_\([_A-Za-z][_A-Za-z0-9]*\)$/\1 _\2 \2/p'\'' | sed '\''/ __gnu_lto/d'\'''
-lt_cv_sys_global_symbol_to_cdecl='sed -n -e '\''s/^T .* \(.*\)$/extern int \1();/p'\'' -e '\''s/^[BCDEGRST][BCDEGRST]* .* \(.*\)$/extern char \1;/p'\'''
+lt_cv_sys_global_symbol_pipe='sed -n -e '\''s/^.*[	 ]\([ABCDGIRSTW][ABCDGIRSTW]*\)[	 ][	 ]*\([_A-Za-z][_A-Za-z0-9]*\)$/\1 \2 \2/p'\'' | sed '\''/ __gnu_lto/d'\'''
+lt_cv_sys_global_symbol_to_cdecl='sed -n -e '\''s/^T .* \(.*\)$/extern int \1();/p'\'' -e '\''s/^[ABCDGIRSTW][ABCDGIRSTW]* .* \(.*\)$/extern char \1;/p'\'''
 lt_cv_sys_global_symbol_to_import=''
-lt_cv_sys_global_symbol_to_c_name_address='sed -n -e '\''s/^: \(.*\) .*$/  {"\1", (void *) 0},/p'\'' -e '\''s/^[BCDEGRST][BCDEGRST]* .* \(.*\)$/  {"\1", (void *) \&\1},/p'\'''
-lt_cv_sys_global_symbol_to_c_name_address_lib_prefix='sed -n -e '\''s/^: \(.*\) .*$/  {"\1", (void *) 0},/p'\'' -e '\''s/^[BCDEGRST][BCDEGRST]* .* \(lib.*\)$/  {"\1", (void *) \&\1},/p'\'' -e '\''s/^[BCDEGRST][BCDEGRST]* .* \(.*\)$/  {"lib\1", (void *) \&\1},/p'\'''
+lt_cv_sys_global_symbol_to_c_name_address='sed -n -e '\''s/^: \(.*\) .*$/  {"\1", (void *) 0},/p'\'' -e '\''s/^[ABCDGIRSTW][ABCDGIRSTW]* .* \(.*\)$/  {"\1", (void *) \&\1},/p'\'''
+lt_cv_sys_global_symbol_to_c_name_address_lib_prefix='sed -n -e '\''s/^: \(.*\) .*$/  {"\1", (void *) 0},/p'\'' -e '\''s/^[ABCDGIRSTW][ABCDGIRSTW]* .* \(lib.*\)$/  {"\1", (void *) \&\1},/p'\'' -e '\''s/^[ABCDGIRSTW][ABCDGIRSTW]* .* \(.*\)$/  {"lib\1", (void *) \&\1},/p'\'''
 lt_cv_nm_interface='BSD nm'
 nm_file_list_spec='@'
 lt_sysroot=''
@@ -621,43 +621,46 @@ lt_cv_truncate_bin='/bin/dd bs=4096 count=1'
 objdir='.libs'
 MAGIC_CMD='file'
 lt_prog_compiler_no_builtin_flag=' -fno-builtin'
-lt_prog_compiler_pic=' -fno-common -DPIC'
+lt_prog_compiler_pic=' -fPIC -DPIC'
 lt_prog_compiler_wl='-Wl,'
-lt_prog_compiler_static=''
+lt_prog_compiler_static='-static'
 lt_cv_prog_compiler_c_o='yes'
 need_locks='no'
 MANIFEST_TOOL=':'
-DSYMUTIL='dsymutil'
-NMEDIT='nmedit'
-LIPO='lipo'
-OTOOL='otool'
-OTOOL64=':'
+DSYMUTIL=''
+NMEDIT=''
+LIPO=''
+OTOOL=''
+OTOOL64=''
 libext='a'
-shrext_cmds='`test .$module = .yes && echo .so || echo .dylib`'
+shrext_cmds='.so'
 extract_expsyms_cmds=''
 archive_cmds_need_lc='no'
 enable_shared_with_static_runtimes='no'
-export_dynamic_flag_spec=''
-whole_archive_flag_spec='`for conv in $convenience\"\"; do test  -n \"$conv\" && new_convenience=\"$new_convenience $wl-force_load,$conv\"; done; func_echo_all \"$new_convenience\"`'
+export_dynamic_flag_spec='$wl--export-dynamic'
+whole_archive_flag_spec='$wl--whole-archive$convenience $wl--no-whole-archive'
 compiler_needs_object='no'
 old_archive_from_new_cmds=''
 old_archive_from_expsyms_cmds=''
-archive_cmds='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring $single_module'
-archive_expsym_cmds='sed '\''s|^|_|'\'' < $export_symbols > $output_objdir/$libname-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring $single_module $wl-exported_symbols_list,$output_objdir/$libname-symbols.expsym'
-module_cmds='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs $compiler_flags'
-module_expsym_cmds='sed -e '\''s|^|_|'\'' < $export_symbols > $output_objdir/$libname-symbols.expsym~$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs $compiler_flags $wl-exported_symbols_list,$output_objdir/$libname-symbols.expsym'
-with_gnu_ld='no'
-allow_undefined_flag='$wl-flat_namespace $wl-undefined ${wl}suppress'
+archive_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname -o $lib'
+archive_expsym_cmds='echo "{ global:" > $output_objdir/$libname.ver~
+            cat $export_symbols | sed -e "s/\(.*\)/\1;/" >> $output_objdir/$libname.ver~
+            echo "local: *; };" >> $output_objdir/$libname.ver~
+            $CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname $wl-version-script $wl$output_objdir/$libname.ver -o $lib'
+module_cmds=''
+module_expsym_cmds=''
+with_gnu_ld='yes'
+allow_undefined_flag=''
 no_undefined_flag=''
-hardcode_libdir_flag_spec=''
+hardcode_libdir_flag_spec='$wl-rpath $wl$libdir'
 hardcode_libdir_separator=''
 hardcode_direct='no'
 hardcode_direct_absolute='no'
 hardcode_minus_L='no'
 hardcode_shlibpath_var='unsupported'
-hardcode_automatic='yes'
+hardcode_automatic='no'
 inherit_rpath='no'
-link_all_deplibs='yes'
+link_all_deplibs='unknown'
 always_export_symbols='no'
 export_symbols_cmds='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
 exclude_expsyms='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
@@ -665,71 +668,71 @@ include_expsyms=''
 prelink_cmds=''
 postlink_cmds=''
 file_list_spec=''
-variables_saved_for_relink='PATH DYLD_LIBRARY_PATH  GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH'
+variables_saved_for_relink='PATH LD_LIBRARY_PATH LD_RUN_PATH GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH'
 need_lib_prefix='no'
 need_version='no'
-version_type='darwin'
-runpath_var=''
-shlibpath_var='DYLD_LIBRARY_PATH'
-shlibpath_overrides_runpath='yes'
+version_type='linux'
+runpath_var='LD_RUN_PATH'
+shlibpath_var='LD_LIBRARY_PATH'
+shlibpath_overrides_runpath='no'
 libname_spec='lib$name'
-library_names_spec='$libname$release$major$shared_ext $libname$shared_ext'
-soname_spec='$libname$release$major$shared_ext'
+library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+soname_spec='$libname$release$shared_ext$major'
 install_override_mode=''
 postinstall_cmds=''
 postuninstall_cmds=''
-finish_cmds=''
+finish_cmds='PATH="\$PATH:/sbin" ldconfig -n $libdir'
 finish_eval=''
-hardcode_into_libs='no'
-sys_lib_search_path_spec='/opt/homebrew/Cellar/gcc/11.2.0_3/lib/gcc/11/gcc/aarch64-apple-darwin21/11 /opt/homebrew/Cellar/gcc/11.2.0_3/lib/gcc/11  /usr/local/lib'
-configure_time_dlsearch_path='/usr/local/lib /lib /usr/lib'
+hardcode_into_libs='yes'
+sys_lib_search_path_spec='/var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0 /var/tmp/gnu/lib64 /lib64 /usr/lib64 /soft/compiler/intel/composer_xe_2013_sp1.0.080/compiler/lib/intel64 /soft/compiler/intel/composer_xe_2013_sp1.0.080/mkl/lib/intel64 /var/tmp/gnu/x86_64-pc-linux-gnu/lib /var/tmp/gnu/lib /lib /usr/lib '
+configure_time_dlsearch_path='/lib /usr/lib /usr/lib64/atlas /usr/cvfs/lib /opt/mellanox/fca/lib /opt/ibutils/lib64 /opt/mellanox/libibprof/lib /opt/mellanox/mxm/lib /usr/lib64/mysql /usr/lib64/opencryptoki /usr/lib64/opencryptoki/stdll /usr/lib64/oprofile /usr/lib64/qt-3.3/lib /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/cmpi /usr/lib64/tcl8.5 /usr/lib64/xulrunner-2 '
 configure_time_lt_sys_library_path=''
 hardcode_action='immediate'
 enable_dlopen='unknown'
 enable_dlopen_self='unknown'
 enable_dlopen_self_static='unknown'
-old_striplib='strip -S'
-striplib='strip -x'
+old_striplib='strip --strip-debug'
+striplib='strip --strip-unneeded'
 compiler_lib_search_dirs=''
 predep_objects=''
 postdep_objects=''
 predeps=''
 postdeps=''
 compiler_lib_search_path=''
-LD_CXX='/usr/bin/ld'
+LD_CXX='/var/tmp/gnu/x86_64-pc-linux-gnu/bin/ld -m elf_x86_64'
 reload_flag_CXX=' -r'
-reload_cmds_CXX='$LTCC $LTCFLAGS -nostdlib $wl-r -o $output$reload_objs'
+reload_cmds_CXX='$LD$reload_flag -o $output$reload_objs'
 old_archive_cmds_CXX='$AR $AR_FLAGS $oldlib$oldobjs~$RANLIB $tool_oldlib'
 compiler_CXX='g++'
 GCC_CXX='yes'
 lt_prog_compiler_no_builtin_flag_CXX=' -fno-builtin'
-lt_prog_compiler_pic_CXX=' -fno-common -DPIC'
+lt_prog_compiler_pic_CXX=' -fPIC -DPIC'
 lt_prog_compiler_wl_CXX='-Wl,'
-lt_prog_compiler_static_CXX=''
+lt_prog_compiler_static_CXX='-static'
 lt_cv_prog_compiler_c_o_CXX='yes'
 archive_cmds_need_lc_CXX='no'
 enable_shared_with_static_runtimes_CXX='no'
-export_dynamic_flag_spec_CXX=''
-whole_archive_flag_spec_CXX='`for conv in $convenience\"\"; do test  -n \"$conv\" && new_convenience=\"$new_convenience $wl-force_load,$conv\"; done; func_echo_all \"$new_convenience\"`'
+export_dynamic_flag_spec_CXX='$wl--export-dynamic'
+whole_archive_flag_spec_CXX='$wl--whole-archive$convenience $wl--no-whole-archive'
 compiler_needs_object_CXX='no'
 old_archive_from_new_cmds_CXX=''
 old_archive_from_expsyms_cmds_CXX=''
-archive_cmds_CXX='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring $single_module'
-archive_expsym_cmds_CXX='sed '\''s|^|_|'\'' < $export_symbols > $output_objdir/$libname-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring $single_module $wl-exported_symbols_list,$output_objdir/$libname-symbols.expsym'
-module_cmds_CXX='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs $compiler_flags'
-module_expsym_cmds_CXX='sed -e '\''s|^|_|'\'' < $export_symbols > $output_objdir/$libname-symbols.expsym~$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs $compiler_flags $wl-exported_symbols_list,$output_objdir/$libname-symbols.expsym'
-with_gnu_ld_CXX='no'
-allow_undefined_flag_CXX='$wl-flat_namespace $wl-undefined ${wl}suppress'
+archive_cmds_CXX='$CC $pic_flag -shared -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname -o $lib'
+archive_expsym_cmds_CXX='$CC $pic_flag -shared -nostdlib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-soname $wl$soname $wl-retain-symbols-file $wl$export_symbols -o $lib'
+module_cmds_CXX=''
+module_expsym_cmds_CXX=''
+with_gnu_ld_CXX='yes'
+allow_undefined_flag_CXX=''
 no_undefined_flag_CXX=''
-hardcode_libdir_flag_spec_CXX=''
+hardcode_libdir_flag_spec_CXX='$wl-rpath $wl$libdir'
 hardcode_libdir_separator_CXX=''
 hardcode_direct_CXX='no'
 hardcode_direct_absolute_CXX='no'
 hardcode_minus_L_CXX='no'
 hardcode_shlibpath_var_CXX='unsupported'
-hardcode_automatic_CXX='yes'
+hardcode_automatic_CXX='no'
 inherit_rpath_CXX='no'
-link_all_deplibs_CXX='yes'
+link_all_deplibs_CXX='unknown'
 always_export_symbols_CXX='no'
 export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
 exclude_expsyms_CXX='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
@@ -738,15 +741,15 @@ prelink_cmds_CXX=''
 postlink_cmds_CXX=''
 file_list_spec_CXX=''
 hardcode_action_CXX='immediate'
-compiler_lib_search_dirs_CXX=''
-predep_objects_CXX=''
-postdep_objects_CXX=''
+compiler_lib_search_dirs_CXX='/var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0 /var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/../../../../lib64 /lib/../lib64 /usr/lib/../lib64 /soft/compiler/intel/composer_xe_2013_sp1.0.080/compiler/lib/intel64 /soft/compiler/intel/composer_xe_2013_sp1.0.080/mkl/lib/intel64 /var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/../../../../x86_64-pc-linux-gnu/lib /var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/../../..'
+predep_objects_CXX='/usr/lib/../lib64/crti.o /var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/crtbeginS.o'
+postdep_objects_CXX='/var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/crtendS.o /usr/lib/../lib64/crtn.o'
 predeps_CXX=''
-postdeps_CXX=''
-compiler_lib_search_path_CXX=''
+postdeps_CXX='-lstdc++ -lm -lgcc_s -lc -lgcc_s'
+compiler_lib_search_path_CXX='-L/var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0 -L/var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/soft/compiler/intel/composer_xe_2013_sp1.0.080/compiler/lib/intel64 -L/soft/compiler/intel/composer_xe_2013_sp1.0.080/mkl/lib/intel64 -L/var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/../../../../x86_64-pc-linux-gnu/lib -L/var/tmp/gnu/lib/gcc/x86_64-pc-linux-gnu/10.3.0/../../..'
 
 LTCC='gcc'
-LTCFLAGS='-O2 -pedantic -march=armv8-a'
+LTCFLAGS='-O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8'
 compiler='gcc'
 
 # A function that is used when there is no print builtin or printf.
@@ -907,17 +910,17 @@ S["am__EXEEXT_FALSE"]=""
 S["am__EXEEXT_TRUE"]="#"
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
-S["LEXLIB"]="-ll"
+S["LEXLIB"]="-lfl"
 S["LEX_OUTPUT_ROOT"]="lex.yy"
 S["LEX"]="flex"
 S["YFLAGS"]=""
 S["YACC"]="bison -y"
 S["LIBREADLINE"]="-lreadline"
 S["WITH_READLINE_01"]="1"
-S["LIBCURSES"]="-lncurses"
+S["LIBCURSES"]=""
 S["HAVE_STACK_T_01"]="1"
 S["HAVE_SYS_RESOURCE_H_01"]="1"
-S["HAVE_SIGSTACK_01"]="0"
+S["HAVE_SIGSTACK_01"]="1"
 S["HAVE_SIGALTSTACK_01"]="1"
 S["HAVE_SIGACTION_01"]="1"
 S["HAVE_GETTIMEOFDAY_01"]="1"
@@ -925,113 +928,115 @@ S["HAVE_GETRUSAGE_01"]="1"
 S["HAVE_CPUTIME_01"]="0"
 S["HAVE_CLOCK_01"]="1"
 S["TUNE_SQR_OBJ"]=""
-S["gmp_srclinks"]=" mpn/add.c mpn/add_1.c mpn/add_n.asm mpn/sub.c mpn/sub_1.c mpn/sub_n.asm mpn/cnd_add_n.asm mpn/cnd_sub_n.asm mpn/cnd_swap.c mpn/neg.c mpn/com.asm mp"\
-"n/mul_1.asm mpn/addmul_1.asm mpn/submul_1.asm mpn/add_err1_n.c mpn/add_err2_n.c mpn/add_err3_n.c mpn/sub_err1_n.c mpn/sub_err2_n.c mpn/sub_err3_n.c "\
-"mpn/lshift.asm mpn/rshift.asm mpn/dive_1.c mpn/diveby3.c mpn/divis.c mpn/divrem.c mpn/divrem_1.c mpn/divrem_2.c mpn/fib2_ui.c mpn/fib2m.c mpn/mod_1."\
-"c mpn/mod_34lsub1.asm mpn/mode1o.c mpn/pre_divrem_1.c mpn/pre_mod_1.c mpn/dump.c mpn/mod_1_1.c mpn/mod_1_2.c mpn/mod_1_3.c mpn/mod_1_4.c mpn/lshiftc"\
-".asm mpn/mul.c mpn/mul_fft.c mpn/mul_n.c mpn/sqr.c mpn/mul_basecase.c mpn/sqr_basecase.c mpn/nussbaumer_mul.c mpn/mulmid_basecase.c mpn/toom42_mulmi"\
-"d.c mpn/mulmid_n.c mpn/mulmid.c mpn/random.c mpn/random2.c mpn/pow_1.c mpn/rootrem.c mpn/sqrtrem.c mpn/sizeinbase.c mpn/get_str.c mpn/set_str.c mpn/"\
-"compute_powtab.c mpn/scan0.c mpn/scan1.c mpn/popcount.asm mpn/hamdist.asm mpn/cmp.c mpn/zero_p.c mpn/perfsqr.c mpn/perfpow.c mpn/strongfibo.c mpn/gc"\
-"d_11.asm mpn/gcd_22.asm mpn/gcd_1.c mpn/gcd.c mpn/gcdext_1.c mpn/gcdext.c mpn/gcd_subdiv_step.c mpn/gcdext_lehmer.c mpn/div_q.c mpn/tdiv_qr.c mpn/ja"\
-"cbase.c mpn/jacobi_2.c mpn/jacobi.c mpn/get_d.c mpn/matrix22_mul.c mpn/matrix22_mul1_inverse_vector.c mpn/hgcd_matrix.c mpn/hgcd2.c mpn/hgcd_step.c "\
-"mpn/hgcd_reduce.c mpn/hgcd.c mpn/hgcd_appr.c mpn/hgcd2_jacobi.c mpn/hgcd_jacobi.c mpn/mullo_n.c mpn/mullo_basecase.c mpn/sqrlo.c mpn/sqrlo_basecase."\
-"c mpn/toom22_mul.c mpn/toom32_mul.c mpn/toom42_mul.c mpn/toom52_mul.c mpn/toom62_mul.c mpn/toom33_mul.c mpn/toom43_mul.c mpn/toom53_mul.c mpn/toom54"\
-"_mul.c mpn/toom63_mul.c mpn/toom44_mul.c mpn/toom6h_mul.c mpn/toom6_sqr.c mpn/toom8h_mul.c mpn/toom8_sqr.c mpn/toom_couple_handling.c mpn/toom2_sqr."\
-"c mpn/toom3_sqr.c mpn/toom4_sqr.c mpn/toom_eval_dgr3_pm1.c mpn/toom_eval_dgr3_pm2.c mpn/toom_eval_pm1.c mpn/toom_eval_pm2.c mpn/toom_eval_pm2exp.c m"\
-"pn/toom_eval_pm2rexp.c mpn/toom_interpolate_5pts.c mpn/toom_interpolate_6pts.c mpn/toom_interpolate_7pts.c mpn/toom_interpolate_8pts.c mpn/toom_inte"\
-"rpolate_12pts.c mpn/toom_interpolate_16pts.c mpn/invertappr.c mpn/invert.c mpn/binvert.c mpn/mulmod_bnm1.c mpn/sqrmod_bnm1.c mpn/div_qr_1.c mpn/div_"\
-"qr_1n_pi1.c mpn/div_qr_2.c mpn/div_qr_2n_pi1.c mpn/div_qr_2u_pi1.c mpn/sbpi1_div_q.c mpn/sbpi1_div_qr.c mpn/sbpi1_divappr_q.c mpn/dcpi1_div_q.c mpn/"\
-"dcpi1_div_qr.c mpn/dcpi1_divappr_q.c mpn/mu_div_qr.c mpn/mu_divappr_q.c mpn/mu_div_q.c mpn/bdiv_q_1.asm mpn/sbpi1_bdiv_q.c mpn/sbpi1_bdiv_qr.c mpn/s"\
-"bpi1_bdiv_r.c mpn/dcpi1_bdiv_q.c mpn/dcpi1_bdiv_qr.c mpn/mu_bdiv_q.c mpn/mu_bdiv_qr.c mpn/bdiv_q.c mpn/bdiv_qr.c mpn/broot.c mpn/brootinv.c mpn/bsqr"\
-"t.c mpn/bsqrtinv.c mpn/divexact.c mpn/bdiv_dbm1c.asm mpn/redc_1.c mpn/redc_2.c mpn/redc_n.c mpn/powm.c mpn/powlo.c mpn/sec_powm.c mpn/sec_mul.c mpn/"\
-"sec_sqr.c mpn/sec_div_qr.c mpn/sec_div_r.c mpn/sec_pi1_div_qr.c mpn/sec_pi1_div_r.c mpn/sec_add_1.c mpn/sec_sub_1.c mpn/sec_invert.c mpn/trialdiv.c "\
-"mpn/remove.c mpn/and_n.asm mpn/andn_n.asm mpn/nand_n.asm mpn/ior_n.asm mpn/iorn_n.asm mpn/nior_n.asm mpn/xor_n.asm mpn/xnor_n.asm mpn/copyi.asm mpn/"\
-"copyd.asm mpn/zero.c mpn/sec_tabselect.asm mpn/comb_tables.c mpn/invert_limb.asm mpn/sqr_diag_addlsh1.asm mpn/addlsh1_n.asm mpn/sublsh1_n.asm mpn/rs"\
-"blsh1_n.asm mpn/rsh1add_n.asm mpn/rsh1sub_n.asm mpn/addlsh2_n.asm mpn/sublsh2_n.asm mpn/rsblsh2_n.asm mpn/add_n_sub_n.c gmp-mparam.h"
-S["mpn_objs_in_libgmp"]=" mpn/add$U.lo mpn/add_1$U.lo mpn/add_n.lo mpn/sub$U.lo mpn/sub_1$U.lo mpn/sub_n.lo mpn/cnd_add_n.lo mpn/cnd_sub_n.lo mpn/cnd_swap$U.lo mpn/neg$U.lo "\
-"mpn/com.lo mpn/mul_1.lo mpn/addmul_1.lo mpn/submul_1.lo mpn/add_err1_n$U.lo mpn/add_err2_n$U.lo mpn/add_err3_n$U.lo mpn/sub_err1_n$U.lo mpn/sub_err2"\
-"_n$U.lo mpn/sub_err3_n$U.lo mpn/lshift.lo mpn/rshift.lo mpn/dive_1$U.lo mpn/diveby3$U.lo mpn/divis$U.lo mpn/divrem$U.lo mpn/divrem_1$U.lo mpn/divrem"\
-"_2$U.lo mpn/fib2_ui$U.lo mpn/fib2m$U.lo mpn/mod_1$U.lo mpn/mod_34lsub1.lo mpn/mode1o$U.lo mpn/pre_divrem_1$U.lo mpn/pre_mod_1$U.lo mpn/dump$U.lo mpn"\
-"/mod_1_1$U.lo mpn/mod_1_2$U.lo mpn/mod_1_3$U.lo mpn/mod_1_4$U.lo mpn/lshiftc.lo mpn/mul$U.lo mpn/mul_fft$U.lo mpn/mul_n$U.lo mpn/sqr$U.lo mpn/mul_ba"\
-"secase$U.lo mpn/sqr_basecase$U.lo mpn/nussbaumer_mul$U.lo mpn/mulmid_basecase$U.lo mpn/toom42_mulmid$U.lo mpn/mulmid_n$U.lo mpn/mulmid$U.lo mpn/rand"\
-"om$U.lo mpn/random2$U.lo mpn/pow_1$U.lo mpn/rootrem$U.lo mpn/sqrtrem$U.lo mpn/sizeinbase$U.lo mpn/get_str$U.lo mpn/set_str$U.lo mpn/compute_powtab$U"\
-".lo mpn/scan0$U.lo mpn/scan1$U.lo mpn/popcount.lo mpn/hamdist.lo mpn/cmp$U.lo mpn/zero_p$U.lo mpn/perfsqr$U.lo mpn/perfpow$U.lo mpn/strongfibo$U.lo "\
-"mpn/gcd_11.lo mpn/gcd_22.lo mpn/gcd_1$U.lo mpn/gcd$U.lo mpn/gcdext_1$U.lo mpn/gcdext$U.lo mpn/gcd_subdiv_step$U.lo mpn/gcdext_lehmer$U.lo mpn/div_q$"\
-"U.lo mpn/tdiv_qr$U.lo mpn/jacbase$U.lo mpn/jacobi_2$U.lo mpn/jacobi$U.lo mpn/get_d$U.lo mpn/matrix22_mul$U.lo mpn/matrix22_mul1_inverse_vector$U.lo "\
-"mpn/hgcd_matrix$U.lo mpn/hgcd2$U.lo mpn/hgcd_step$U.lo mpn/hgcd_reduce$U.lo mpn/hgcd$U.lo mpn/hgcd_appr$U.lo mpn/hgcd2_jacobi$U.lo mpn/hgcd_jacobi$U"\
-".lo mpn/mullo_n$U.lo mpn/mullo_basecase$U.lo mpn/sqrlo$U.lo mpn/sqrlo_basecase$U.lo mpn/toom22_mul$U.lo mpn/toom32_mul$U.lo mpn/toom42_mul$U.lo mpn/"\
-"toom52_mul$U.lo mpn/toom62_mul$U.lo mpn/toom33_mul$U.lo mpn/toom43_mul$U.lo mpn/toom53_mul$U.lo mpn/toom54_mul$U.lo mpn/toom63_mul$U.lo mpn/toom44_m"\
-"ul$U.lo mpn/toom6h_mul$U.lo mpn/toom6_sqr$U.lo mpn/toom8h_mul$U.lo mpn/toom8_sqr$U.lo mpn/toom_couple_handling$U.lo mpn/toom2_sqr$U.lo mpn/toom3_sqr"\
-"$U.lo mpn/toom4_sqr$U.lo mpn/toom_eval_dgr3_pm1$U.lo mpn/toom_eval_dgr3_pm2$U.lo mpn/toom_eval_pm1$U.lo mpn/toom_eval_pm2$U.lo mpn/toom_eval_pm2exp$"\
-"U.lo mpn/toom_eval_pm2rexp$U.lo mpn/toom_interpolate_5pts$U.lo mpn/toom_interpolate_6pts$U.lo mpn/toom_interpolate_7pts$U.lo mpn/toom_interpolate_8p"\
-"ts$U.lo mpn/toom_interpolate_12pts$U.lo mpn/toom_interpolate_16pts$U.lo mpn/invertappr$U.lo mpn/invert$U.lo mpn/binvert$U.lo mpn/mulmod_bnm1$U.lo mp"\
-"n/sqrmod_bnm1$U.lo mpn/div_qr_1$U.lo mpn/div_qr_1n_pi1$U.lo mpn/div_qr_2$U.lo mpn/div_qr_2n_pi1$U.lo mpn/div_qr_2u_pi1$U.lo mpn/sbpi1_div_q$U.lo mpn"\
-"/sbpi1_div_qr$U.lo mpn/sbpi1_divappr_q$U.lo mpn/dcpi1_div_q$U.lo mpn/dcpi1_div_qr$U.lo mpn/dcpi1_divappr_q$U.lo mpn/mu_div_qr$U.lo mpn/mu_divappr_q$"\
-"U.lo mpn/mu_div_q$U.lo mpn/bdiv_q_1.lo mpn/sbpi1_bdiv_q$U.lo mpn/sbpi1_bdiv_qr$U.lo mpn/sbpi1_bdiv_r$U.lo mpn/dcpi1_bdiv_q$U.lo mpn/dcpi1_bdiv_qr$U."\
-"lo mpn/mu_bdiv_q$U.lo mpn/mu_bdiv_qr$U.lo mpn/bdiv_q$U.lo mpn/bdiv_qr$U.lo mpn/broot$U.lo mpn/brootinv$U.lo mpn/bsqrt$U.lo mpn/bsqrtinv$U.lo mpn/div"\
-"exact$U.lo mpn/bdiv_dbm1c.lo mpn/redc_1$U.lo mpn/redc_2$U.lo mpn/redc_n$U.lo mpn/powm$U.lo mpn/powlo$U.lo mpn/sec_powm$U.lo mpn/sec_mul$U.lo mpn/sec"\
-"_sqr$U.lo mpn/sec_div_qr$U.lo mpn/sec_div_r$U.lo mpn/sec_pi1_div_qr$U.lo mpn/sec_pi1_div_r$U.lo mpn/sec_add_1$U.lo mpn/sec_sub_1$U.lo mpn/sec_invert"\
-"$U.lo mpn/trialdiv$U.lo mpn/remove$U.lo mpn/and_n.lo mpn/andn_n.lo mpn/nand_n.lo mpn/ior_n.lo mpn/iorn_n.lo mpn/nior_n.lo mpn/xor_n.lo mpn/xnor_n.lo"\
-" mpn/copyi.lo mpn/copyd.lo mpn/zero$U.lo mpn/sec_tabselect.lo mpn/comb_tables$U.lo mpn/invert_limb.lo mpn/sqr_diag_addlsh1.lo mpn/addlsh1_n.lo mpn/s"\
-"ublsh1_n.lo mpn/rsblsh1_n.lo mpn/rsh1add_n.lo mpn/rsh1sub_n.lo mpn/addlsh2_n.lo mpn/sublsh2_n.lo mpn/rsblsh2_n.lo mpn/add_n_sub_n$U.lo"
-S["mpn_objects"]=" add$U.lo add_1$U.lo add_n.lo sub$U.lo sub_1$U.lo sub_n.lo cnd_add_n.lo cnd_sub_n.lo cnd_swap$U.lo neg$U.lo com.lo mul_1.lo addmul_1.lo submul_1.lo "\
-"add_err1_n$U.lo add_err2_n$U.lo add_err3_n$U.lo sub_err1_n$U.lo sub_err2_n$U.lo sub_err3_n$U.lo lshift.lo rshift.lo dive_1$U.lo diveby3$U.lo divis$U"\
-".lo divrem$U.lo divrem_1$U.lo divrem_2$U.lo fib2_ui$U.lo fib2m$U.lo mod_1$U.lo mod_34lsub1.lo mode1o$U.lo pre_divrem_1$U.lo pre_mod_1$U.lo dump$U.lo"\
-" mod_1_1$U.lo mod_1_2$U.lo mod_1_3$U.lo mod_1_4$U.lo lshiftc.lo mul$U.lo mul_fft$U.lo mul_n$U.lo sqr$U.lo mul_basecase$U.lo sqr_basecase$U.lo nussba"\
-"umer_mul$U.lo mulmid_basecase$U.lo toom42_mulmid$U.lo mulmid_n$U.lo mulmid$U.lo random$U.lo random2$U.lo pow_1$U.lo rootrem$U.lo sqrtrem$U.lo sizein"\
-"base$U.lo get_str$U.lo set_str$U.lo compute_powtab$U.lo scan0$U.lo scan1$U.lo popcount.lo hamdist.lo cmp$U.lo zero_p$U.lo perfsqr$U.lo perfpow$U.lo "\
-"strongfibo$U.lo gcd_11.lo gcd_22.lo gcd_1$U.lo gcd$U.lo gcdext_1$U.lo gcdext$U.lo gcd_subdiv_step$U.lo gcdext_lehmer$U.lo div_q$U.lo tdiv_qr$U.lo ja"\
-"cbase$U.lo jacobi_2$U.lo jacobi$U.lo get_d$U.lo matrix22_mul$U.lo matrix22_mul1_inverse_vector$U.lo hgcd_matrix$U.lo hgcd2$U.lo hgcd_step$U.lo hgcd_"\
-"reduce$U.lo hgcd$U.lo hgcd_appr$U.lo hgcd2_jacobi$U.lo hgcd_jacobi$U.lo mullo_n$U.lo mullo_basecase$U.lo sqrlo$U.lo sqrlo_basecase$U.lo toom22_mul$U"\
-".lo toom32_mul$U.lo toom42_mul$U.lo toom52_mul$U.lo toom62_mul$U.lo toom33_mul$U.lo toom43_mul$U.lo toom53_mul$U.lo toom54_mul$U.lo toom63_mul$U.lo "\
-"toom44_mul$U.lo toom6h_mul$U.lo toom6_sqr$U.lo toom8h_mul$U.lo toom8_sqr$U.lo toom_couple_handling$U.lo toom2_sqr$U.lo toom3_sqr$U.lo toom4_sqr$U.lo"\
-" toom_eval_dgr3_pm1$U.lo toom_eval_dgr3_pm2$U.lo toom_eval_pm1$U.lo toom_eval_pm2$U.lo toom_eval_pm2exp$U.lo toom_eval_pm2rexp$U.lo toom_interpolate"\
-"_5pts$U.lo toom_interpolate_6pts$U.lo toom_interpolate_7pts$U.lo toom_interpolate_8pts$U.lo toom_interpolate_12pts$U.lo toom_interpolate_16pts$U.lo "\
-"invertappr$U.lo invert$U.lo binvert$U.lo mulmod_bnm1$U.lo sqrmod_bnm1$U.lo div_qr_1$U.lo div_qr_1n_pi1$U.lo div_qr_2$U.lo div_qr_2n_pi1$U.lo div_qr_"\
-"2u_pi1$U.lo sbpi1_div_q$U.lo sbpi1_div_qr$U.lo sbpi1_divappr_q$U.lo dcpi1_div_q$U.lo dcpi1_div_qr$U.lo dcpi1_divappr_q$U.lo mu_div_qr$U.lo mu_divapp"\
-"r_q$U.lo mu_div_q$U.lo bdiv_q_1.lo sbpi1_bdiv_q$U.lo sbpi1_bdiv_qr$U.lo sbpi1_bdiv_r$U.lo dcpi1_bdiv_q$U.lo dcpi1_bdiv_qr$U.lo mu_bdiv_q$U.lo mu_bdi"\
-"v_qr$U.lo bdiv_q$U.lo bdiv_qr$U.lo broot$U.lo brootinv$U.lo bsqrt$U.lo bsqrtinv$U.lo divexact$U.lo bdiv_dbm1c.lo redc_1$U.lo redc_2$U.lo redc_n$U.lo"\
-" powm$U.lo powlo$U.lo sec_powm$U.lo sec_mul$U.lo sec_sqr$U.lo sec_div_qr$U.lo sec_div_r$U.lo sec_pi1_div_qr$U.lo sec_pi1_div_r$U.lo sec_add_1$U.lo s"\
-"ec_sub_1$U.lo sec_invert$U.lo trialdiv$U.lo remove$U.lo and_n.lo andn_n.lo nand_n.lo ior_n.lo iorn_n.lo nior_n.lo xor_n.lo xnor_n.lo copyi.lo copyd."\
-"lo zero$U.lo sec_tabselect.lo comb_tables$U.lo invert_limb.lo sqr_diag_addlsh1.lo addlsh1_n.lo sublsh1_n.lo rsblsh1_n.lo rsh1add_n.lo rsh1sub_n.lo a"\
-"ddlsh2_n.lo sublsh2_n.lo rsblsh2_n.lo add_n_sub_n$U.lo"
+S["gmp_srclinks"]=" mpn/invert_limb_table.asm mpn/add.c mpn/add_1.c mpn/add_n.asm mpn/sub.c mpn/sub_1.c mpn/sub_n.asm mpn/cnd_add_n.asm mpn/cnd_sub_n.asm mpn/cnd_swap."\
+"c mpn/neg.c mpn/com.asm mpn/mul_1.asm mpn/addmul_1.asm mpn/submul_1.asm mpn/add_err1_n.asm mpn/add_err2_n.asm mpn/add_err3_n.asm mpn/sub_err1_n.asm "\
+"mpn/sub_err2_n.asm mpn/sub_err3_n.asm mpn/lshift.asm mpn/rshift.asm mpn/dive_1.asm mpn/diveby3.c mpn/divis.c mpn/divrem.c mpn/divrem_1.asm mpn/divre"\
+"m_2.asm mpn/fib2_ui.c mpn/fib2m.c mpn/mod_1.c mpn/mod_34lsub1.asm mpn/mode1o.asm mpn/pre_mod_1.c mpn/dump.c mpn/mod_1_1.asm mpn/mod_1_2.asm mpn/mod_"\
+"1_3.c mpn/mod_1_4.asm mpn/lshiftc.asm mpn/mul.c mpn/mul_fft.c mpn/mul_n.c mpn/sqr.c mpn/mul_basecase.asm mpn/sqr_basecase.asm mpn/nussbaumer_mul.c m"\
+"pn/mulmid_basecase.asm mpn/toom42_mulmid.c mpn/mulmid_n.c mpn/mulmid.c mpn/random.c mpn/random2.c mpn/pow_1.c mpn/rootrem.c mpn/sqrtrem.c mpn/sizein"\
+"base.c mpn/get_str.c mpn/set_str.c mpn/compute_powtab.c mpn/scan0.c mpn/scan1.c mpn/popcount.asm mpn/hamdist.asm mpn/cmp.c mpn/zero_p.c mpn/perfsqr."\
+"c mpn/perfpow.c mpn/strongfibo.c mpn/gcd_11.asm mpn/gcd_22.asm mpn/gcd_1.c mpn/gcd.c mpn/gcdext_1.c mpn/gcdext.c mpn/gcd_subdiv_step.c mpn/gcdext_le"\
+"hmer.c mpn/div_q.c mpn/tdiv_qr.c mpn/jacbase.c mpn/jacobi_2.c mpn/jacobi.c mpn/get_d.c mpn/matrix22_mul.c mpn/matrix22_mul1_inverse_vector.c mpn/hgc"\
+"d_matrix.c mpn/hgcd2.c mpn/hgcd_step.c mpn/hgcd_reduce.c mpn/hgcd.c mpn/hgcd_appr.c mpn/hgcd2_jacobi.c mpn/hgcd_jacobi.c mpn/mullo_n.c mpn/mullo_bas"\
+"ecase.asm mpn/sqrlo.c mpn/sqrlo_basecase.c mpn/toom22_mul.c mpn/toom32_mul.c mpn/toom42_mul.c mpn/toom52_mul.c mpn/toom62_mul.c mpn/toom33_mul.c mpn"\
+"/toom43_mul.c mpn/toom53_mul.c mpn/toom54_mul.c mpn/toom63_mul.c mpn/toom44_mul.c mpn/toom6h_mul.c mpn/toom6_sqr.c mpn/toom8h_mul.c mpn/toom8_sqr.c "\
+"mpn/toom_couple_handling.c mpn/toom2_sqr.c mpn/toom3_sqr.c mpn/toom4_sqr.c mpn/toom_eval_dgr3_pm1.c mpn/toom_eval_dgr3_pm2.c mpn/toom_eval_pm1.c mpn"\
+"/toom_eval_pm2.c mpn/toom_eval_pm2exp.c mpn/toom_eval_pm2rexp.c mpn/toom_interpolate_5pts.c mpn/toom_interpolate_6pts.c mpn/toom_interpolate_7pts.c "\
+"mpn/toom_interpolate_8pts.c mpn/toom_interpolate_12pts.c mpn/toom_interpolate_16pts.c mpn/invertappr.c mpn/invert.c mpn/binvert.c mpn/mulmod_bnm1.c "\
+"mpn/sqrmod_bnm1.c mpn/div_qr_1.c mpn/div_qr_1n_pi1.asm mpn/div_qr_2.c mpn/div_qr_2n_pi1.asm mpn/div_qr_2u_pi1.asm mpn/sbpi1_div_q.c mpn/sbpi1_div_qr"\
+".c mpn/sbpi1_divappr_q.c mpn/dcpi1_div_q.c mpn/dcpi1_div_qr.c mpn/dcpi1_divappr_q.c mpn/mu_div_qr.c mpn/mu_divappr_q.c mpn/mu_div_q.c mpn/bdiv_q_1.a"\
+"sm mpn/sbpi1_bdiv_q.c mpn/sbpi1_bdiv_qr.c mpn/sbpi1_bdiv_r.c mpn/dcpi1_bdiv_q.c mpn/dcpi1_bdiv_qr.c mpn/mu_bdiv_q.c mpn/mu_bdiv_qr.c mpn/bdiv_q.c mp"\
+"n/bdiv_qr.c mpn/broot.c mpn/brootinv.c mpn/bsqrt.c mpn/bsqrtinv.c mpn/divexact.c mpn/bdiv_dbm1c.asm mpn/redc_1.asm mpn/redc_2.c mpn/redc_n.c mpn/pow"\
+"m.c mpn/powlo.c mpn/sec_powm.c mpn/sec_mul.c mpn/sec_sqr.c mpn/sec_div_qr.c mpn/sec_div_r.c mpn/sec_pi1_div_qr.c mpn/sec_pi1_div_r.c mpn/sec_add_1.c"\
+" mpn/sec_sub_1.c mpn/sec_invert.c mpn/trialdiv.c mpn/remove.c mpn/and_n.asm mpn/andn_n.asm mpn/nand_n.asm mpn/ior_n.asm mpn/iorn_n.asm mpn/nior_n.as"\
+"m mpn/xor_n.asm mpn/xnor_n.asm mpn/copyi.asm mpn/copyd.asm mpn/zero.c mpn/sec_tabselect.asm mpn/comb_tables.c mpn/invert_limb.asm mpn/sqr_diag_addls"\
+"h1.asm mpn/mul_2.asm mpn/addmul_2.asm mpn/addlsh1_n.asm mpn/sublsh1_n.asm mpn/rsblsh1_n.asm mpn/rsh1add_n.asm mpn/rsh1sub_n.asm mpn/addlsh2_n.asm mp"\
+"n/rsblsh2_n.asm mpn/addlsh_n.asm mpn/rsblsh_n.asm mpn/add_n_sub_n.c mpn/addaddmul_1msb0.asm gmp-mparam.h"
+S["mpn_objs_in_libgmp"]=" mpn/invert_limb_table.lo mpn/add$U.lo mpn/add_1$U.lo mpn/add_n.lo mpn/sub$U.lo mpn/sub_1$U.lo mpn/sub_n.lo mpn/cnd_add_n.lo mpn/cnd_sub_n.lo mpn/cn"\
+"d_swap$U.lo mpn/neg$U.lo mpn/com.lo mpn/mul_1.lo mpn/addmul_1.lo mpn/submul_1.lo mpn/add_err1_n.lo mpn/add_err2_n.lo mpn/add_err3_n.lo mpn/sub_err1_"\
+"n.lo mpn/sub_err2_n.lo mpn/sub_err3_n.lo mpn/lshift.lo mpn/rshift.lo mpn/dive_1.lo mpn/diveby3$U.lo mpn/divis$U.lo mpn/divrem$U.lo mpn/divrem_1.lo m"\
+"pn/divrem_2.lo mpn/fib2_ui$U.lo mpn/fib2m$U.lo mpn/mod_1$U.lo mpn/mod_34lsub1.lo mpn/mode1o.lo mpn/pre_mod_1$U.lo mpn/dump$U.lo mpn/mod_1_1.lo mpn/m"\
+"od_1_2.lo mpn/mod_1_3$U.lo mpn/mod_1_4.lo mpn/lshiftc.lo mpn/mul$U.lo mpn/mul_fft$U.lo mpn/mul_n$U.lo mpn/sqr$U.lo mpn/mul_basecase.lo mpn/sqr_basec"\
+"ase.lo mpn/nussbaumer_mul$U.lo mpn/mulmid_basecase.lo mpn/toom42_mulmid$U.lo mpn/mulmid_n$U.lo mpn/mulmid$U.lo mpn/random$U.lo mpn/random2$U.lo mpn/"\
+"pow_1$U.lo mpn/rootrem$U.lo mpn/sqrtrem$U.lo mpn/sizeinbase$U.lo mpn/get_str$U.lo mpn/set_str$U.lo mpn/compute_powtab$U.lo mpn/scan0$U.lo mpn/scan1$"\
+"U.lo mpn/popcount.lo mpn/hamdist.lo mpn/cmp$U.lo mpn/zero_p$U.lo mpn/perfsqr$U.lo mpn/perfpow$U.lo mpn/strongfibo$U.lo mpn/gcd_11.lo mpn/gcd_22.lo m"\
+"pn/gcd_1$U.lo mpn/gcd$U.lo mpn/gcdext_1$U.lo mpn/gcdext$U.lo mpn/gcd_subdiv_step$U.lo mpn/gcdext_lehmer$U.lo mpn/div_q$U.lo mpn/tdiv_qr$U.lo mpn/jac"\
+"base$U.lo mpn/jacobi_2$U.lo mpn/jacobi$U.lo mpn/get_d$U.lo mpn/matrix22_mul$U.lo mpn/matrix22_mul1_inverse_vector$U.lo mpn/hgcd_matrix$U.lo mpn/hgcd"\
+"2$U.lo mpn/hgcd_step$U.lo mpn/hgcd_reduce$U.lo mpn/hgcd$U.lo mpn/hgcd_appr$U.lo mpn/hgcd2_jacobi$U.lo mpn/hgcd_jacobi$U.lo mpn/mullo_n$U.lo mpn/mull"\
+"o_basecase.lo mpn/sqrlo$U.lo mpn/sqrlo_basecase$U.lo mpn/toom22_mul$U.lo mpn/toom32_mul$U.lo mpn/toom42_mul$U.lo mpn/toom52_mul$U.lo mpn/toom62_mul$"\
+"U.lo mpn/toom33_mul$U.lo mpn/toom43_mul$U.lo mpn/toom53_mul$U.lo mpn/toom54_mul$U.lo mpn/toom63_mul$U.lo mpn/toom44_mul$U.lo mpn/toom6h_mul$U.lo mpn"\
+"/toom6_sqr$U.lo mpn/toom8h_mul$U.lo mpn/toom8_sqr$U.lo mpn/toom_couple_handling$U.lo mpn/toom2_sqr$U.lo mpn/toom3_sqr$U.lo mpn/toom4_sqr$U.lo mpn/to"\
+"om_eval_dgr3_pm1$U.lo mpn/toom_eval_dgr3_pm2$U.lo mpn/toom_eval_pm1$U.lo mpn/toom_eval_pm2$U.lo mpn/toom_eval_pm2exp$U.lo mpn/toom_eval_pm2rexp$U.lo"\
+" mpn/toom_interpolate_5pts$U.lo mpn/toom_interpolate_6pts$U.lo mpn/toom_interpolate_7pts$U.lo mpn/toom_interpolate_8pts$U.lo mpn/toom_interpolate_12"\
+"pts$U.lo mpn/toom_interpolate_16pts$U.lo mpn/invertappr$U.lo mpn/invert$U.lo mpn/binvert$U.lo mpn/mulmod_bnm1$U.lo mpn/sqrmod_bnm1$U.lo mpn/div_qr_1"\
+"$U.lo mpn/div_qr_1n_pi1.lo mpn/div_qr_2$U.lo mpn/div_qr_2n_pi1.lo mpn/div_qr_2u_pi1.lo mpn/sbpi1_div_q$U.lo mpn/sbpi1_div_qr$U.lo mpn/sbpi1_divappr_"\
+"q$U.lo mpn/dcpi1_div_q$U.lo mpn/dcpi1_div_qr$U.lo mpn/dcpi1_divappr_q$U.lo mpn/mu_div_qr$U.lo mpn/mu_divappr_q$U.lo mpn/mu_div_q$U.lo mpn/bdiv_q_1.l"\
+"o mpn/sbpi1_bdiv_q$U.lo mpn/sbpi1_bdiv_qr$U.lo mpn/sbpi1_bdiv_r$U.lo mpn/dcpi1_bdiv_q$U.lo mpn/dcpi1_bdiv_qr$U.lo mpn/mu_bdiv_q$U.lo mpn/mu_bdiv_qr$"\
+"U.lo mpn/bdiv_q$U.lo mpn/bdiv_qr$U.lo mpn/broot$U.lo mpn/brootinv$U.lo mpn/bsqrt$U.lo mpn/bsqrtinv$U.lo mpn/divexact$U.lo mpn/bdiv_dbm1c.lo mpn/redc"\
+"_1.lo mpn/redc_2$U.lo mpn/redc_n$U.lo mpn/powm$U.lo mpn/powlo$U.lo mpn/sec_powm$U.lo mpn/sec_mul$U.lo mpn/sec_sqr$U.lo mpn/sec_div_qr$U.lo mpn/sec_d"\
+"iv_r$U.lo mpn/sec_pi1_div_qr$U.lo mpn/sec_pi1_div_r$U.lo mpn/sec_add_1$U.lo mpn/sec_sub_1$U.lo mpn/sec_invert$U.lo mpn/trialdiv$U.lo mpn/remove$U.lo"\
+" mpn/and_n.lo mpn/andn_n.lo mpn/nand_n.lo mpn/ior_n.lo mpn/iorn_n.lo mpn/nior_n.lo mpn/xor_n.lo mpn/xnor_n.lo mpn/copyi.lo mpn/copyd.lo mpn/zero$U.l"\
+"o mpn/sec_tabselect.lo mpn/comb_tables$U.lo mpn/invert_limb.lo mpn/sqr_diag_addlsh1.lo mpn/mul_2.lo mpn/addmul_2.lo mpn/addlsh1_n.lo mpn/sublsh1_n.l"\
+"o mpn/rsblsh1_n.lo mpn/rsh1add_n.lo mpn/rsh1sub_n.lo mpn/addlsh2_n.lo mpn/rsblsh2_n.lo mpn/addlsh_n.lo mpn/rsblsh_n.lo mpn/add_n_sub_n$U.lo mpn/adda"\
+"ddmul_1msb0.lo"
+S["mpn_objects"]=" invert_limb_table.lo add$U.lo add_1$U.lo add_n.lo sub$U.lo sub_1$U.lo sub_n.lo cnd_add_n.lo cnd_sub_n.lo cnd_swap$U.lo neg$U.lo com.lo mul_1.lo add"\
+"mul_1.lo submul_1.lo add_err1_n.lo add_err2_n.lo add_err3_n.lo sub_err1_n.lo sub_err2_n.lo sub_err3_n.lo lshift.lo rshift.lo dive_1.lo diveby3$U.lo "\
+"divis$U.lo divrem$U.lo divrem_1.lo divrem_2.lo fib2_ui$U.lo fib2m$U.lo mod_1$U.lo mod_34lsub1.lo mode1o.lo pre_mod_1$U.lo dump$U.lo mod_1_1.lo mod_1"\
+"_2.lo mod_1_3$U.lo mod_1_4.lo lshiftc.lo mul$U.lo mul_fft$U.lo mul_n$U.lo sqr$U.lo mul_basecase.lo sqr_basecase.lo nussbaumer_mul$U.lo mulmid_baseca"\
+"se.lo toom42_mulmid$U.lo mulmid_n$U.lo mulmid$U.lo random$U.lo random2$U.lo pow_1$U.lo rootrem$U.lo sqrtrem$U.lo sizeinbase$U.lo get_str$U.lo set_st"\
+"r$U.lo compute_powtab$U.lo scan0$U.lo scan1$U.lo popcount.lo hamdist.lo cmp$U.lo zero_p$U.lo perfsqr$U.lo perfpow$U.lo strongfibo$U.lo gcd_11.lo gcd"\
+"_22.lo gcd_1$U.lo gcd$U.lo gcdext_1$U.lo gcdext$U.lo gcd_subdiv_step$U.lo gcdext_lehmer$U.lo div_q$U.lo tdiv_qr$U.lo jacbase$U.lo jacobi_2$U.lo jaco"\
+"bi$U.lo get_d$U.lo matrix22_mul$U.lo matrix22_mul1_inverse_vector$U.lo hgcd_matrix$U.lo hgcd2$U.lo hgcd_step$U.lo hgcd_reduce$U.lo hgcd$U.lo hgcd_ap"\
+"pr$U.lo hgcd2_jacobi$U.lo hgcd_jacobi$U.lo mullo_n$U.lo mullo_basecase.lo sqrlo$U.lo sqrlo_basecase$U.lo toom22_mul$U.lo toom32_mul$U.lo toom42_mul$"\
+"U.lo toom52_mul$U.lo toom62_mul$U.lo toom33_mul$U.lo toom43_mul$U.lo toom53_mul$U.lo toom54_mul$U.lo toom63_mul$U.lo toom44_mul$U.lo toom6h_mul$U.lo"\
+" toom6_sqr$U.lo toom8h_mul$U.lo toom8_sqr$U.lo toom_couple_handling$U.lo toom2_sqr$U.lo toom3_sqr$U.lo toom4_sqr$U.lo toom_eval_dgr3_pm1$U.lo toom_e"\
+"val_dgr3_pm2$U.lo toom_eval_pm1$U.lo toom_eval_pm2$U.lo toom_eval_pm2exp$U.lo toom_eval_pm2rexp$U.lo toom_interpolate_5pts$U.lo toom_interpolate_6pt"\
+"s$U.lo toom_interpolate_7pts$U.lo toom_interpolate_8pts$U.lo toom_interpolate_12pts$U.lo toom_interpolate_16pts$U.lo invertappr$U.lo invert$U.lo bin"\
+"vert$U.lo mulmod_bnm1$U.lo sqrmod_bnm1$U.lo div_qr_1$U.lo div_qr_1n_pi1.lo div_qr_2$U.lo div_qr_2n_pi1.lo div_qr_2u_pi1.lo sbpi1_div_q$U.lo sbpi1_di"\
+"v_qr$U.lo sbpi1_divappr_q$U.lo dcpi1_div_q$U.lo dcpi1_div_qr$U.lo dcpi1_divappr_q$U.lo mu_div_qr$U.lo mu_divappr_q$U.lo mu_div_q$U.lo bdiv_q_1.lo sb"\
+"pi1_bdiv_q$U.lo sbpi1_bdiv_qr$U.lo sbpi1_bdiv_r$U.lo dcpi1_bdiv_q$U.lo dcpi1_bdiv_qr$U.lo mu_bdiv_q$U.lo mu_bdiv_qr$U.lo bdiv_q$U.lo bdiv_qr$U.lo br"\
+"oot$U.lo brootinv$U.lo bsqrt$U.lo bsqrtinv$U.lo divexact$U.lo bdiv_dbm1c.lo redc_1.lo redc_2$U.lo redc_n$U.lo powm$U.lo powlo$U.lo sec_powm$U.lo sec"\
+"_mul$U.lo sec_sqr$U.lo sec_div_qr$U.lo sec_div_r$U.lo sec_pi1_div_qr$U.lo sec_pi1_div_r$U.lo sec_add_1$U.lo sec_sub_1$U.lo sec_invert$U.lo trialdiv$"\
+"U.lo remove$U.lo and_n.lo andn_n.lo nand_n.lo ior_n.lo iorn_n.lo nior_n.lo xor_n.lo xnor_n.lo copyi.lo copyd.lo zero$U.lo sec_tabselect.lo comb_tabl"\
+"es$U.lo invert_limb.lo sqr_diag_addlsh1.lo mul_2.lo addmul_2.lo addlsh1_n.lo sublsh1_n.lo rsblsh1_n.lo rsh1add_n.lo rsh1sub_n.lo addlsh2_n.lo rsblsh"\
+"2_n.lo addlsh_n.lo rsblsh_n.lo add_n_sub_n$U.lo addaddmul_1msb0.lo"
 S["GMP_LIMB_BITS"]="64"
 S["M4"]="m4"
-S["TUNE_LIBS"]=""
+S["TUNE_LIBS"]="-lrt "
 S["TAL_OBJECT"]="tal-reent.lo"
-S["LIBM"]=""
+S["LIBM"]="-lm"
 S["ENABLE_STATIC_FALSE"]="#"
 S["ENABLE_STATIC_TRUE"]=""
 S["LT_SYS_LIBRARY_PATH"]=""
-S["OTOOL64"]=":"
-S["OTOOL"]="otool"
-S["LIPO"]="lipo"
-S["NMEDIT"]="nmedit"
-S["DSYMUTIL"]="dsymutil"
+S["OTOOL64"]=""
+S["OTOOL"]=""
+S["LIPO"]=""
+S["NMEDIT"]=""
+S["DSYMUTIL"]=""
 S["MANIFEST_TOOL"]=":"
 S["RANLIB"]="ranlib"
 S["ac_ct_AR"]="ar"
 S["LN_S"]="ln -s"
-S["LD"]="/usr/bin/ld"
-S["FGREP"]="/usr/bin/grep -F"
-S["SED"]="/usr/bin/sed"
+S["LD"]="/var/tmp/gnu/x86_64-pc-linux-gnu/bin/ld -m elf_x86_64"
+S["FGREP"]="/bin/grep -F"
+S["SED"]="/bin/sed"
 S["LIBTOOL"]="$(SHELL) $(top_builddir)/libtool"
 S["LIBGMP_DLL"]="0"
 S["OBJDUMP"]="objdump"
 S["DLLTOOL"]="dlltool"
 S["AS"]="as"
-S["NM"]="/usr/bin/nm -B"
+S["NM"]="/var/tmp/gnu/bin/nm -B"
 S["ac_ct_DUMPBIN"]=""
 S["DUMPBIN"]=""
 S["AR"]="ar"
-S["ASMFLAGS"]=""
-S["EGREP"]="/usr/bin/grep -E"
-S["GREP"]="/usr/bin/grep"
+S["ASMFLAGS"]=" -Wa,--noexecstack"
+S["EGREP"]="/bin/grep -E"
+S["GREP"]="/bin/grep"
 S["CXXCPP"]="g++ -E"
 S["WANT_CXX_FALSE"]="#"
 S["WANT_CXX_TRUE"]=""
-S["ac_ct_CXX"]=""
-S["CXXFLAGS"]="-O2 -pedantic -march=armv8-a"
+S["ac_ct_CXX"]="g++"
+S["CXXFLAGS"]="-O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8"
 S["CXX"]="g++"
 S["CCAS"]="gcc -c"
 S["LIBM_FOR_BUILD"]="-lm"
@@ -1045,11 +1050,11 @@ S["EXEEXT"]=""
 S["ac_ct_CC"]="gcc"
 S["CPPFLAGS"]=""
 S["LDFLAGS"]=""
-S["CFLAGS"]="-O2 -pedantic -march=armv8-a"
+S["CFLAGS"]="-O2 -pedantic -fomit-frame-pointer -m64 -mtune=k8 -march=k8"
 S["CC"]="gcc"
 S["DEFN_LONG_LONG_LIMB"]="/* #undef _LONG_LONG_LIMB */"
-S["CALLING_CONVENTIONS_OBJS"]=""
-S["SPEED_CYCLECOUNTER_OBJ"]=""
+S["CALLING_CONVENTIONS_OBJS"]="amd64call.lo amd64check$U.lo"
+S["SPEED_CYCLECOUNTER_OBJ"]="x86_64.lo"
 S["LIBGMPXX_LDFLAGS"]=""
 S["LIBGMP_LDFLAGS"]=""
 S["GMP_LDFLAGS"]=""
@@ -1069,17 +1074,17 @@ S["am__tar"]="$${TAR-tar} chof - \"$$tardir\""
 S["AMTAR"]="$${TAR-tar}"
 S["am__leading_dot"]="."
 S["SET_MAKE"]=""
-S["AWK"]="awk"
+S["AWK"]="gawk"
 S["mkdir_p"]="$(MKDIR_P)"
-S["MKDIR_P"]="./install-sh -c -d"
+S["MKDIR_P"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]="strip"
-S["install_sh"]="${SHELL} /Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/install-sh"
-S["MAKEINFO"]="${SHELL} /Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/missing makeinfo"
-S["AUTOHEADER"]="${SHELL} /Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/missing autoheader"
-S["AUTOMAKE"]="${SHELL} /Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/missing automake-1.15"
-S["AUTOCONF"]="${SHELL} /Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/missing autoconf"
-S["ACLOCAL"]="${SHELL} /Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/missing aclocal-1.15"
+S["install_sh"]="${SHELL} /var/tmp/usr/FIRE/extra/gmp-6.2.1/install-sh"
+S["MAKEINFO"]="${SHELL} /var/tmp/usr/FIRE/extra/gmp-6.2.1/missing makeinfo"
+S["AUTOHEADER"]="${SHELL} /var/tmp/usr/FIRE/extra/gmp-6.2.1/missing autoheader"
+S["AUTOMAKE"]="${SHELL} /var/tmp/usr/FIRE/extra/gmp-6.2.1/missing automake-1.15"
+S["AUTOCONF"]="${SHELL} /var/tmp/usr/FIRE/extra/gmp-6.2.1/missing autoconf"
+S["ACLOCAL"]="${SHELL} /var/tmp/usr/FIRE/extra/gmp-6.2.1/missing aclocal-1.15"
 S["VERSION"]="6.2.1"
 S["PACKAGE"]="gmp"
 S["CYGPATH_W"]="echo"
@@ -1087,21 +1092,21 @@ S["am__isrc"]=""
 S["INSTALL_DATA"]="${INSTALL} -m 644"
 S["INSTALL_SCRIPT"]="${INSTALL}"
 S["INSTALL_PROGRAM"]="${INSTALL}"
-S["host_os"]="darwin21.3.0"
-S["host_vendor"]="apple"
-S["host_cpu"]="aarch64"
-S["host"]="aarch64-apple-darwin21.3.0"
-S["build_os"]="darwin21.3.0"
-S["build_vendor"]="apple"
-S["build_cpu"]="aarch64"
-S["build"]="aarch64-apple-darwin21.3.0"
+S["host_os"]="linux-gnu"
+S["host_vendor"]="pc"
+S["host_cpu"]="x86_64"
+S["host"]="x86_64-pc-linux-gnu"
+S["build_os"]="linux-gnu"
+S["build_vendor"]="pc"
+S["build_cpu"]="x86_64"
+S["build"]="x86_64-pc-linux-gnu"
 S["target_alias"]=""
 S["host_alias"]=""
 S["build_alias"]=""
 S["LIBS"]=""
 S["ECHO_T"]=""
-S["ECHO_N"]=""
-S["ECHO_C"]="\\c"
+S["ECHO_N"]="-n"
+S["ECHO_C"]=""
 S["DEFS"]="-DHAVE_CONFIG_H"
 S["mandir"]="${datarootdir}/man"
 S["localedir"]="${datarootdir}/locale"
@@ -1123,7 +1128,7 @@ S["libexecdir"]="${exec_prefix}/libexec"
 S["sbindir"]="${exec_prefix}/sbin"
 S["bindir"]="${exec_prefix}/bin"
 S["program_transform_name"]="s,x,x,"
-S["prefix"]="/Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/../../usr"
+S["prefix"]="/var/tmp/usr/FIRE/extra/gmp-6.2.1/../../usr"
 S["exec_prefix"]="${prefix}"
 S["PACKAGE_URL"]="http://www.gnu.org/software/gmp/"
 S["PACKAGE_BUGREPORT"]="gmp-bugs@gmplib.org, see https://gmplib.org/manual/Reporting-Bugs.html"
@@ -1183,7 +1188,9 @@ D["PACKAGE_URL"]=" \"http://www.gnu.org/software/gmp/\""
 D["PACKAGE"]=" \"gmp\""
 D["VERSION"]=" \"6.2.1\""
 D["WANT_FFT"]=" 1"
-D["HAVE_HOST_CPU_aarch64"]=" 1"
+D["HAVE_HOST_CPU_x86_64"]=" 1"
+D["HAVE_SPEED_CYCLECOUNTER"]=" 2"
+D["HAVE_CALLING_CONVENTIONS"]=" 1"
 D["STDC_HEADERS"]=" 1"
 D["HAVE_SYS_TYPES_H"]=" 1"
 D["HAVE_SYS_STAT_H"]=" 1"
@@ -1205,6 +1212,7 @@ D["HAVE_LOCALE_H"]=" 1"
 D["HAVE_NL_TYPES_H"]=" 1"
 D["HAVE_SYS_MMAN_H"]=" 1"
 D["HAVE_SYS_PARAM_H"]=" 1"
+D["HAVE_SYS_SYSINFO_H"]=" 1"
 D["HAVE_SYS_TIME_H"]=" 1"
 D["HAVE_SYS_TIMES_H"]=" 1"
 D["HAVE_SYS_RESOURCE_H"]=" 1"
@@ -1229,6 +1237,7 @@ D["HAVE_ATTRIBUTE_CONST"]=" 1"
 D["HAVE_ATTRIBUTE_MALLOC"]=" 1"
 D["HAVE_ATTRIBUTE_MODE"]=" 1"
 D["HAVE_ATTRIBUTE_NORETURN"]=" 1"
+D["HAVE_HIDDEN_ALIAS"]=" 1"
 D["HAVE_ALLOCA_H"]=" 1"
 D["HAVE_ALLOCA"]=" 1"
 D["WANT_TMP_ALLOCA"]=" 1"
@@ -1244,11 +1253,12 @@ D["HAVE_MEMSET"]=" 1"
 D["HAVE_MMAP"]=" 1"
 D["HAVE_MPROTECT"]=" 1"
 D["HAVE_NL_LANGINFO"]=" 1"
+D["HAVE_OBSTACK_VPRINTF"]=" 1"
 D["HAVE_POPEN"]=" 1"
-D["HAVE_PROCESSOR_INFO"]=" 1"
 D["HAVE_RAISE"]=" 1"
 D["HAVE_SIGACTION"]=" 1"
 D["HAVE_SIGALTSTACK"]=" 1"
+D["HAVE_SIGSTACK"]=" 1"
 D["HAVE_STRCHR"]=" 1"
 D["HAVE_STRERROR"]=" 1"
 D["HAVE_STRNLEN"]=" 1"
@@ -1256,7 +1266,6 @@ D["HAVE_STRTOL"]=" 1"
 D["HAVE_STRTOUL"]=" 1"
 D["HAVE_SYSCONF"]=" 1"
 D["HAVE_SYSCTL"]=" 1"
-D["HAVE_SYSCTLBYNAME"]=" 1"
 D["HAVE_TIMES"]=" 1"
 D["HAVE_CLOCK_GETTIME"]=" 1"
 D["HAVE_VSNPRINTF"]=" 1"
@@ -1267,13 +1276,13 @@ D["HAVE_NATIVE_mpn_add_nc"]=" 1"
 D["HAVE_NATIVE_mpn_sub_n"]=" 1"
 D["HAVE_NATIVE_mpn_sub_nc"]=" 1"
 D["HAVE_NATIVE_func_nc"]=" 1"
-D["HAVE_NATIVE_func_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_add_n"]=" 1"
 D["HAVE_NATIVE_mpn_add_nc"]=" 1"
 D["HAVE_NATIVE_mpn_sub_n"]=" 1"
 D["HAVE_NATIVE_mpn_sub_nc"]=" 1"
 D["HAVE_NATIVE_func_nc"]=" 1"
-D["HAVE_NATIVE_func_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_cnd_add_n"]=" 1"
 D["HAVE_NATIVE_mpn_cnd_sub_n"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
@@ -1289,17 +1298,59 @@ D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_addmul_1"]=" 1"
 D["HAVE_NATIVE_mpn_submul_1"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_add_err1_n"]=" 1"
+D["HAVE_NATIVE_mpn_sub_err1_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_add_err2_n"]=" 1"
+D["HAVE_NATIVE_mpn_sub_err2_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_add_err3_n"]=" 1"
+D["HAVE_NATIVE_mpn_sub_err3_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_add_err1_n"]=" 1"
+D["HAVE_NATIVE_mpn_sub_err1_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_add_err2_n"]=" 1"
+D["HAVE_NATIVE_mpn_sub_err2_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_add_err3_n"]=" 1"
+D["HAVE_NATIVE_mpn_sub_err3_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_lshift"]=" 1"
 D["HAVE_NATIVE_mpn_rshift"]=" 1"
+D["HAVE_NATIVE_mpn_divexact_1"]=" 1"
+D["HAVE_NATIVE_mpn_preinv_divrem_1"]=" 1"
+D["HAVE_NATIVE_mpn_divrem_1"]=" 1"
+D["HAVE_NATIVE_mpn_divrem_2"]=" 1"
 D["HAVE_NATIVE_mpn_mod_34lsub1"]=" 1"
+D["HAVE_NATIVE_mpn_modexact_1_odd"]=" 1"
+D["HAVE_NATIVE_mpn_modexact_1c_odd"]=" 1"
+D["HAVE_NATIVE_mpn_mod_1_1p"]=" 1"
+D["HAVE_NATIVE_mpn_mod_1_1p_cps"]=" 1"
+D["HAVE_NATIVE_mpn_mod_1s_2p"]=" 1"
+D["HAVE_NATIVE_mpn_mod_1s_2p_cps"]=" 1"
+D["HAVE_NATIVE_mpn_mod_1s_4p"]=" 1"
+D["HAVE_NATIVE_mpn_mod_1s_4p_cps"]=" 1"
 D["HAVE_NATIVE_mpn_lshiftc"]=" 1"
+D["HAVE_NATIVE_mpn_mul_basecase"]=" 1"
+D["HAVE_NATIVE_mpn_sqr_basecase"]=" 1"
+D["HAVE_NATIVE_mpn_mulmid_basecase"]=" 1"
 D["HAVE_NATIVE_mpn_popcount"]=" 1"
 D["HAVE_NATIVE_mpn_hamdist"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_popcount"]=" 1"
+D["HAVE_NATIVE_mpn_hamdist"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_gcd_11"]=" 1"
 D["HAVE_NATIVE_mpn_gcd_22"]=" 1"
+D["HAVE_NATIVE_mpn_mullo_basecase"]=" 1"
+D["HAVE_NATIVE_mpn_div_qr_1n_pi1"]=" 1"
+D["HAVE_NATIVE_mpn_div_qr_2n_pi1"]=" 1"
+D["HAVE_NATIVE_mpn_div_qr_2u_pi1"]=" 1"
 D["HAVE_NATIVE_mpn_bdiv_q_1"]=" 1"
 D["HAVE_NATIVE_mpn_pi1_bdiv_q_1"]=" 1"
 D["HAVE_NATIVE_mpn_bdiv_dbm1c"]=" 1"
+D["HAVE_NATIVE_mpn_redc_1"]=" 1"
 D["HAVE_NATIVE_mpn_and_n"]=" 1"
 D["HAVE_NATIVE_mpn_andn_n"]=" 1"
 D["HAVE_NATIVE_mpn_nand_n"]=" 1"
@@ -1308,6 +1359,8 @@ D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
 D["HAVE_NATIVE_mpn_nior_n"]=" 1"
 D["HAVE_NATIVE_mpn_xor_n"]=" 1"
 D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_and_n"]=" 1"
 D["HAVE_NATIVE_mpn_andn_n"]=" 1"
@@ -1318,14 +1371,7 @@ D["HAVE_NATIVE_mpn_nior_n"]=" 1"
 D["HAVE_NATIVE_mpn_xor_n"]=" 1"
 D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
-D["HAVE_NATIVE_mpn_and_n"]=" 1"
-D["HAVE_NATIVE_mpn_andn_n"]=" 1"
-D["HAVE_NATIVE_mpn_nand_n"]=" 1"
-D["HAVE_NATIVE_mpn_ior_n"]=" 1"
-D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
-D["HAVE_NATIVE_mpn_nior_n"]=" 1"
-D["HAVE_NATIVE_mpn_xor_n"]=" 1"
-D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_and_n"]=" 1"
 D["HAVE_NATIVE_mpn_andn_n"]=" 1"
@@ -1336,14 +1382,7 @@ D["HAVE_NATIVE_mpn_nior_n"]=" 1"
 D["HAVE_NATIVE_mpn_xor_n"]=" 1"
 D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
-D["HAVE_NATIVE_mpn_and_n"]=" 1"
-D["HAVE_NATIVE_mpn_andn_n"]=" 1"
-D["HAVE_NATIVE_mpn_nand_n"]=" 1"
-D["HAVE_NATIVE_mpn_ior_n"]=" 1"
-D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
-D["HAVE_NATIVE_mpn_nior_n"]=" 1"
-D["HAVE_NATIVE_mpn_xor_n"]=" 1"
-D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_and_n"]=" 1"
 D["HAVE_NATIVE_mpn_andn_n"]=" 1"
@@ -1354,14 +1393,7 @@ D["HAVE_NATIVE_mpn_nior_n"]=" 1"
 D["HAVE_NATIVE_mpn_xor_n"]=" 1"
 D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
-D["HAVE_NATIVE_mpn_and_n"]=" 1"
-D["HAVE_NATIVE_mpn_andn_n"]=" 1"
-D["HAVE_NATIVE_mpn_nand_n"]=" 1"
-D["HAVE_NATIVE_mpn_ior_n"]=" 1"
-D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
-D["HAVE_NATIVE_mpn_nior_n"]=" 1"
-D["HAVE_NATIVE_mpn_xor_n"]=" 1"
-D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_and_n"]=" 1"
 D["HAVE_NATIVE_mpn_andn_n"]=" 1"
@@ -1371,44 +1403,91 @@ D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
 D["HAVE_NATIVE_mpn_nior_n"]=" 1"
 D["HAVE_NATIVE_mpn_xor_n"]=" 1"
 D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_and_n"]=" 1"
+D["HAVE_NATIVE_mpn_andn_n"]=" 1"
+D["HAVE_NATIVE_mpn_nand_n"]=" 1"
+D["HAVE_NATIVE_mpn_ior_n"]=" 1"
+D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
+D["HAVE_NATIVE_mpn_nior_n"]=" 1"
+D["HAVE_NATIVE_mpn_xor_n"]=" 1"
+D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_and_n"]=" 1"
+D["HAVE_NATIVE_mpn_andn_n"]=" 1"
+D["HAVE_NATIVE_mpn_nand_n"]=" 1"
+D["HAVE_NATIVE_mpn_ior_n"]=" 1"
+D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
+D["HAVE_NATIVE_mpn_nior_n"]=" 1"
+D["HAVE_NATIVE_mpn_xor_n"]=" 1"
+D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_and_n"]=" 1"
+D["HAVE_NATIVE_mpn_andn_n"]=" 1"
+D["HAVE_NATIVE_mpn_nand_n"]=" 1"
+D["HAVE_NATIVE_mpn_ior_n"]=" 1"
+D["HAVE_NATIVE_mpn_iorn_n"]=" 1"
+D["HAVE_NATIVE_mpn_nior_n"]=" 1"
+D["HAVE_NATIVE_mpn_xor_n"]=" 1"
+D["HAVE_NATIVE_mpn_xnor_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_copyi"]=" 1"
 D["HAVE_NATIVE_mpn_copyd"]=" 1"
 D["HAVE_NATIVE_mpn_sec_tabselect"]=" 1"
 D["HAVE_NATIVE_mpn_invert_limb"]=" 1"
+D["HAVE_NATIVE_C"]=" 1"
+D["HAVE_NATIVE_Kn"]=" 1"
+D["HAVE_NATIVE_C2"]=" 1"
+D["HAVE_NATIVE_Ci"]=" 1"
 D["HAVE_NATIVE_mpn_sqr_diag_addlsh1"]=" 1"
+D["HAVE_NATIVE_mpn_mul_2"]=" 1"
+D["HAVE_NATIVE_mpn_addmul_2"]=" 1"
 D["HAVE_NATIVE_mpn_addlsh1_n"]=" 1"
-D["HAVE_NATIVE_mpn_sublsh1_n"]=" 1"
 D["HAVE_NATIVE_mpn_rsblsh1_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_sublsh1_n"]=" 1"
 D["HAVE_NATIVE_mpn_addlsh1_n"]=" 1"
-D["HAVE_NATIVE_mpn_sublsh1_n"]=" 1"
 D["HAVE_NATIVE_mpn_rsblsh1_n"]=" 1"
-D["HAVE_NATIVE_mpn_addlsh1_n"]=" 1"
-D["HAVE_NATIVE_mpn_sublsh1_n"]=" 1"
-D["HAVE_NATIVE_mpn_rsblsh1_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
 D["HAVE_NATIVE_mpn_rsh1add_n"]=" 1"
+D["HAVE_NATIVE_mpn_rsh1add_nc"]=" 1"
 D["HAVE_NATIVE_mpn_rsh1sub_n"]=" 1"
+D["HAVE_NATIVE_mpn_rsh1sub_nc"]=" 1"
+D["HAVE_NATIVE_func_nc"]=" 1"
 D["HAVE_NATIVE_func_n"]=" 1"
 D["HAVE_NATIVE_mpn_rsh1add_n"]=" 1"
+D["HAVE_NATIVE_mpn_rsh1add_nc"]=" 1"
 D["HAVE_NATIVE_mpn_rsh1sub_n"]=" 1"
+D["HAVE_NATIVE_mpn_rsh1sub_nc"]=" 1"
+D["HAVE_NATIVE_func_nc"]=" 1"
 D["HAVE_NATIVE_func_n"]=" 1"
 D["HAVE_NATIVE_mpn_addlsh2_n"]=" 1"
-D["HAVE_NATIVE_mpn_sublsh2_n"]=" 1"
 D["HAVE_NATIVE_mpn_rsblsh2_n"]=" 1"
 D["HAVE_NATIVE_mpn_addlsh2_n"]=" 1"
-D["HAVE_NATIVE_mpn_sublsh2_n"]=" 1"
 D["HAVE_NATIVE_mpn_rsblsh2_n"]=" 1"
-D["HAVE_NATIVE_mpn_addlsh2_n"]=" 1"
-D["HAVE_NATIVE_mpn_sublsh2_n"]=" 1"
-D["HAVE_NATIVE_mpn_rsblsh2_n"]=" 1"
-D["LSYM_PREFIX"]=" \"L\""
-D["GMP_MPARAM_H_SUGGEST"]=" \"./mpn/arm64/gmp-mparam.h\""
+D["HAVE_NATIVE_mpn_addlsh_n"]=" 1"
+D["HAVE_NATIVE_mpn_rsblsh_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_addlsh_n"]=" 1"
+D["HAVE_NATIVE_mpn_rsblsh_n"]=" 1"
+D["HAVE_NATIVE_func"]=" 1"
+D["HAVE_NATIVE_mpn_addaddmul_1msb0"]=" 1"
+D["LSYM_PREFIX"]=" \".L\""
+D["HAVE_HOST_CPU_FAMILY_x86_64"]=" 1"
+D["GMP_MPARAM_H_SUGGEST"]=" \"./mpn/x86_64/k8/gmp-mparam.h\""
 D["SIZEOF_VOID_P"]=" 8"
 D["SIZEOF_UNSIGNED_SHORT"]=" 2"
 D["SIZEOF_UNSIGNED"]=" 4"
 D["SIZEOF_UNSIGNED_LONG"]=" 8"
 D["SIZEOF_MP_LIMB_T"]=" 8"
-D["TUNE_SQR_TOOM2_MAX"]=" SQR_TOOM2_MAX_GENERIC"
 D["HAVE_STACK_T"]=" 1"
 D["YYTEXT_POINTER"]=" 1"
   for (key in D) D_is_set[key] = 1

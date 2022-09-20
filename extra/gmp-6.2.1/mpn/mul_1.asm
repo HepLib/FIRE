@@ -1,1 +1,1 @@
-../mpn/arm64/mul_1.asm
+../mpn/x86_64/mul_1.asm

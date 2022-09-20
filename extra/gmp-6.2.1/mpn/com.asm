@@ -1,1 +1,1 @@
-../mpn/arm64/com.asm
+../mpn/x86_64/com.asm

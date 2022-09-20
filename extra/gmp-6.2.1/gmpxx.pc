@@ -1,4 +1,4 @@
-prefix=/Volumes/DATA/CUMTB/Projects/FIRE/extra/gmp-6.2.1/../../usr
+prefix=/var/tmp/usr/FIRE/extra/gmp-6.2.1/../../usr
 exec_prefix=${prefix}
 includedir=${prefix}/include
 libdir=${exec_prefix}/lib

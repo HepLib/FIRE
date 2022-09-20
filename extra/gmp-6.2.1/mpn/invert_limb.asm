@@ -1,1 +1,1 @@
-../mpn/arm64/invert_limb.asm
+../mpn/x86_64/invert_limb.asm

@@ -80,7 +80,7 @@ FILE *common::child_stream_to_child = nullptr;
 bool common::receive_from_child = false;
 bool common::send_to_parent = false;
 
-unsigned short common::port = 0;
+bool common::clean_databases = false;
 
 bool common::remote_worker = false;
 
@@ -100,7 +100,7 @@ atomic<long long> common::thread_time{};
 
 int common::msiz = 26;
 
-unsigned short common::global_pn = 0;
+unsigned int common::global_pn = 0;
 unsigned int common::threads_number = 0;
 unsigned int common::lthreads_number = 1;
 unsigned int common::sthreads_number = 0;
@@ -536,9 +536,10 @@ bool database_to_file_or_back(int number, bool back, bool remove_file) {
         if (!back) {
             common::wrapper_database.tune_alignment(8);
             common::wrapper_database.tune_buckets(4096);
-            if (!common::wrapper_database.open(common::path + "wrapper" + ".kch",
-                kyotocabinet::HashDB::OWRITER | kyotocabinet::HashDB::OCREATE | kyotocabinet::HashDB::OTRUNCATE)) {
-                cout << "Wrapper open error: " << common::wrapper_database.error().name() << endl;
+            uint32_t flags = kyotocabinet::HashDB::OWRITER | kyotocabinet::HashDB::OCREATE | kyotocabinet::HashDB::OTRUNCATE;
+            if (common::nolock) flags |= kyotocabinet::HashDB::ONOLOCK;
+            if (!common::wrapper_database.open(common::path + "wrapper" + ".kch", flags)) {
+                cerr << "Wrapper open error: " << common::wrapper_database.error().name() << endl;
                 abort();
             }
         } else {
@@ -573,10 +574,18 @@ bool database_to_file_or_back(int number, bool back, bool remove_file) {
         char buf[16];
         sprintf(buf, "%04d", number);
         get_visitor.remove_file = remove_file;
-        get_visitor.write_to = common::path + int2string(number) + "." + "tmp";
+#ifdef DISK_DB
+        get_visitor.write_to = common::path + int2string(number) + ".kch";
+#else
+        get_visitor.write_to = common::path + int2string(number) + ".tmp";
+#endif
         return common::wrapper_database.accept(buf, 4, &get_visitor, remove_file);
     } else {
-        string read_from = common::path + int2string(number) + "." + "tmp";
+#ifdef DISK_DB
+        string read_from = common::path + int2string(number) + ".kch";
+#else
+        string read_from = common::path + int2string(number) + ".tmp";
+#endif
         struct stat stat_buf;
         int rc = stat(read_from.c_str(), &stat_buf);
         if (rc) {
@@ -675,3 +684,10 @@ string ReplaceAllVariables(string str) {
     }
     return str;
 }
+
+#if defined(FlintX) || defined(FlintC)
+    string COEFF::x;
+#elif defined(FlintM)
+    fmpz_mpoly_ctx_t COEFF::ctx;
+    const char** COEFF::xs;
+#endif

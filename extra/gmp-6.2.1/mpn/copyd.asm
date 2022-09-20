@@ -1,1 +1,1 @@
-../mpn/arm64/copyd.asm
+../mpn/x86_64/copyd.asm

@@ -38,10 +38,10 @@ int main(int argc, char *argv[]) {
     string scurrent = string(current);
     string srun = string(argv[0]);
 
-#ifdef PRIME
-    srun = srun.substr(0, srun.length() - 7);
-#else
+#if defined(PolyMode)
     srun = srun.substr(0, srun.length() - 6);
+#else
+    srun = srun.substr(0, srun.length() - 7);
 #endif
 
     if (srun[0] == '/') {  // running with full path
@@ -148,5 +148,9 @@ int main(int argc, char *argv[]) {
     if (common::cpath != "") {
         clear_database(sector);
     }
+
+#if defined(FlintM) || defined(FlintC) || defined(FMPQ) || defined(FlintX)
+    flint_cleanup();
+#endif
     return 0;
 }

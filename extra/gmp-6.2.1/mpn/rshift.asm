@@ -1,1 +1,1 @@
-../mpn/arm64/rshift.asm
+../mpn/x86_64/rshift.asm

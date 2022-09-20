@@ -348,6 +348,18 @@ COEFF generate_free_coeff_from_string(string cc, const unsigned short ssector) {
         calc_wrapper(cc, 0);
     }
     c.n = mod(cc);
+#elif defined(FlintX)
+cout << "###### cc=" << cc << endl;
+    c.s = cc.c_str();
+#elif defined(FMPQ)
+cout << "###### cc=" << cc << endl;
+    fmpq_set_str(c.s[0],cc.c_str(),10);
+#elif defined(FlintC)
+cout << "###### cc=" << cc << endl;
+    fmpz_poly_q_set_str2(c.s[0],cc.c_str());
+#elif defined(FlintM)
+cout << "###### cc=" << cc << endl;
+    fmpz_mpoly_q_set_str(c.s[0],cc.c_str());
 #else
     c.s = cc;
 #endif
@@ -420,6 +432,7 @@ bool add_lbases(const char *c, const unsigned short ssector) {
     vector<t_index> v;
     int move;
     int n;
+    unsigned int pn;
     lbases_loaded = true;
 
     file = fopen(c, "r");
@@ -460,8 +473,8 @@ bool add_lbases(const char *c, const unsigned short ssector) {
             abort();
         }
         it++;
-        move = s2i(it, n);
-        if (n != common::global_pn) {
+        move = s2u(it, pn);
+        if (pn != common::global_pn) {
             cout << "wrong problem number" << endl;
             abort();
         }
@@ -487,7 +500,7 @@ bool add_lbases(const char *c, const unsigned short ssector) {
         it += move;
         unsigned short sn = common::sector_numbers_fast[sf];
         if ((sn == 0) && (ssector == 0)) {
-            cout << "Undefined sector: {" << n << ", ";
+            cout << "Undefined sector: {" << pn << ", ";
             print_sector_fast(sf);
             cout << "}" << endl;
         }
@@ -705,13 +718,13 @@ bool add_lbases(const char *c, const unsigned short ssector) {
         it++;
         while (*it == ' ') { it++; }
 
-        int here_pn;
+        unsigned int here_pn;
         if (*it != '{') {
             cout << "wrong start of a point in delayed rule" << *it << endl;
             abort();
         }
         it++;
-        move = s2i(it, here_pn);
+        move = s2u(it, here_pn);
         if (here_pn != common::global_pn) {
             cout << "wrong problem number" << endl;
             abort();
@@ -908,13 +921,13 @@ bool add_lbases(const char *c, const unsigned short ssector) {
             }
             it++;
             while (*it == ' ') it++;
-            int here_pn;
+            unsigned int here_pn;
             if (*it != '{') {
                 cout << "wrong start of a point in symmetry rule" << *it << endl;
                 abort();
             }
             it++;
-            move = s2i(it, here_pn);
+            move = s2u(it, here_pn);
             if (here_pn != common::global_pn) {
                 cout << "wrong problem number" << endl;
                 abort();
@@ -1160,8 +1173,8 @@ int load_preferred(const char* c) {
         }
         move++;
         while (all[move] == ' ') move++;
-        int i;
-        move += s2i(all + move, i);
+        unsigned int i;
+        move += s2u(all + move, i);
         if (i != common::global_pn) {
             cerr << "Unknown problem number " << i << endl;
             fclose(preferred_int_file);
@@ -1244,8 +1257,8 @@ void set_masters_to_zero(const char *c, bool zero_sector =false) {
         }
         move++;
         while (all[move] == ' ') move++;
-        int i;
-        move += s2i(all + move, i);
+        unsigned int i;
+        move += s2u(all + move, i);
         if (i != common::global_pn) {
             cout << "Unknown problem number in master" << i << endl;
             abort();
@@ -1274,6 +1287,14 @@ void set_masters_to_zero(const char *c, bool zero_sector =false) {
                 COEFF one;
 #ifdef PRIME
                 one.n = 1;
+#elif defined(MPQ) || defined(FlintX) 
+                one.s = 1;
+#elif defined(FMPQ)
+                fmpq_set_si(one.s[0],1);
+#elif defined(FlintC)
+                fmpz_poly_q_set_si(one.s[0],1);
+#elif defined(FlintM)
+                fmpz_mpoly_q_set_si(one.s[0],1,COEFF::ctx);
 #else
                 one.s = "1";
 #endif
@@ -1286,6 +1307,14 @@ void set_masters_to_zero(const char *c, bool zero_sector =false) {
             COEFF minus_one;
 #ifdef PRIME
             minus_one.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX) 
+            minus_one.s = -1;
+#elif defined(FMPQ)
+            fmpq_set_si(minus_one.s[0],-1);
+#elif defined(FlintC)
+            fmpz_poly_q_set_si(minus_one.s[0],-1);
+#elif defined(FlintM)
+            fmpz_mpoly_q_set_si(minus_one.s[0],-1,COEFF::ctx);
 #else
             minus_one.s = "-1";
 #endif
@@ -1420,6 +1449,18 @@ bool add_rules(const char *c, const unsigned short sector) {
                     calc_wrapper(current_coeff, 0);
                 }
                 current_COEFF.n = mod(current_coeff, true);
+#elif defined(FlintX)
+cout << "###### current_coeff=" << current_coeff << endl;
+                current_COEFF.s = current_coeff.c_str();
+#elif defined(FMPQ)
+cout << "###### current_coeff=" << current_coeff << endl;
+                fmpq_set_str(current_COEFF.s[0],current_coeff.c_str(),10);
+#elif defined(FlintC)
+cout << "###### current_coeff=" << current_coeff << endl;
+                fmpz_poly_q_set_str2(current_COEFF.s[0],current_coeff.c_str());
+#elif defined(FlintM)
+cout << "###### current_coeff=" << current_coeff << endl;
+                fmpz_mpoly_q_set_str(current_COEFF.s[0],current_coeff.c_str());
 #else
                 current_COEFF.s = current_coeff;
 #endif
@@ -1449,6 +1490,18 @@ bool add_rules(const char *c, const unsigned short sector) {
 #ifdef PRIME
                     one.n = 1;
                     minus_one.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX) 
+                    one.s = 1;
+                    minus_one.s = -1;
+#elif defined(FMPQ)
+                    fmpq_set_si(one.s[0],1);
+                    fmpq_set_si(minus_one.s[0],-1);
+#elif defined(FlintC)
+                    fmpz_poly_q_set_si(one.s[0],1);
+                    fmpz_poly_q_set_si(minus_one.s[0],-1);
+#elif defined(FlintM)
+                    fmpz_mpoly_q_set_si(one.s[0],1,COEFF::ctx);
+                    fmpz_mpoly_q_set_si(minus_one.s[0],-1,COEFF::ctx);
 #else
                     one.s = "1";
                     minus_one.s = "-1";
@@ -1496,6 +1549,12 @@ bool add_rules(const char *c, const unsigned short sector) {
                     COEFF coeff2;
 #ifdef PRIME
                     coeff2.n = read->second.n;
+#elif defined(FMPQ)
+                    fmpq_set(coeff2.s[0],read->second.s[0]);
+#elif defined(FlintC)
+                    fmpz_poly_q_set(coeff2.s[0],read->second.s[0]);
+#elif defined(FlintM)
+                    fmpz_mpoly_q_set(coeff2.s[0],read->second.s[0],COEFF::ctx);
 #else
                     coeff2.s = read->second.s;
 #endif
@@ -1504,8 +1563,14 @@ bool add_rules(const char *c, const unsigned short sector) {
                     while ((read2 != mon.end()) && (read2->first == read->first)) {
 #ifdef PRIME
                         coeff2.n += read2->second.n;
-#elif defined(MPQ)
+#elif defined(MPQ) || defined(FlintX) 
                         coeff2.s += read2->second.s;
+#elif defined(FMPQ)
+                        fmpq_add(coeff2.s[0], coeff2.s[0], read2->second.s[0]);
+#elif defined(FlintC)
+                        fmpz_poly_q_add(coeff2.s[0], coeff2.s[0], read2->second.s[0]);
+#elif defined(FlintM)
+                        fmpz_mpoly_q_add(coeff2.s[0], coeff2.s[0], read2->second.s[0], COEFF::ctx);
 #else
                         coeff2.s += "+(" + read2->second.s + ")";
 #endif
@@ -1519,6 +1584,23 @@ bool add_rules(const char *c, const unsigned short sector) {
                     }
 #elif defined(MPQ)
                     if (coeff2.s!=0) {
+                        terms.emplace_back(read->first, coeff2);
+                    }
+#elif defined(FlintX)
+                    coeff2.s = coeff2.s.evaluate();
+                    if (!coeff2.s.is_zero()) {
+                        terms.emplace_back(read->first, coeff2);
+                    }
+#elif defined(FMPQ)
+                    if (!fmpq_is_zero(coeff2.s[0])) {
+                        terms.emplace_back(read->first, coeff2);
+                    }
+#elif defined(FlintC)
+                    if (!fmpz_poly_q_is_zero(coeff2.s[0])) {
+                        terms.emplace_back(read->first, coeff2);
+                    }
+#elif defined(FlintM)
+                    if (!fmpz_mpoly_q_is_zero(coeff2.s[0],COEFF::ctx)) {
                         terms.emplace_back(read->first, coeff2);
                     }
 #else
@@ -1537,6 +1619,14 @@ bool add_rules(const char *c, const unsigned short sector) {
                 COEFF minus_one;
 #ifdef PRIME
                 minus_one.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX)
+                minus_one.s = -1;
+#elif defined(FMPQ)
+                fmpq_set_si(minus_one.s[0], -1);
+#elif defined(FlintC)
+                fmpz_poly_q_set_si(minus_one.s[0], -1);
+#elif defined(FlintM)
+                fmpz_mpoly_q_set_si(minus_one.s[0], -1, COEFF::ctx);
 #else
                 minus_one.s = "-1";
 #endif
@@ -1575,7 +1665,7 @@ bool add_rules(const char *c, const unsigned short sector) {
  * @param sector number of sector.
  * @return true if problem was added successfully, false otherwise.
  */
-bool add_problem(const unsigned short problem_number, const char *cc, const unsigned short sector) {
+bool add_problem(const unsigned int problem_number, const char *cc, const unsigned short sector) {
     common::global_pn = problem_number;
     int positive = 0;
     int positive_start = 1;
@@ -1620,7 +1710,7 @@ bool add_problem(const unsigned short problem_number, const char *cc, const unsi
     vector<vector<vector<t_index> > > local_symmetries;
 
 
-    int dimension = 0;
+    unsigned int dimension = 0;
     while (fgets(load_string, sizeof(load_string), file)) {
         if (load_string[1] == '\n' || load_string[0] == '\n' || load_string[0] == '\r' || load_string[1] == '\r') {
             for (auto & symb : str) {
@@ -1637,6 +1727,15 @@ bool add_problem(const unsigned short problem_number, const char *cc, const unsi
                 if (positive == 0) { positive = dimension; }
 
                 vector<vector<t_index> > all = all_sectors(n, positive, positive_start);
+
+                if (dimension > MAX_IND) {
+#ifdef SMALL_POINT
+                    cout << "Maximal dimension with --small_point is " << MAX_IND << endl;
+#else
+                    cout << "Maximal dimension is " << MAX_IND << endl;
+#endif
+                    abort();
+                }
 
                 common::dimension = n;
                 common::orderings_fast = unique_ptr<unique_ptr<t_index[]>[]>{new unique_ptr<t_index[]>[1 << (n)]{}};
@@ -1716,7 +1815,7 @@ bool add_problem(const unsigned short problem_number, const char *cc, const unsi
 
                     str = ReplaceAllVariables(str);
                     // now it should be just the whole coefficient, that should be better parsed here
-#if !defined(PRIME) && !defined(MPQ)
+
                     // due to substitutions some of the coefficients might become 0. we have to get them away
                     found = str.find('{');
                     string str_res = str.substr(0, found + 1);
@@ -1747,11 +1846,8 @@ bool add_problem(const unsigned short problem_number, const char *cc, const unsi
                     str_res += str;
                     str = str_res;
                     if (good_term) {
-#endif
                         point::ibps[m - 1].emplace_back(split_coeff(str),point_fast(v));
-#if !defined(PRIME) && !defined(MPQ)
                     }
-#endif
                 }
                 str = "";
                 continue;
@@ -1912,22 +2008,22 @@ bool add_problem(const unsigned short problem_number, const char *cc, const unsi
 
                 make_ordering(common::orderings_fast[sector_fast(ssector)].get(), ssector);
             }
-            if (dimension == -1) {
+            if (dimension == 0) {
                 cout << "Something weird in add_problem - dimension wasn't set!" << endl;
                 abort();
             }
             double matrix[MAX_IND][MAX_IND];
-            for (int i = 0; i != dimension; ++i) {
-                for (int j = 0; j != dimension; ++j) {
+            for (unsigned int i = 0; i != dimension; ++i) {
+                for (unsigned int j = 0; j != dimension; ++j) {
                     matrix[i][j] = (common::orderings_fast[sector_fast(ssector)][i * common::dimension + j]);
                 }
             }
 
             invers(matrix, dimension);
             vector<vector<t_index> >& iord = common::iorderings[sn];
-            for (int i = 0; i != dimension; ++i) {
+            for (unsigned int i = 0; i != dimension; ++i) {
                 vector<t_index> temp;
-                for (int j = 0; j != dimension; ++j) {
+                for (unsigned int j = 0; j != dimension; ++j) {
                     if (double(t_index(matrix[i][j])) != matrix[i][j]) {
                         cout << "Bad inverse!" << endl;
                         abort();
@@ -2116,7 +2212,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             s2u(str.c_str(), common::sthreads_number);
         } else
         if (str.substr(0, 9) == "#lthreads") {
-            #if defined(FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD) || defined(FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC) 
+            #if !defined(PolyMode) || defined(FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD) || defined(FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC) 
                 size_t pos = 9;
                 while (str[pos] == ' ') pos++;
                 str = str.substr(pos);
@@ -2127,20 +2223,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 continue;
             #endif
         } else
-        if (str.substr(0, 5) == "#port") {
-            if (sector == 0) {  // it's either FIRE or slave FLAME job, but it ignores it anyway
-                size_t pos = 9;
-                while (str[pos] == ' ') pos++;
-                str = str.substr(pos);
-                int port;
-                s2i(str.c_str(), port);
-                common::port = port;
-                if (common::parallel_mode && common::port) {
-                    if (!common::silent) { cout << "Running MPI, can't use ports!" << endl; }
-                    common::port = 0;
-                }
-            }
-        } else if (str.substr(0, 9) == "#pos_pref") {
+        if (str.substr(0, 9) == "#pos_pref") {
             size_t pos = 10;
             while (str[pos] == ' ') pos++;
             str = str.substr(pos);
@@ -2150,12 +2233,12 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
         } else if (str.substr(0, 9) == "#fthreads") {
             size_t pos = 9;
             while (str[pos] == ' ') pos++;
-#if !defined(PRIME) && !defined(MPQ)
+#if defined(PolyMode)
             bool fermat_separate = false;
 #endif
             if (str[pos] == 's') {
-#if defined(PRIME) || defined(MPQ)
-                if (!sector) cout<<"Separate fermat mode is ignored in prime version"<<endl;
+#if !defined(PolyMode)
+                if (!sector) cout<<"Separate fermat mode is ignored in p/q/x/c version"<<endl;
 #else
                 fermat_separate = true;
 #endif
@@ -2164,7 +2247,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             str = str.substr(pos);
             s2u(str.c_str(), common::fthreads_number);
             if ((sector == 0) && (!common::silent)) { cout << "Fermat: " << common::fthreads_number; }
-#if !defined(PRIME) && !defined(MPQ)
+#if defined(PolyMode)
             if (fermat_separate) {
                 common::receive_from_child = false;
                 common::send_to_parent = false;
@@ -2275,7 +2358,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             common::wrap_databases = true;
         } else
         if (str.substr(0, 6) == "#prime") {
-            #if defined(PRIME) || defined(MPQ)
+            #if !defined(PolyMode)
                 if (common::prime) {
                     cout << "Option #prime ignored: either duplicate line or provided as an option" << endl
                     << "Current prime number: " << common::prime << ", by index " << common::prime_number << endl;
@@ -2299,6 +2382,11 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
         } else
         if (str.substr(0, 7) == "#memory") {
             if ((sector == 0) && (!common::silent)) { cout << "OPTION MEMORY HAS NO LONGER ANY MEANING AND IS DEFAULT. RECONFIGURE TO ENABLE DISK DATABASES!" << endl; }
+        } else if (str.substr(0, 16) == "#clean_databases") {
+            if (sector == 0) {
+                if (!common::silent) { cout << "Temporary databases will be cleaned after work" << endl;}
+            }
+            common::clean_databases = true;
         } else if (str.substr(0, 6) == "#clean") {
             if (sector == 0) {
                 if (!common::silent) { cout << "#clean OPTION HAS NO LONGER ANY EFFECT SINCE WE ARE NOT USING SEMAPHORES!!!!" << endl; }
@@ -2328,7 +2416,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 fclose(config_file);
                 return 1;
             }
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode)
 #ifdef PRIME
             if (!common::prime) {
                 cerr << "no proper #prime setting, exiting" << endl;
@@ -2336,12 +2424,42 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 return 1;
             }
 #endif
-            if (variables!="") {
-                cerr << "not all variables have values, exiting" << endl;
-                cout<<variables<<endl;
+#if defined(FlintX) || defined(FlintC)
+            auto vars = variables;
+            const char* WhiteSpace = " \t\v\r\n";
+            if(!vars.empty()) {
+                vars.erase(0, vars.find_first_not_of(WhiteSpace));
+                vars.erase(vars.find_last_not_of(WhiteSpace)+1);
+            }
+            int n = std::count(vars.begin(), vars.end(), '\n');
+            if (n>0) {
+                cerr << "more variables are found, exiting" << endl;
+                cout << "vars=" << vars <<endl;
                 fclose(config_file);
                 return 1;
             }
+            COEFF::x = vars;
+#elif defined(FlintM)
+            auto vars = variables;
+            int n = std::count(vars.begin(), vars.end(), '\n');
+            if(n==0) { n = 1; vars = "_"; }
+            COEFF::xs = (const char **)malloc(sizeof(const char *)*n);
+            char cvs[vars.length()+1];
+            strcpy(cvs,vars.c_str());
+            char *pos = cvs;
+            char *end = pos;
+            for(int i=0; i<n; i++) {
+                while(*end != '\n') ++end;
+                *end = '\0';
+                int len = std::distance(pos,end);
+                char* nstr = (char*)malloc(sizeof(char)*(len+1));
+                strcpy(nstr,pos);
+                COEFF::xs[i] = nstr;
+                pos = end;
+                pos++;
+            }
+            fmpz_mpoly_ctx_init(COEFF::ctx,n,ORD_LEX);
+#endif
 #endif
             if (fermat == "") {
                 cerr << "No proper #fermat setting, exiting" << endl;
@@ -2361,7 +2479,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 fclose(config_file);
                 return 1;
             }
-#if !defined(PRIME) && !defined(MPQ)
+#if defined(PolyMode)
             if (common::send_to_parent && common::lthreads_number > 1) {
                 cerr << "Level threads in poly version require separate fermat workers";
                 fclose(config_file);
@@ -2566,19 +2684,14 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             } else if (str.substr(0, 8) == "#problem") {
                 // problem should be parsed even for substitutions, however coefficients should not be loaded
                 size_t pos = 8;
-                int pn;
+                unsigned int pn;
                 while (str[pos] == ' ') pos++;
                 str = str.substr(pos);
 
                 str.erase(str.find('\n'));
                 const char *r = str.c_str();
 
-                int move = s2i(r, pn);
-                if (int(static_cast<unsigned short>(pn)) != pn) {
-                    cerr << "Incorrect problem number, exiting" << endl;
-                    fclose(config_file);
-                    return 1;
-                }
+                int move = s2u(r, pn);
                 while (*(r + move) == ' ') move++;
 
                 if (!add_problem(pn, (string(r + move)).c_str(), sector)) {
@@ -2812,7 +2925,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                     if (!sector && !common::silent) cout<< "Loaded "<<pref_count<< " preferred points"<<endl;
                 }
             } else if (str.substr(0, 10) == "#integrals") { // parse integrals right here
-                for (int i = 2; i != common::abs_max_sector; ++i) {
+                for (int i = 2; i < common::abs_max_sector; ++i) {
                     if (point::preferred[i].empty()) {
                         // no preferred, have to add them
                         vector<t_index> v = common::ssectors[i];
@@ -2879,8 +2992,8 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                         }
                         move++;
                         while (all[move] == ' ') move++;
-                        int i;
-                        move += s2i(all + move, i);
+                        unsigned int i;
+                        move += s2u(all + move, i);
                         if (i != common::global_pn) {
                             cerr << "Unknown problem number " << i << endl;
                             fclose(integral_file);
@@ -3033,8 +3146,14 @@ vector<COEFF> split_coeff(const string &s) {
     COEFF c0;
 #ifdef PRIME
     c0.n = 0;
-#elif defined(MPQ)
+#elif defined(MPQ) || defined(FlintX)
     c0.s = 0;
+#elif defined(FMPQ)
+    fmpq_zero(c0.s[0]);
+#elif defined(FlintC)
+    fmpz_poly_q_zero(c0.s[0]);
+#elif defined(FlintM)
+    fmpz_mpoly_q_zero(c0.s[0],COEFF::ctx);
 #else
     c0.s = "";
 #endif
@@ -3088,6 +3207,80 @@ vector<COEFF> split_coeff(const string &s) {
             }
             calc_wrapper(coeff, 0);
             c.s = coeff;
+        }
+#elif defined(FMPQ)
+        if (coeff.empty()) {
+            fmpq_zero(c.s[0]);
+        } else {
+            coeff += "(1)";
+            coeff = ReplaceAll(coeff, " ", "");
+            if (*coeff.begin() == '+') {
+                coeff = "0" + coeff;
+            }
+            calc_wrapper(coeff, 0);
+            fmpq_set_str(c.s[0], coeff.c_str(), 10);
+        }
+#elif defined(FlintX) || defined(FlintC) || defined(FlintM)
+        if (coeff.empty()) {
+        #if defined(FlintX)
+            c.s = 0;
+        #elif defined(FlintC)
+            fmpz_poly_q_zero(c.s[0]);
+        #elif defined(FlintM)
+            fmpz_mpoly_q_zero(c.s[0],COEFF::ctx);
+        #endif
+        } else {
+            coeff += "(1)";
+            coeff = ReplaceAll(coeff, " ", "");
+            if (*coeff.begin() == '+') {
+                coeff = "0" + coeff;
+            }
+            calc_wrapper(coeff, 0);
+            string nstr = "Numer("+coeff+")";
+            calc_wrapper(nstr, 0);
+            string dstr = "Denom("+coeff+")";
+            calc_wrapper(dstr, 0);
+            
+            int n = nstr.length();
+            char nbuff[n+1];
+            strcpy(nbuff, nstr.c_str());
+            #if defined(FlintX)
+            FILE * f = fmemopen(nbuff, n, "r");
+            char* rvar;
+            typename flint::flint_classes::to_ref<flint::fmpz_polyxx>::type nref(c.s.num());
+            flint::read_pretty(f,nref,&rvar);
+            flint_free(rvar);
+            fclose(f);
+            #elif defined(FlintC)
+            FILE * f = fmemopen(nbuff, n, "r");
+            char* rvar;
+            fmpz_poly_fread_pretty(f,fmpz_poly_q_numref(c.s[0]),&rvar);
+            flint_free(rvar);
+            fclose(f);
+            #elif defined(FlintM)
+            fmpz_mpoly_set_str_pretty(fmpz_mpoly_q_numref(c.s[0]),nbuff,COEFF::xs,COEFF::ctx);
+            #endif
+            
+            n = dstr.length();
+            char dbuff[n+1];
+            strcpy(dbuff, dstr.c_str());
+            #if defined(FlintX)
+            f = fmemopen(dbuff, n, "r");
+            typename flint::flint_classes::to_ref<flint::fmpz_polyxx>::type dref(c.s.den());
+            flint::read_pretty(f,dref,&rvar);
+            flint_free(rvar);
+            fclose(f);
+            c.s.canonicalise();
+            #elif defined(FlintC)
+            f = fmemopen(dbuff, n, "r");
+            fmpz_poly_fread_pretty(f,fmpz_poly_q_denref(c.s[0]),&rvar);
+            flint_free(rvar);
+            fclose(f);
+            fmpz_poly_q_canonicalise(c.s[0]);
+            #elif defined(FlintM)
+            fmpz_mpoly_set_str_pretty(fmpz_mpoly_q_denref(c.s[0]),dbuff,COEFF::xs,COEFF::ctx);
+            fmpz_mpoly_q_canonicalise(c.s[0],COEFF::ctx);
+            #endif
         }
 #else
         c.s = coeff;
@@ -3191,10 +3384,6 @@ pair<int,int> parseArgcArgv(int argc, char *argv[], bool main) {
     if (common::config_file == "") {
         cout << "Config file not specified"<<endl;
         abort();
-    }
-
-    if (common::parallel_mode) {
-        common::port = 0;
     }
 
     return make_pair(thread_number,sector);

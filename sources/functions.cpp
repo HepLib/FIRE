@@ -278,6 +278,20 @@ equation* apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast
 
     bool there_are_symmetries = (common::symmetries.size() > 1);
 
+#if defined(FMPQ)
+    fmpq_t res,tmp;
+    fmpq_init(res);
+    fmpq_init(tmp);
+#elif defined(FlintC)
+    fmpz_poly_q_t res,tmp;
+    fmpz_poly_q_init(res);
+    fmpz_poly_q_init(tmp);
+#elif defined(FlintM)
+    fmpz_mpoly_q_t res,tmp;
+    fmpz_mpoly_q_init(res,COEFF::ctx);
+    fmpz_mpoly_q_init(tmp,COEFF::ctx);
+#endif
+
     for (auto read = ibp.begin(); read != ibp.end(); ++read) {
         point_fast new_v = read->second + v;
         SECTOR s1 = new_v.sector_fast();
@@ -322,6 +336,62 @@ equation* apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast
             result->terms[length]->c = c;
             ++length;
         }
+#elif defined(FlintX)
+        flint::fmpz_poly_qxx res = (read->first)[0].s;
+        t_index *pos = v.buf;
+        for (unsigned short i = 0; i != common::dimension; ++i, ++pos) {
+            res += (int(*pos) * (read->first)[i + 1].s);
+        }
+        res = res.evaluate();
+        if (!res.is_zero()) {
+            COEFF c;
+            c.s = res;
+            result->terms[length]->p = new_p;
+            result->terms[length]->c = c;
+            ++length;
+        }
+#elif defined(FMPQ)
+        fmpq_set(res,(read->first)[0].s[0]);
+        t_index *pos = v.buf;
+        for (unsigned short i = 0; i != common::dimension; ++i, ++pos) {
+            fmpq_mul_si(tmp,(read->first)[i + 1].s[0],int(*pos));
+            fmpq_add(res,res,tmp);
+        }
+        if (!fmpq_is_zero(res)) {
+            COEFF c;
+            fmpq_set(c.s[0],res);
+            result->terms[length]->p = new_p;
+            result->terms[length]->c = c;
+            ++length;
+        }
+#elif defined(FlintC)
+        fmpz_poly_q_set(res,(read->first)[0].s[0]);
+        t_index *pos = v.buf;
+        for (unsigned short i = 0; i != common::dimension; ++i, ++pos) {
+            fmpz_poly_q_scalar_mul_si(tmp,(read->first)[i + 1].s[0],int(*pos));
+            fmpz_poly_q_add(res,res,tmp);
+        }
+        if (!fmpz_poly_q_is_zero(res)) {
+            COEFF c;
+            fmpz_poly_q_set(c.s[0],res);
+            result->terms[length]->p = new_p;
+            result->terms[length]->c = c;
+            ++length;
+        }
+#elif defined(FlintM)
+        fmpz_mpoly_q_set(res,(read->first)[0].s[0],COEFF::ctx);
+        t_index *pos = v.buf;
+        for (unsigned short i = 0; i != common::dimension; ++i, ++pos) {
+            fmpz_mpoly_q_set_si(tmp,int(*pos),COEFF::ctx);
+            fmpz_mpoly_q_addmul(res,tmp,(read->first)[i + 1].s[0],COEFF::ctx);
+        }
+        if (!fmpz_mpoly_q_is_zero(res,COEFF::ctx)) {
+            COEFF c;
+            fmpz_mpoly_q_set(c.s[0],res,COEFF::ctx);
+            result->terms[length]->p = new_p;
+            result->terms[length]->c = c;
+            ++length;
+        }
 #else
         string cfast = (read->first)[0].s; // the free coefficient;
         if (cfast.empty()) cfast = "0";
@@ -347,6 +417,17 @@ equation* apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast
         }
 #endif
     }
+    
+#if defined(FMPQ)
+    fmpq_clear(res);
+    fmpq_clear(tmp);
+#elif defined(FlintC)
+    fmpz_poly_q_clear(res);
+    fmpz_poly_q_clear(tmp);
+#elif defined(FlintM)
+    fmpz_mpoly_q_clear(res,COEFF::ctx);
+    fmpz_mpoly_q_clear(tmp,COEFF::ctx);
+#endif
 
     result->length = length;
     sort(result->terms, result->terms + length, MONOM_smaller);
@@ -378,6 +459,36 @@ equation* apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast
                 ++i;
                 break; // out of the internal cycle. we will anyway increase i and k
             }
+#elif defined(FlintX)
+            auto nB = result->terms[k]->c.s;
+            nB += result->terms[i + 1]->c.s;
+            result->terms[k]->c.s = nB.evaluate();
+            if (result->terms[k]->c.s.is_zero()) {
+                --k;
+                ++i;
+                break; // out of the internal cycle. we will anyway increase i and k
+            }
+#elif defined(FMPQ)
+            fmpq_add(result->terms[k]->c.s[0],result->terms[k]->c.s[0],result->terms[i + 1]->c.s[0]);
+            if (fmpq_is_zero(result->terms[k]->c.s[0])) {
+                --k;
+                ++i;
+                break; // out of the internal cycle. we will anyway increase i and k
+            }
+#elif defined(FlintC)
+            fmpz_poly_q_add(result->terms[k]->c.s[0],result->terms[k]->c.s[0],result->terms[i + 1]->c.s[0]);
+            if (fmpz_poly_q_is_zero(result->terms[k]->c.s[0])) {
+                --k;
+                ++i;
+                break; // out of the internal cycle. we will anyway increase i and k
+            }
+#elif defined(FlintM)
+            fmpz_mpoly_q_add(result->terms[k]->c.s[0],result->terms[k]->c.s[0],result->terms[i + 1]->c.s[0],COEFF::ctx);
+            if (fmpz_mpoly_q_is_zero(result->terms[k]->c.s[0],COEFF::ctx)) {
+                --k;
+                ++i;
+                break; // out of the internal cycle. we will anyway increase i and k
+            }
 #else
             result->terms[k]->c.s += "+(" + result->terms[i + 1]->c.s + ")";
 #endif
@@ -386,7 +497,7 @@ equation* apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast
     }
     result->length -= (result->length - k);
 
-#if !defined(PRIME) && !defined(MPQ)
+#if defined(PolyMode) 
     normalize_eq(result, thread_number);
     sort(result->terms, result->terms + result->length, MONOM_smaller);
 #endif
@@ -486,6 +597,43 @@ map<point_fast, COEFF> calculate_product(const list<vector<pair<COEFF, point_fas
                         nB += i3->second.s;
                         i3->second.s = nB;
                     }
+#elif defined(FlintX)
+                    if (i3 == new_local_coeffs.end()) {
+                        COEFF new_c;
+                        auto nB = i1.first.s;
+                        nB *= local_coeff.second.s;
+                        new_c.s = nB.evaluate();
+                        new_local_coeffs.emplace_hint(i3, new_v, new_c);
+                    } else {
+                        auto nB = i1.first.s;
+                        nB *= local_coeff.second.s;
+                        nB += i3->second.s;
+                        i3->second.s = nB.evaluate();
+                    }
+#elif defined(FMPQ)
+                    if (i3 == new_local_coeffs.end()) {
+                        COEFF new_c;
+                        fmpq_mul(new_c.s[0], i1.first.s[0], local_coeff.second.s[0]);
+                        new_local_coeffs.emplace_hint(i3, new_v, new_c);
+                    } else {
+                        fmpq_addmul(i3->second.s[0],i1.first.s[0],local_coeff.second.s[0]);
+                    }
+#elif defined(FlintC)
+                    if (i3 == new_local_coeffs.end()) {
+                        COEFF new_c;
+                        fmpz_poly_q_mul(new_c.s[0], i1.first.s[0], local_coeff.second.s[0]);
+                        new_local_coeffs.emplace_hint(i3, new_v, new_c);
+                    } else {
+                        fmpz_poly_q_addmul(i3->second.s[0],i1.first.s[0],local_coeff.second.s[0]);
+                    }
+#elif defined(FlintM)
+                    if (i3 == new_local_coeffs.end()) {
+                        COEFF new_c;
+                        fmpz_mpoly_q_mul(new_c.s[0], i1.first.s[0], local_coeff.second.s[0],COEFF::ctx);
+                        new_local_coeffs.emplace_hint(i3, new_v, new_c);
+                    } else {
+                        fmpz_mpoly_q_addmul(i3->second.s[0],i1.first.s[0],local_coeff.second.s[0],COEFF::ctx);
+                    }
 #else
                     if (i3 == new_local_coeffs.end()) {
                         COEFF new_c;
@@ -506,6 +654,22 @@ map<point_fast, COEFF> calculate_product(const list<vector<pair<COEFF, point_fas
             }
 #elif defined(MPQ)
             if (new_local_coeff.second.s!=0) {
+                local_coeffs.insert(new_local_coeff);
+            }
+#elif defined(FlintX)
+            if (!new_local_coeff.second.s.is_zero()) {
+                local_coeffs.insert(new_local_coeff);
+            }
+#elif defined(FMPQ)
+            if (!fmpq_is_zero(new_local_coeff.second.s[0])) {
+                local_coeffs.insert(new_local_coeff);
+            }
+#elif defined(FlintC)
+            if (!fmpz_poly_q_is_zero(new_local_coeff.second.s[0])) {
+                local_coeffs.insert(new_local_coeff);
+            }
+#elif defined(FlintM)
+            if (!fmpz_mpoly_q_is_zero(new_local_coeff.second.s[0],COEFF::ctx)) {
                 local_coeffs.insert(new_local_coeff);
             }
 #else
@@ -572,6 +736,14 @@ int write_symmetries(const point &p_start, const unsigned int pos, const unsigne
                 COEFF c;
 #ifdef PRIME
                 c.n = 1;
+#elif defined(MPQ) || defined(FlintX)
+                c.s = 1;
+#elif defined(FMPQ)
+                fmpq_set_si(c.s[0],1);
+#elif defined(FlintC)
+                fmpz_poly_q_set_si(c.s[0],1);
+#elif defined(FlintM)
+                fmpz_mpoly_q_set_si(c.s[0],1,COEFF::ctx);
 #else
                 c.s = "1";
 #endif
@@ -597,6 +769,14 @@ int write_symmetries(const point &p_start, const unsigned int pos, const unsigne
                     COEFF coeff;
 #ifdef PRIME
                     coeff.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX)
+                    coeff.s = -1;
+#elif defined(FMPQ)
+                    fmpq_set_si(coeff.s[0],-1);
+#elif defined(FlintC)
+                    fmpz_poly_q_set_si(coeff.s[0],-1);
+#elif defined(FlintM)
+                    fmpz_mpoly_q_set_si(coeff.s[0],-1,COEFF::ctx);
 #else
                     coeff.s = "-1";
 #endif
@@ -609,6 +789,27 @@ int write_symmetries(const point &p_start, const unsigned int pos, const unsigne
                         itr->second.n = (common::prime - 1);
 #elif defined(MPQ)
                     itr->second.s = itr->second.s - 1;
+
+#elif defined(FlintX)
+                    itr->second.s = (itr->second.s - flint::fmpz_poly_qxx::one()).evaluate();
+#elif defined(FMPQ)
+                    fmpq_t t1;
+                    fmpq_init(t1);
+                    fmpq_one(t1);
+                    fmpq_sub(itr->second.s[0],itr->second.s[0],t1);
+                    fmpq_clear(t1);
+#elif defined(FlintC)
+                    fmpz_poly_q_t t1;
+                    fmpz_poly_q_init(t1);
+                    fmpz_poly_q_one(t1);
+                    fmpz_poly_q_sub(itr->second.s[0],itr->second.s[0],t1);
+                    fmpz_poly_q_clear(t1);
+#elif defined(FlintM)
+                    fmpz_mpoly_q_t t1;
+                    fmpz_mpoly_q_init(t1,COEFF::ctx);
+                    fmpz_mpoly_q_one(t1,COEFF::ctx);
+                    fmpz_mpoly_q_sub(itr->second.s[0],itr->second.s[0],t1,COEFF::ctx);
+                    fmpz_mpoly_q_clear(t1,COEFF::ctx);
 #else
                     itr->second.s = itr->second.s + " -1";
 #endif
@@ -621,8 +822,16 @@ int write_symmetries(const point &p_start, const unsigned int pos, const unsigne
                 for (const auto &local_coeff : local_coeffs) {
 #ifdef PRIME
                     if (local_coeff.second.n != 0)
-#elif defined(MPQ)
+#elif defined(MPQ) 
                     if (local_coeff.second.s != 0)
+#elif defined(FlintX)
+                    if (!local_coeff.second.s.is_zero())
+#elif defined(FMPQ)
+                    if (!fmpq_is_zero(local_coeff.second.s[0]))
+#elif defined(FlintC)
+                    if (!fmpz_poly_q_is_zero(local_coeff.second.s[0]))
+#elif defined(FlintM)
+                    if (!fmpz_mpoly_q_is_zero(local_coeff.second.s[0],COEFF::ctx))
 #else
                     if (local_coeff.second.s != "0")
 #endif
@@ -649,7 +858,7 @@ int write_symmetries(const point &p_start, const unsigned int pos, const unsigne
                 // product ready, now sorting, joining, evaluating
                 sort(mon.begin(), mon.end(), sort_pair_point_coeff_by_point);
                 mon = group_equal_in_sorted(mon);
-#if !defined(PRIME) && !defined(MPQ)
+#if defined(PolyMode) 
                 normalize(mon, 0);  // symmetries are written in main thread, so no need to pass number
 #endif
                 if ((mon.empty()) || mon[mon.size() - 1].first != p) {
@@ -814,6 +1023,18 @@ void make_master(const point &p) {
 #ifdef PRIME
     one.n = 1;
     minus_one.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX) 
+    one.s = 1;
+    minus_one.s = -1;
+#elif defined(FMPQ)
+    fmpq_set_si(one.s[0],1);
+    fmpq_set_si(minus_one.s[0],-1);
+#elif defined(FlintC)
+    fmpz_poly_q_set_si(one.s[0],1);
+    fmpz_poly_q_set_si(minus_one.s[0],-1);
+#elif defined(FlintM)
+    fmpz_mpoly_q_set_si(one.s[0],1,COEFF::ctx);
+    fmpz_mpoly_q_set_si(minus_one.s[0],-1,COEFF::ctx);
 #else
     one.s = "1";
     minus_one.s = "-1";
@@ -990,7 +1211,7 @@ void add_ibps(const COEFF& first_mul, const COEFF& second_mul, const ibp_type& f
             bool has_nonzero = false;
             for (int k = 0; k!=common::dimension + 1; ++k) {
                 COEFF c = first_mul*first[i].first[k] - second_mul*second[j].first[k];
-                #if !defined(PRIME) && !defined(MPQ)
+                #if defined(PolyMode)
                     calc_wrapper(c.s,0);
                 #endif
                 if (!c.empty()) has_nonzero = true;
@@ -1306,6 +1527,24 @@ void forward_stage(unsigned short thread_number, unsigned short ssector_number) 
                                 num %= common::prime;
                                 c.n = num;
                                 if (c.n) mon.emplace_back(new_p, c);
+#elif defined(FlintX)
+                                COEFF c;
+                                c.s = ss.c_str();
+                                mon.emplace_back(new_p, c);
+#elif defined(FMPQ)
+cout << "fmpq_ss=" << ss << endl;
+                                COEFF c;
+                                fmpq_set_str(c.s[0],ss.c_str(),10);
+                                mon.emplace_back(new_p, c);
+#elif defined(FlintC)
+cout << "ss=" << ss << endl;
+                                COEFF c;
+                                fmpz_poly_q_set_str2(c.s[0],ss.c_str());
+                                mon.emplace_back(new_p, c);
+#elif defined(FlintM)
+                                COEFF c;
+                                fmpz_mpoly_q_set_str(c.s[0],ss.c_str());
+                                mon.emplace_back(new_p, c);
 #else
                                 COEFF c;
                                 c.s = ss;
@@ -1316,6 +1555,14 @@ void forward_stage(unsigned short thread_number, unsigned short ssector_number) 
                         COEFF minus_one;
 #ifdef PRIME
                         minus_one.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX)
+                        minus_one.s = -1;
+#elif defined(FMPQ)
+                        fmpq_set_si(minus_one.s[0],-1);
+#elif defined(FlintC)
+                        fmpz_poly_q_set_si(minus_one.s[0],-1);
+#elif defined(FlintM)
+                        fmpz_mpoly_q_set_si(minus_one.s[0],-1,COEFF::ctx);
 #else
                         minus_one.s = "-1";
 #endif
@@ -1376,6 +1623,14 @@ void forward_stage(unsigned short thread_number, unsigned short ssector_number) 
                 COEFF c1;
 #ifdef PRIME
                 c1.n = 1;
+#elif defined(MPQ) || defined(FlintX) 
+                c1.s = 1;
+#elif defined(FMPQ)
+                fmpq_set_si(c1.s[0],1);
+#elif defined(FlintC)
+                fmpz_poly_q_set_si(c1.s[0],1);
+#elif defined(FlintM)
+                fmpz_mpoly_q_set_si(c1.s[0],1,COEFF::ctx);
 #else
                 c1.s = "1";
 #endif
@@ -1402,6 +1657,14 @@ void forward_stage(unsigned short thread_number, unsigned short ssector_number) 
                     COEFF c;
 #ifdef PRIME
                     c.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX)
+                    c.s = -1;
+#elif defined(FMPQ)
+                    fmpq_set_si(c.s[0],-1);
+#elif defined(FlintC)
+                    fmpz_poly_q_set_si(c.s[0],-1);
+#elif defined(FlintM)
+                    fmpz_mpoly_q_set_si(c.s[0],-1,COEFF::ctx);
 #else
                     c.s = "-1";
 #endif
@@ -1412,8 +1675,28 @@ void forward_stage(unsigned short thread_number, unsigned short ssector_number) 
                         itr->second.n = (itr->second.n - 1) % common::prime;
                     else
                         itr->second.n = (common::prime - 1);
-#elif defined(MPQ)
+#elif defined(MPQ) 
                     itr->second.s = itr->second.s - 1;
+#elif defined(FlintX)
+                    itr->second.s = (itr->second.s - flint::fmpz_poly_qxx::one()).evaluate();
+#elif defined(FMPQ)
+                    fmpq_t t1;
+                    fmpq_init(t1);
+                    fmpq_one(t1);
+                    fmpq_sub(itr->second.s[0],itr->second.s[0],t1);
+                    fmpq_clear(t1);
+#elif defined(FlintC)
+                    fmpz_poly_q_t t1;
+                    fmpz_poly_q_init(t1);
+                    fmpz_poly_q_one(t1);
+                    fmpz_poly_q_sub(itr->second.s[0],itr->second.s[0],t1);
+                    fmpz_poly_q_clear(t1);
+#elif defined(FlintM)
+                    fmpz_mpoly_q_t t1;
+                    fmpz_mpoly_q_init(t1,COEFF::ctx);
+                    fmpz_mpoly_q_one(t1,COEFF::ctx);
+                    fmpz_mpoly_q_sub(itr->second.s[0],itr->second.s[0],t1,COEFF::ctx);
+                    fmpz_mpoly_q_clear(t1,COEFF::ctx);
 #else
                     itr->second.s = itr->second.s + " -1";
 #endif
@@ -1425,8 +1708,16 @@ void forward_stage(unsigned short thread_number, unsigned short ssector_number) 
                 for (const auto &local_coeff : local_coeffs) {
 #ifdef PRIME
                     if (local_coeff.second.n != 0)
-#elif defined(MPQ)
+#elif defined(MPQ) 
                     if (local_coeff.second.s != 0)
+#elif defined(FlintX)
+                    if (!local_coeff.second.s.is_zero())
+#elif defined(FMPQ)
+                    if (!fmpq_is_zero(local_coeff.second.s[0]))
+#elif defined(FlintC)
+                    if (!fmpz_poly_q_is_zero(local_coeff.second.s[0]))
+#elif defined(FlintM)
+                    if (!fmpz_mpoly_q_is_zero(local_coeff.second.s[0],COEFF::ctx))
 #else
                     if (local_coeff.second.s != "0")
 #endif
@@ -1746,7 +2037,7 @@ void reduce_in_level(point Corner, vector<ibp_type> ibps, unsigned int thread_nu
     point_fast p_fast(Corner);
     SECTOR sector_fast = p_fast.sector_fast();
 
-#if !defined(PRIME) && !defined(MPQ)
+#if defined(PolyMode) 
     unsigned short sector_level = 0;
     sector_level = static_cast<unsigned short>(std::count_if(v.begin(), v.end(),
             [&](const t_index& elem) {
@@ -1880,6 +2171,8 @@ void reduce_in_level(point Corner, vector<ibp_type> ibps, unsigned int thread_nu
                 abort();
             }
         }
+        
+        COEFF c;
         for (vector<pair<point, pair<point_fast, unsigned short> > >::const_iterator ibps_itr = ibps_vector.begin(); ibps_itr != ibps_vector.end(); ++ibps_itr) {
             if (common::print_step != 0) {
                 ++print_counter;
@@ -1928,8 +2221,7 @@ void reduce_in_level(point Corner, vector<ibp_type> ibps, unsigned int thread_nu
 
             for (k = 0; k != write; ++k) {  //cycle of same starting point
 
-#if defined(PRIME) || defined(MPQ)
-
+#if !defined(PolyMode) 
                 list<pair<point, COEFF>, ALLOCATOR2 > result;
                 for (unsigned int i = 0; i != eqs[k]->length; ++i) {
                     result.emplace_back(make_pair(eqs[k]->terms[i]->p, eqs[k]->terms[i]->c));
@@ -1957,15 +2249,28 @@ void reduce_in_level(point Corner, vector<ibp_type> ibps, unsigned int thread_nu
                             num = common::prime - num;
                             denum = mul_inv(denum, common::prime);
                             num = (num * denum) % common::prime;
-                            COEFF c;
                             c.n = num;
-#else
+#elif defined(MPQ)
                             mpq_class num, denum;
                             num = itr->second.s;
                             denum = terms2l.back().second.s;
                             num = -num / denum;
-                            COEFF c;
                             c.s = num;
+#elif defined(FlintX)
+                            flint::fmpz_poly_qxx num, denum;
+                            num = itr->second.s;
+                            denum = terms2l.back().second.s;
+                            num = -num / denum;
+                            c.s = num.evaluate();
+#elif defined(FMPQ)
+                            fmpq_div(c.s[0], itr->second.s[0], terms2l.back().second.s[0]);
+                            fmpq_neg(c.s[0],c.s[0]);
+#elif defined(FlintC)
+                            fmpz_poly_q_div(c.s[0], itr->second.s[0], terms2l.back().second.s[0]);
+                            fmpz_poly_q_neg(c.s[0],c.s[0]);
+#elif defined(FlintM)
+                            fmpz_mpoly_q_div(c.s[0], itr->second.s[0], terms2l.back().second.s[0],COEFF::ctx);
+                            fmpz_mpoly_q_neg(c.s[0],c.s[0],COEFF::ctx);
 #endif
                             add_to(result, terms2l, c, true); // last term still stays here
                             result.erase(next(itr--).base());
@@ -2019,15 +2324,28 @@ void reduce_in_level(point Corner, vector<ibp_type> ibps, unsigned int thread_nu
                                 num = common::prime - num;
                                 denum = mul_inv(denum, common::prime);
                                 num = (num * denum) % common::prime;
-                                COEFF c;
                                 c.n = num;
-#else
+#elif defined(MPQ)
                                 mpq_class num, denum;
                                 num = itrTerm -> second.s;
                                 denum = itrFrom -> back().second.s;
                                 num = -num / denum;
-                                COEFF c;
                                 c.s = num;
+#elif defined(FlintX)
+                                flint::fmpz_poly_qxx num, denum;
+                                num = itrTerm -> second.s;
+                                denum = itrFrom -> back().second.s;
+                                num = -num / denum;
+                                c.s = num.evaluate();
+#elif defined(FMPQ)
+                                fmpq_div(c.s[0], itrTerm -> second.s[0], itrFrom -> back().second.s[0]);
+                                fmpq_neg(c.s[0],c.s[0]);
+#elif defined(FlintC)
+                                fmpz_poly_q_div(c.s[0], itrTerm -> second.s[0], itrFrom -> back().second.s[0]);
+                                fmpz_poly_q_neg(c.s[0],c.s[0]);
+#elif defined(FlintM)
+                                fmpz_mpoly_q_div(c.s[0], itrTerm -> second.s[0], itrFrom -> back().second.s[0], COEFF::ctx);
+                                fmpz_mpoly_q_neg(c.s[0],c.s[0],COEFF::ctx);
 #endif
                                 ++itrTerm; // we move it before, or it will be invalidated
                                 add_to(*itrTo, *itrFrom, c, false);
@@ -2259,12 +2577,12 @@ void perform_substitution(unsigned short thread_number, unsigned short ssector_n
     }
 
     start_timeP = stop_timeP;
-    process_mem_usage(true);
-    if (!common::silent) cout << "Memory by thread " << thread_number << " on substitutions: ";
-    print_memory(max_vsize, 0);
-    if (!common::silent) cout << " | ";
-    print_memory(max_rss, 1);
-    if (!common::silent) cout << endl;
+    //process_mem_usage(true);
+    //if (!common::silent) cout << "Memory by thread " << thread_number << " on substitutions: ";
+    //print_memory(max_vsize, 0);
+    //if (!common::silent) cout << " | ";
+    //print_memory(max_rss, 1);
+    //if (!common::silent) cout << endl;
 
     common::points[ssector_number]->increment(string("mem_vsi"), max_vsize, INT64_MAX);
     common::points[ssector_number]->increment(string("mem_rss"), max_rss, INT64_MAX);
@@ -2350,6 +2668,14 @@ void run_child(int *pipe_from_child, int *pipe_to_child, int test_sector, int th
         strcpy(par[count], (common::FIRE_folder + "FLAME6p").c_str());
     #elif defined(MPQ)
         strcpy(par[count], (common::FIRE_folder + "FLAME6q").c_str());
+    #elif defined(FlintX) 
+        strcpy(par[count], (common::FIRE_folder + "FLAME6x").c_str());
+    #elif defined(FMPQ)
+        strcpy(par[count], (common::FIRE_folder + "FLAME6f").c_str());
+    #elif defined(FlintC)
+        strcpy(par[count], (common::FIRE_folder + "FLAME6c").c_str());
+    #elif defined(FlintM)
+        strcpy(par[count], (common::FIRE_folder + "FLAME6m").c_str());
     #else
         strcpy(par[count], (common::FIRE_folder + "FLAME6").c_str());
     #endif
@@ -2591,354 +2917,6 @@ void worker_thread(unsigned short thread_ready) {
     }
 }
 
-/**
- * Map of remote tasks associated with socket.
- */
-map<int, set<int> > remote_tasks; // first in map is socket number
-/**
- * Map of conditional variables, associated with sockets, that remote workers use to signal that they are open for new tasks.
- */
-map<int, condition_variable&> remote_signals; // the remote thread has free workers
-
-// when we start it, socket_reader always waits for "Done" from the child, indicating that another work is done
-// the socket_writer always waits for a job to appear, when it is ready, writes it to the child
-//
-// in the end we set worker_stop, connect to ourself and send "Done" to the socket listen_thread
-// it writes posts sem_worker for each socket_writer
-// the socket_writer sends 0 to the child and stops
-// master_receiver_thread on child recieve 0, breaks from the cycle, sets worker_stop, posts worker_done_cond (adding 0 to the list of done)
-// work_with_master still send "0" to the parent, breaks from the cycle, joins master_receiver
-// the child ends
-// socket_reader receives "done", but because of worker_done breaks from the cycle and stops
-// socket_listen_thread joins both
-// evaluate joins socket_listen
-
-/**
- * Thread reading from specified socket the number of finished sector. Used in socket_listen_thread().
- * @param current_socket the socket to read from
- */
-void socket_reader_thread(int current_socket) {   // parent reading from child
-    char buffer[256] = {};
-    while (true) {
-        char *pos = buffer;
-        std::fill(begin(buffer),end(buffer),'\0');
-        while (true) {
-            if (!read(current_socket, pos, 1)) {
-                cout << "Child communication closed on socket reader"<<endl;
-                return;
-            }
-            if (*pos == '\n') {
-                *pos = '\0';
-                break;
-            }
-            ++pos;
-        }
-        int current_sector;
-        s2i(buffer, current_sector);
-        if (current_sector == 0) {
-            break;
-        }
-        cout << ">>>>>>>> Child finished job " << current_sector << endl;
-        if (worker_stop) {
-            break;
-        }
-        if ((common::cpath != "")) {   // we need the file here back again after the child put it to the storage and finished
-            copy_database(abs(current_sector), true);
-        }
-        {
-            lock_guard<mutex> guard(worker_mutex);
-            distributed_sectors--; // thread communicating with child signals that a sector is done (happens in master, information from child)
-        }
-        worker_done_cond.notify_one();      // work finished by socket worker
-        worker_mutex.lock(); // we will reduce the set of remote jobs
-        auto itr = remote_tasks.find(current_socket);
-        if (itr == remote_tasks.end()) {
-            cout << "Unexpected remote socket stop: "<< current_socket << endl;
-            abort();
-        }
-        set<int> temp = itr->second;
-        temp.erase(current_sector);  // the done sector
-        itr->second = temp;
-        if (temp.size() == common::threads_number - 1) {  // the child was full and now has a slot
-            auto remote_signal = remote_signals.find(current_socket);
-            remote_signal->second.notify_one(); // signal the submitter that it can again wait for a job
-        }
-        worker_mutex.unlock();
-    }
-    cout<<"Socket reader thread received 0 and finished"<<endl;
-}
-
-/**
- * Thread writing to specified socket. It impelements communication between parent and child processes,
- * and also sends jobs to child, when there are any waiting to be sent.
- * @param current_socket the socket to write to
- */
-void socket_writer_thread(int current_socket) {  // parent writing to child
-    char buffer[256] = {};
-    while (true) {
-        unique_lock<mutex> guard(worker_mutex); // we lock the mutex to work with the list
-        worker_cond.wait(guard,[](){return worker_stop || child_stop || !worker_tasks.empty();}); // we wait until there is some job
-        if (worker_stop || child_stop) { // time to stop
-            sprintf(buffer, "0\n"); // indication to stop for the worker
-            if (!write(current_socket, buffer, strlen(buffer))) { // write it
-                cout << "Child communication error"<<endl;
-            }
-            break;
-        }
-        int test_sector = *(worker_tasks.begin()); // take the sector to work with
-        worker_tasks.pop_front(); // remove it from the queue
-        guard.unlock(); // unlock for now, we need to copy the file
-
-        if (common::cpath != "") {
-            copy_database(abs(test_sector), false);
-        }
-
-        std::unique_lock<std::mutex> worker_lock(worker_mutex); // lock again
-        cout << ">>>>>>>> Going to send job to child" << endl;
-        set<int> temp;
-        if (test_sector != 0) {
-            //  we have to store the number
-            auto itr = remote_tasks.find(current_socket);
-            temp = itr->second;
-            temp.insert(test_sector);
-            itr->second = temp;
-        }
-        sprintf(buffer, "%d\n", test_sector); // prepare sector number as a string
-        if (!write(current_socket, buffer, strlen(buffer))) {
-            cout << "Child communication error"<<endl;
-        }; // write it to the socket
-        cout << ">>>>>>>> Sent job " << test_sector << " to child" << endl;
-        if (temp.size() == common::threads_number) {
-            auto itr = remote_signals.find(current_socket);
-            if (itr == remote_signals.end()) {
-                cout << "Somehow current socket had no job"<<endl;
-                abort();
-            }
-            auto itrt = remote_tasks.find(current_socket);
-            if (itrt == remote_tasks.end()) {
-                cout << "Somehow current socket had no job"<<endl;
-                abort();
-            }
-            cout << ">>>>>>>> Child cannot accept more jobs" << endl;
-            itr->second.wait(worker_lock, [&itrt](){return (itrt->second.size() != common::threads_number);});
-            // we simultaneously unlock the mutex and start waiting on the signal, that will be produced by a reader on the first "done"
-            cout << ">>>>>>>> Child ready to accept again" << endl;
-        }   // upon receiving the signal we will lock the mutex again
-        // worker mutex is unlock with lock destructor, other threads can pick up jobs
-    }
-    cout<<"Socket writer thread finished"<<endl;
-}
-
-/**
- * Thread listening for outer connections from processes like FLAME on socket.
- */
-void socket_listen_thread() {
-
-    int sockfd;
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        cout << "ERROR opening socket" << endl;
-        abort();
-    }
-    int enable = 1;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
-        cout << "ERROR setting reuse" << endl;
-        abort();
-    }
-
-    struct sockaddr_in serv_addr = {AF_INET, htons(common::port), INADDR_ANY, {}};
-
-    if (bind(sockfd, reinterpret_cast<struct sockaddr *>(&serv_addr), sizeof(serv_addr)) < 0) {
-        cout << "ERROR on binding port " << common::port << ", we won't be accepting child connections!" << endl;
-        return;
-    }
-    listen(sockfd, 5);
-
-    struct sockaddr_in cli_addr[MAX_SOCKET_THREADS];
-    socklen_t clilen[MAX_SOCKET_THREADS];
-    int newsockfd[MAX_SOCKET_THREADS];
-    thread socket_writer[MAX_SOCKET_THREADS];
-    thread socket_reader[MAX_SOCKET_THREADS];
-    condition_variable socket_signals[MAX_SOCKET_THREADS];
-
-    int current_node = 0;
-
-    while (true) {
-        clilen[current_node] = sizeof(cli_addr[current_node]);
-        newsockfd[current_node] = accept(sockfd, reinterpret_cast<struct sockaddr *>(cli_addr) + current_node, clilen + current_node);
-        if (newsockfd[current_node] < 0) {
-            cout << "ERROR on accept" << endl;
-            abort();
-        }
-
-        char buffer[256] = {};
-        if (!read(newsockfd[current_node], buffer, 255)) {
-            cout << "ERROR on read" << endl;
-            abort();
-        }
-
-        if (!strcmp(buffer, "Stop")) {
-            break;
-        } else if (strcmp(buffer, "FIRE!!!") != 0) {
-            cout << "!!!!Unexpected greeting from the worker, waiting for FIRE!!!" << endl;
-            cout << "Greeting was " << buffer << endl;
-            break;
-        }
-        set<int> temp_set;
-        remote_tasks.emplace(newsockfd[current_node], temp_set);
-        remote_signals.emplace(newsockfd[current_node], socket_signals[current_node]);
-
-        socket_writer[current_node] = thread(socket_writer_thread, newsockfd[current_node]);
-        socket_reader[current_node] = thread(socket_reader_thread, newsockfd[current_node]);
-        ++current_node;
-    }
-    close(newsockfd[current_node]);
-
-    worker_cond.notify_all();
-
-    for (int i = 0; i != current_node; ++i) {
-        socket_writer[i].join();
-        socket_reader[i].join();
-    }
-
-    for (int i = 0; i != current_node; ++i) {
-        close(newsockfd[i]);
-    }
-    close(sockfd);
-}
-
-/**
- * Thread of child process, that reads commands from parent - master process.
- * @param sockfd the socket to read from
- */
-void master_receiver_thread(int sockfd) {   // child reads from parent
-    while (true) {
-        char buffer[256] = {};
-        char *pos = buffer;
-        while (true) {
-            if (!read(sockfd, pos, 1)) {
-                cout << "Connection with master lost"<<endl;
-                sprintf(buffer,"%s","0");
-                break;
-            };
-            if (*pos == '\n') {
-                *pos = '\0';
-                break;
-            }
-            ++pos;
-        }
-        int current_sector;
-        s2i(buffer, current_sector);
-        if (current_sector == 0) {
-            cout << "Stopping remote worker" << endl;
-            cout << "Received message: " << buffer << endl;
-            break;
-        }
-        cout << "Remote worker received sector " << current_sector << endl;
-
-        // each time we receive something from the socket, we put it as a task for the worker
-        {
-            lock_guard<mutex> guard(worker_mutex);
-            worker_tasks.push_back(current_sector);
-            ++distributed_sectors; // this happens in FLAME(0); we need to increase count for the worker to wake
-        }
-        worker_cond.notify_one(); // only one task received
-    }
-    if (common::remote_worker) {
-        lock_guard<mutex> guard(worker_mutex);
-        remote_done_sectors.push_back(0);
-    }
-
-    worker_stop = true;
-    worker_done_cond.notify_one();  // to get the master thread out of the cycle
-}
-
-void work_with_master() {
-    // we open the child threads like in evaluate
-    for (unsigned int i = 0; i != common::threads_number; ++i) {
-        worker[i] = thread(worker_thread, i);
-    }
-
-    // connect to master process at another node
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        cout << "ERROR opening socket" << endl;
-        abort();
-    }
-
-    string filename;
-    if (common::cpath != "") {
-        filename = common::cpath + "IP";
-    } else {
-        filename = common::path + "IP";
-    }
-
-    struct sockaddr_in serv_addr = {AF_INET,  htons(common::port), INADDR_ANY, {}};
-
-    string fbuffer;
-    while (true) {
-        FILE *file = fopen(filename.c_str(), "r");
-        if (file) {
-            fclose(file);
-            ifstream src(filename, ios::binary);
-            getline(src, fbuffer);
-            int result = inet_pton(AF_INET, fbuffer.c_str(), &serv_addr.sin_addr);
-            if (result == 1) {
-                break;
-            } else {
-                cout << "Incorrect IP" << endl;
-            }
-        } else {
-            cout << "Waiting for IP file" << endl;
-        }
-        sleep(1);
-    }
-    cout << "Read from IP file: " << fbuffer << endl;
-
-    while (connect(sockfd, reinterpret_cast<struct sockaddr *>(&serv_addr), sizeof(serv_addr)) < 0) {
-        cout << "Waiting for connection" << endl;
-        sleep(1);
-    }
-
-    // create a thread for receiving tasks from master
-    thread master_receiver(master_receiver_thread, sockfd);
-
-    char buffer[256] = {"FIRE!!!"};
-
-    ssize_t n = write(sockfd, buffer, 8);
-    if (n!=8) {
-        cout<< "Cannot start connection" <<endl;
-        abort();
-    }
-    while (true) {
-        cout << "Waiting..." << endl;
-        unique_lock<mutex> guard(worker_mutex); // we lock the mutex to work with the list
-        worker_done_cond.wait(guard,[](){return !remote_done_sectors.empty();});// we wait while the worker says it's done
-
-        int test_sector = *(remote_done_sectors.begin()); // fill the list of done sectors for the remote
-        remote_done_sectors.pop_front();
-        worker_mutex.unlock(); // we unlock it. other threads can pick up jobs
-
-        cout << "Going to send done " << test_sector << " to parent" << endl;
-        sprintf(buffer, "%d\n", test_sector);    // and send it to the master node; even at the end to stop the master
-        n = write(sockfd, buffer, strlen(buffer));
-        cout << "Sent done to parent" << endl;
-
-        if (worker_stop) {
-            break;
-        }
-    }
-
-    // close the receiver thread
-    master_receiver.join();
-
-    // we close the child worker threads
-    worker_cond.notify_all();
-    for (unsigned int i = 0; i != common::threads_number; ++i) {
-        worker[i].join();
-    }
-}
-
 /** @brief Estimate and print memory usage of child FLAME processes
  * @param vsi array virtual memory usage
  * @param rss array of resident size
@@ -2995,10 +2973,6 @@ void estimate_memory_usage(uint64_t* vsi, uint64_t* rss,const unsigned int count
 void Evaluate() {
     unsigned long long eqs_total{};
     unsigned long long eqs_used{};
-
-    if (common::port != 0) {
-        common::socket_listen = thread(socket_listen_thread);
-    }
 
     for (unsigned int i = 0; i != common::threads_number; ++i) {
         worker[i] = thread(worker_thread, i);
@@ -3338,6 +3312,7 @@ void Evaluate() {
     }
 }
 
+#if defined(PolyMode)
 bool express_and_pass_back(map<point, vector<pair<point, COEFF> >, indirect_more, ALLOCATOR1 > &to_test,
                            const unsigned short sector, const unsigned int thread_number) {
     bool has_high = false;
@@ -3382,6 +3357,7 @@ bool express_and_pass_back(map<point, vector<pair<point, COEFF> >, indirect_more
     }
     return true;
 }
+#endif
 
 
 set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_more> &to_test, unsigned short sector_number) {
@@ -3407,7 +3383,7 @@ set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_mor
     return to_test.rbegin();
 }
 
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode) 
 void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, const vector<pair<point, COEFF> > &terms2, const COEFF &coeff, bool skip_last) {
     add_to(terms1, terms2.begin(), terms2.end(), coeff, skip_last);
 }
@@ -3425,6 +3401,16 @@ void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, I termsB, I termsE, c
     }
     auto itr1 = terms1.begin();
     auto itr2 = termsB;
+#if defined(FMPQ)
+    fmpq_t tmp;
+    fmpq_init(tmp);
+#elif defined(FlintC)
+    fmpz_poly_q_t tmp;
+    fmpz_poly_q_init(tmp);
+#elif defined(FlintM)
+    fmpz_mpoly_q_t tmp;
+    fmpz_mpoly_q_init(tmp,COEFF::ctx);
+#endif
     while (itr2 != eq2end) {
         if ((itr1 != terms1.end()) && (itr1->first < itr2->first)) { // first equation only. just adding to result
             ++itr1;
@@ -3436,14 +3422,33 @@ void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, I termsB, I termsE, c
             if (nB) {
                 COEFF c;
                 c.n = nB;
-#else
+#elif defined(MPQ)
             mpq_class nB = itr2->second.s;
             nB *= coeff.s;
             if (nB!=0) {
                 COEFF c;
                 c.s = nB;
+#elif defined(FlintX)
+            flint::fmpz_poly_qxx nB = itr2->second.s;
+            nB *= coeff.s;
+            nB = nB.evaluate();
+            if (!nB.is_zero()) {
+                COEFF c;
+                c.s = nB;
+#elif defined(FMPQ)
+            if(!fmpq_is_zero(itr2->second.s[0]) && !fmpq_is_zero(coeff.s[0])) {
+                COEFF c;
+                fmpq_mul(c.s[0], itr2->second.s[0], coeff.s[0]);
+#elif defined(FlintC)
+            if(!fmpz_poly_q_is_zero(itr2->second.s[0]) && !fmpz_poly_q_is_zero(coeff.s[0])) {
+                COEFF c;
+                fmpz_poly_q_mul(c.s[0], itr2->second.s[0], coeff.s[0]);
+#elif defined(FlintM)
+            if(!fmpz_mpoly_q_is_zero(itr2->second.s[0],COEFF::ctx) && !fmpz_mpoly_q_is_zero(coeff.s[0],COEFF::ctx)) {
+                COEFF c;
+                fmpz_mpoly_q_mul(c.s[0],itr2->second.s[0],coeff.s[0],COEFF::ctx);
 #endif
-                itr1 = terms1.emplace(itr1, make_pair(itr2->first, c));
+                itr1 = terms1.emplace(itr1, make_pair(itr2->first, std::move(c)));
                 ++itr1;
             }
             ++itr2;
@@ -3457,7 +3462,7 @@ void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, I termsB, I termsE, c
             num1 %= common::prime;
             if (num1) {
                 itr1->second.n = num1;
-#else
+#elif defined(MPQ)
             mpq_class num1, num2;
             num1 = itr1->second.s;
             num2 = itr2->second.s;
@@ -3465,6 +3470,30 @@ void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, I termsB, I termsE, c
             num1 += num2;
             if (num1!=0) {
                 itr1->second.s = num1;
+#elif defined(FlintX)
+            flint::fmpz_poly_qxx num1, num2;
+            num1 = itr1->second.s;
+            num2 = itr2->second.s;
+            num2 *= coeff.s;
+            num1 += num2;
+            num1 = num1.evaluate();
+            if (!num1.is_zero()) {
+                itr1->second.s = num1;
+#elif defined(FMPQ)
+            fmpq_mul(tmp,itr2->second.s[0],coeff.s[0]);
+            fmpq_add(tmp,tmp,itr1->second.s[0]);
+            if(!fmpq_is_zero(tmp)) {
+                fmpq_set(itr1->second.s[0],tmp);
+#elif defined(FlintC)
+            fmpz_poly_q_mul(tmp,itr2->second.s[0],coeff.s[0]);
+            fmpz_poly_q_add(tmp,tmp,itr1->second.s[0]);
+            if(!fmpz_poly_q_is_zero(tmp)) {
+                fmpz_poly_q_set(itr1->second.s[0],tmp);
+#elif defined(FlintM)
+            fmpz_mpoly_q_mul(tmp,itr2->second.s[0],coeff.s[0],COEFF::ctx);
+            fmpz_mpoly_q_add(tmp,tmp,itr1->second.s[0],COEFF::ctx);
+            if(!fmpz_mpoly_q_is_zero(tmp,COEFF::ctx)) {
+                fmpz_mpoly_q_set(itr1->second.s[0],tmp,COEFF::ctx);
 #endif
                 ++itr1;
             } else {
@@ -3473,6 +3502,13 @@ void add_to(list<pair<point, COEFF>, ALLOCATOR2 > &terms1, I termsB, I termsE, c
             ++itr2;
         }
     }
+#if defined(FMPQ)
+    fmpq_clear(tmp);
+#elif defined(FlintC)
+    fmpz_poly_q_clear(tmp);
+#elif defined(FlintM)
+    fmpz_mpoly_q_clear(tmp,COEFF::ctx);
+#endif
 }
 #else
 
@@ -3534,8 +3570,9 @@ void apply_table(const vector<pair<point, COEFF> > &terms, bool forward_mode, bo
     if (fixed_last) {
         --end;
     }
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode)
     list<pair<point, COEFF>, ALLOCATOR2 > result;
+    COEFF c;
     for (auto itr = terms.cbegin(); itr != end; ++itr) {
         const point &p = itr->first;
         if ((forward_mode && ((p.s_number() < fixed_database_sector) || p.virt())) || (p.s_number() == 1)) {
@@ -3554,15 +3591,28 @@ void apply_table(const vector<pair<point, COEFF> > &terms, bool forward_mode, bo
                 num = common::prime - num;
                 denum = mul_inv(denum, common::prime);
                 num = (num * denum) % common::prime;
-                COEFF c;
                 c.n = num;
-#else
+#elif defined(MPQ)
                 mpq_class num, denum;
                 num = itr->second.s;
                 denum = terms2.back().second.s;
                 num = -num / denum;
-                COEFF c;
                 c.s = num;
+#elif defined(FlintX)
+                flint::fmpz_poly_qxx num, denum;
+                num = itr->second.s;
+                denum = terms2.back().second.s;
+                num = -num / denum;
+                c.s = num.evaluate();
+#elif defined(FMPQ)
+                fmpq_div(c.s[0], itr->second.s[0], terms2.back().second.s[0]);
+                fmpq_neg(c.s[0],c.s[0]);
+#elif defined(FlintC)
+                fmpz_poly_q_div(c.s[0], itr->second.s[0], terms2.back().second.s[0]);
+                fmpz_poly_q_neg(c.s[0],c.s[0]);
+#elif defined(FlintM)
+                fmpz_mpoly_q_div(c.s[0],itr->second.s[0],terms2.back().second.s[0],COEFF::ctx);
+                fmpz_mpoly_q_neg(c.s[0],c.s[0],COEFF::ctx);
 #endif
                 add_to(result, terms2, c, true); // we add the second expression with the last term killed
             }
@@ -3595,6 +3645,7 @@ void apply_table(const vector<pair<point, COEFF> > &terms, bool forward_mode, bo
     rterms1.reserve(terms.size());
     bool first = true;
     vector<pair<point, COEFF> > rterms2;
+    COEFF c;
     for (auto itr = terms.cbegin(); itr != end; ++itr) {
         const point &p = itr->first;
         if ((forward_mode && ((p.s_number() < fixed_database_sector) || p.virt())) || (p.s_number() == 1)) {
@@ -3614,7 +3665,6 @@ void apply_table(const vector<pair<point, COEFF> > &terms, bool forward_mode, bo
                 }
             } else {
                 changed = true;
-                COEFF c;
                 c.s = "-(" + itr->second.s + ")/(" + terms2.back().second.s + ")";
                 if (first) {
                     add(rterms1, terms2, rterms2, c, true);
@@ -3666,6 +3716,7 @@ void apply_table(const vector<pair<point, COEFF> > &terms, bool forward_mode, bo
             split(rterms, fixed_database_sector); // classical split with vectors
         }
     } else {
+cout << endl << "rterms.size()=" << rterms.size() << endl << endl;
         p_set(rterms.back().first, rterms, 2 * sector_level, fixed_database_sector);
     }
 #endif
@@ -3684,13 +3735,13 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
 }
 
 
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode) 
 list<pair<point, COEFF>, ALLOCATOR2 >::iterator split(list<pair<point, COEFF>, ALLOCATOR2 > &terms, unsigned short sector_number)
 #else
 void split(vector<pair<point, COEFF> > &terms, unsigned short sector_number)
 #endif
 {
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode)
     if (terms.empty()) return terms.begin();
 #else
     if (terms.empty()) return;
@@ -3718,12 +3769,20 @@ void split(vector<pair<point, COEFF> > &terms, unsigned short sector_number)
         COEFF c;
 #ifdef PRIME
         c.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX) 
+        c.s = -1;
+#elif defined(FMPQ)
+        fmpq_set_si(c.s[0],-1);
+#elif defined(FlintC)
+        fmpz_poly_q_set_si(c.s[0],-1);
+#elif defined(FlintM)
+        fmpz_mpoly_q_set_si(c.s[0],-1,COEFF::ctx);
 #else
         c.s = "-1";
 #endif
         *itr = make_pair(p, c);
         ++itr;
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode) 
         p_set<list<pair<point, COEFF>, ALLOCATOR2 >::const_iterator>(p, size + 1, terms.begin(), itr, 2 *
                                                                                                       positive_index(
                                                                                                               common::ssectors[sector_number]),
@@ -3739,12 +3798,20 @@ void split(vector<pair<point, COEFF> > &terms, unsigned short sector_number)
         --itr;
 #ifdef PRIME
         c.n = 1;
+#elif defined(MPQ) || defined(FlintX) 
+        c.s = 1;
+#elif defined(FMPQ)
+        fmpq_set_si(c.s[0],1);
+#elif defined(FlintC)
+        fmpz_poly_q_set_si(c.s[0],1);
+#elif defined(FlintM)
+        fmpz_mpoly_q_set_si(c.s[0],1,COEFF::ctx);
 #else
         c.s = "1";
 #endif
         *itr = make_pair(p, c);
 
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode)
         p_set<list<pair<point, COEFF>, ALLOCATOR2 >::const_iterator>(terms.back().first, terms.size() - size + 1, itr,
                                                                      terms.end(), 2 * positive_index(
                         common::ssectors[sector_number]), 0);
@@ -3757,7 +3824,7 @@ void split(vector<pair<point, COEFF> > &terms, unsigned short sector_number)
 #endif
     } else
         p_set(terms.back().first, terms, 2 * positive_index(common::ssectors[sector_number]), 0);  // split won't happen in symmetries sector
-#if defined(PRIME) || defined(MPQ)
+#if !defined(PolyMode)
     return terms.begin();
 #endif
 }
@@ -3861,8 +3928,14 @@ vector<pair<point, COEFF> > group_equal_in_sorted(const vector<pair<point, COEFF
             nB += read2->second.n;
             nB %= common::prime;
             c.n = nB;
-#elif defined(MPQ)
+#elif defined(MPQ) || defined(FlintX)
             c.s += read2->second.s;
+#elif defined(FMPQ)
+            fmpq_add(c.s[0], c.s[0], read2->second.s[0]);
+#elif defined(FlintC)
+            fmpz_poly_q_add(c.s[0], c.s[0], read2->second.s[0]);
+#elif defined(FlintM)
+            fmpz_mpoly_q_add(c.s[0], c.s[0], read2->second.s[0], COEFF::ctx);
 #else
             c.s += "+(" + read2->second.s + ")";
 #endif
@@ -3874,8 +3947,25 @@ vector<pair<point, COEFF> > group_equal_in_sorted(const vector<pair<point, COEFF
         if (c.n) {
             terms.emplace_back(read->first, c);
         }
-#elif defined(MPQ)
+#elif defined(MPQ) 
         if (c.s!=0) {
+            terms.emplace_back(read->first, c);
+        }
+#elif defined(FlintX) 
+        c.s = c.s.evaluate();
+        if (!c.s.is_zero()) {
+            terms.emplace_back(read->first, c);
+        }
+#elif defined(FMPQ) 
+        if (!fmpq_is_zero(c.s[0])) {
+            terms.emplace_back(read->first, c);
+        }
+#elif defined(FlintC) 
+        if (!fmpz_poly_q_is_zero(c.s[0])) {
+            terms.emplace_back(read->first, c);
+        }
+#elif defined(FlintM) 
+        if (!fmpz_mpoly_q_is_zero(c.s[0],COEFF::ctx)) {
             terms.emplace_back(read->first, c);
         }
 #else

@@ -91,10 +91,10 @@ int main(int argc, char *argv[]) {
     }
     string scurrent = string(current);
     string srun = string(argv[0]);
-#if defined(PRIME) || defined(MPQ)
-    srun = srun.substr(0, srun.length() - 6);
-#else
+#if defined(PolyMode) 
     srun = srun.substr(0, srun.length() - 5);
+#else
+    srun = srun.substr(0, srun.length() - 6);
 #endif
 
     if (srun[0] == '/') {  // running with full path
@@ -155,50 +155,6 @@ int main(int argc, char *argv[]) {
 
         return 0;
     }
-
-
-    if (common::port) {
-
-        struct ifaddrs *ifAddrStruct = nullptr;
-        struct ifaddrs *ifa = nullptr;
-        void *tmpAddrPtr = nullptr;
-
-        getifaddrs(&ifAddrStruct);
-        string address;
-        for (ifa = ifAddrStruct; ifa != nullptr; ifa = ifa->ifa_next) {
-            if (!ifa->ifa_addr) {
-                continue;
-            }
-            if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
-                // is a valid IP4 Address
-                tmpAddrPtr = &(reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr))->sin_addr;
-                char addressBuffer[INET_ADDRSTRLEN];
-                inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-                if (strcmp(addressBuffer, "127.0.0.1") != 0) {
-                    address = addressBuffer;
-                }
-            } // we don't work with IP6
-        }
-        if (ifAddrStruct != nullptr) freeifaddrs(ifAddrStruct);
-        if (!common::silent) {
-            if (address != "") {
-                cout << "Current IP: " << address << endl;
-            }
-        }
-
-        if (!common::parallel_mode) {
-            ofstream write;
-            if (common::cpath != "") {
-                write.open((common::cpath + "IP").c_str(), ios::out | ios::binary);
-            } else {
-                write.open((common::path + "IP").c_str(), ios::out | ios::binary);
-            }
-            write << address << endl;
-            write.close();
-        }
-
-    }
-
 
     map<unsigned short, set<point> > needed;
     for (const auto &pnt : points) {
@@ -338,6 +294,18 @@ int main(int argc, char *argv[]) {
 #ifdef PRIME
                         one.n = 1;
                         minus_one.n = common::prime - 1;
+#elif defined(MPQ) || defined(FlintX) 
+                        one.s = 1;
+                        minus_one.s = -1;
+#elif defined(FMPQ)
+                        fmpq_set_si(one.s[0],1);
+                        fmpq_set_si(minus_one.s[0],-1);
+#elif defined(FlintC)
+                        fmpz_poly_q_set_si(one.s[0],1);
+                        fmpz_poly_q_set_si(minus_one.s[0],-1);
+#elif defined(FlintM)
+                        fmpz_mpoly_q_set_si(one.s[0],1,COEFF::ctx);
+                        fmpz_mpoly_q_set_si(minus_one.s[0],-1,COEFF::ctx);
 #else
                         one.s = "1";
                         minus_one.s = "-1";
@@ -357,6 +325,14 @@ int main(int argc, char *argv[]) {
                 COEFF c;
 #ifdef PRIME
                 c.n = 1;
+#elif defined(MPQ) || defined(FlintX) 
+                c.s = 1;
+#elif defined(FMPQ)
+                fmpq_set_si(c.s[0],1);
+#elif defined(FlintC)
+                fmpz_poly_q_set_si(c.s[0],1);
+#elif defined(FlintM)
+                fmpz_mpoly_q_set_si(c.s[0],1,COEFF::ctx);
 #else
                 c.s = "1";
 #endif
@@ -395,10 +371,41 @@ int main(int argc, char *argv[]) {
                 num *= denum;
                 num %= common::prime;
                 out << static_cast<uint64_t>(num);
-#elif defined(MPQ)
+#elif defined(MPQ) 
                 out << -terms[i].second.s / terms.back().second.s;
-#else
-                out << "-(" << terms[i].second.s << ")/(" << terms.back().second.s << ")";
+#elif defined(FlintX)
+                out << (-terms[i].second.s / terms.back().second.s).pretty(COEFF::x.c_str());
+#elif defined(FMPQ)
+                fmpq_t ot;
+                fmpq_init(ot);
+                fmpq_div(ot, terms[i].second.s[0], terms.back().second.s[0]);
+                fmpq_neg(ot,ot);
+                char * res;
+                res = fmpq_get_str(NULL,10,ot);
+                fmpq_clear(ot);
+                out << res;
+                flint_free(res);
+#elif defined(FlintC)
+                fmpz_poly_q_t ot;
+                fmpz_poly_q_init(ot);
+                fmpz_poly_q_div(ot, terms[i].second.s[0], terms.back().second.s[0]);
+                fmpz_poly_q_neg(ot,ot);
+                char * res;
+                res = fmpz_poly_q_get_str_pretty(ot,COEFF::x.c_str());
+                fmpz_poly_q_clear(ot);
+                out << res;
+                flint_free(res);
+#elif defined(FlintM)
+                fmpz_mpoly_q_t ot;
+                fmpz_mpoly_q_init(ot,COEFF::ctx);
+                fmpz_mpoly_q_div(ot, terms[i].second.s[0], terms.back().second.s[0],COEFF::ctx);
+                fmpz_mpoly_q_neg(ot,ot,COEFF::ctx);
+                string res = fmpz_mpoly_q_get_str(ot);
+                out << res;
+#else   
+                string res = "-(" + terms[i].second.s + ")/(" + terms.back().second.s + ")";
+                //calc_wrapper(res,0);
+                out << res;
 #endif
                 out << "\"" << "}";
                 if (i + 2 != terms.size()) {
@@ -435,6 +442,27 @@ int main(int argc, char *argv[]) {
         database_to_file_or_back(0, true); // close the wrapper database
     }
 
+    if (!common::remote_worker && common::clean_databases) {
+        DIR *dp;
+        struct dirent *ep;
+        struct stat st{};
+
+        dp = opendir((common::path + "/").c_str());
+        if (dp != nullptr) {
+            while ((ep = readdir(dp)) != nullptr) {
+                stat((common::path + "/" + ep->d_name).c_str(), &st);
+                if (S_ISDIR(st.st_mode) == 0) {
+                    if (!common::silent) { cout << "Deleting file \"" << ep->d_name << "\"" << endl; }
+                    remove((common::path + "/" + ep->d_name).c_str());
+                }
+            }
+            closedir(dp);
+        } else {
+            cerr << "Couldn't open the directory." << endl;
+            abort();
+        }
+    }
+
     if (common::parallel_mode) {
         char sys_command[100];
         sprintf(sys_command, "rm -r %s", common::path.c_str());
@@ -443,28 +471,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (common::port != 0) {
-        // we connect to ourself to make the socket_listen_thread stop
-        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        if (sockfd < 0) {
-            cout << "ERROR opening socket" << endl;
-            abort();
-        }
-
-        struct sockaddr_in serv_addr ;//= {AF_INET,  htons(common::port), {.s_addr = inet_addr("127.0.0.1")}, {}};
-
-        if (connect(sockfd, reinterpret_cast<struct sockaddr *>(&serv_addr), sizeof(serv_addr)) < 0) {
-            cout << "Error connecting" << endl;
-            abort();
-        }
-        char buffer[] = "Stop";
-        ssize_t n = write(sockfd, buffer, 5);
-        if (n!=5) {
-            cout << "CANNOT STOP CHILD"<<endl;
-        }
-        common::socket_listen.join();
-    }
-
+#if defined(FlintM) || defined(FlintC) || defined(FMPQ) || defined(FlintX)
+    flint_cleanup();
+#endif
 
     return 0;
 }

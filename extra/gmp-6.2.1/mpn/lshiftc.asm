@@ -1,1 +1,1 @@
-../mpn/arm64/lshiftc.asm
+../mpn/x86_64/lshiftc.asm

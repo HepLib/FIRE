@@ -1,1 +1,1 @@
-../mpn/arm64/copyi.asm
+../mpn/x86_64/copyi.asm

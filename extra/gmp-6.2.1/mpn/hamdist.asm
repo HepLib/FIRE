@@ -1,1 +1,1 @@
-../mpn/arm64/hamdist.asm
+../mpn/x86_64/popham.asm

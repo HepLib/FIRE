@@ -37,7 +37,7 @@ see https://www.gnu.org/licenses/.
 
 /* The gmp-mparam.h file (a string) the tune program should suggest updating.
    */
-#define GMP_MPARAM_H_SUGGEST "./mpn/arm64/gmp-mparam.h"
+#define GMP_MPARAM_H_SUGGEST "./mpn/x86_64/k8/gmp-mparam.h"
 
 /* Define to 1 if you have the `alarm' function. */
 #define HAVE_ALARM 1
@@ -67,7 +67,7 @@ see https://www.gnu.org/licenses/.
 
 /* Define to 1 if tests/libtests has calling conventions checking for the CPU
    */
-/* #undef HAVE_CALLING_CONVENTIONS */
+#define HAVE_CALLING_CONVENTIONS 1
 
 /* Define to 1 if you have the `clock' function. */
 #define HAVE_CLOCK 1
@@ -141,7 +141,7 @@ see https://www.gnu.org/licenses/.
 
 /* Define to 1 if the compiler accepts gcc style __attribute__ ((visibility))
    and __attribute__ ((alias)) */
-/* #undef HAVE_HIDDEN_ALIAS */
+#define HAVE_HIDDEN_ALIAS 1
 
 /* Define one of these to 1 for the host CPU family.
    If your CPU is not in any of these families, leave all undefined.
@@ -151,7 +151,7 @@ see https://www.gnu.org/licenses/.
 /* #undef HAVE_HOST_CPU_FAMILY_power */
 /* #undef HAVE_HOST_CPU_FAMILY_powerpc */
 /* #undef HAVE_HOST_CPU_FAMILY_x86 */
-/* #undef HAVE_HOST_CPU_FAMILY_x86_64 */
+#define HAVE_HOST_CPU_FAMILY_x86_64 1
 
 /* Define one of the following to 1 for the host CPU, as per the output of
    ./config.guess.  If your CPU is not listed here, leave all undefined.  */
@@ -258,10 +258,10 @@ see https://www.gnu.org/licenses/.
 #define HAVE_NATIVE_mpn_add_n 1
 /* #undef HAVE_NATIVE_mpn_add_n_sub_n */
 #define HAVE_NATIVE_mpn_add_nc 1
-/* #undef HAVE_NATIVE_mpn_addaddmul_1msb0 */
+#define HAVE_NATIVE_mpn_addaddmul_1msb0 1
 #define HAVE_NATIVE_mpn_addlsh1_n 1
 #define HAVE_NATIVE_mpn_addlsh2_n 1
-/* #undef HAVE_NATIVE_mpn_addlsh_n */
+#define HAVE_NATIVE_mpn_addlsh_n 1
 /* #undef HAVE_NATIVE_mpn_addlsh1_nc */
 /* #undef HAVE_NATIVE_mpn_addlsh2_nc */
 /* #undef HAVE_NATIVE_mpn_addlsh_nc */
@@ -278,7 +278,7 @@ see https://www.gnu.org/licenses/.
 /* #undef HAVE_NATIVE_mpn_addlsh2_nc_ip2 */
 /* #undef HAVE_NATIVE_mpn_addlsh_nc_ip2 */
 /* #undef HAVE_NATIVE_mpn_addmul_1c */
-/* #undef HAVE_NATIVE_mpn_addmul_2 */
+#define HAVE_NATIVE_mpn_addmul_2 1
 /* #undef HAVE_NATIVE_mpn_addmul_3 */
 /* #undef HAVE_NATIVE_mpn_addmul_4 */
 /* #undef HAVE_NATIVE_mpn_addmul_5 */
@@ -296,13 +296,13 @@ see https://www.gnu.org/licenses/.
 #define HAVE_NATIVE_mpn_com 1
 #define HAVE_NATIVE_mpn_copyd 1
 #define HAVE_NATIVE_mpn_copyi 1
-/* #undef HAVE_NATIVE_mpn_div_qr_1n_pi1 */
+#define HAVE_NATIVE_mpn_div_qr_1n_pi1 1
 /* #undef HAVE_NATIVE_mpn_div_qr_2 */
-/* #undef HAVE_NATIVE_mpn_divexact_1 */
+#define HAVE_NATIVE_mpn_divexact_1 1
 /* #undef HAVE_NATIVE_mpn_divexact_by3c */
-/* #undef HAVE_NATIVE_mpn_divrem_1 */
+#define HAVE_NATIVE_mpn_divrem_1 1
 /* #undef HAVE_NATIVE_mpn_divrem_1c */
-/* #undef HAVE_NATIVE_mpn_divrem_2 */
+#define HAVE_NATIVE_mpn_divrem_2 1
 /* #undef HAVE_NATIVE_mpn_gcd_1 */
 #define HAVE_NATIVE_mpn_gcd_11 1
 #define HAVE_NATIVE_mpn_gcd_22 1
@@ -314,48 +314,48 @@ see https://www.gnu.org/licenses/.
 #define HAVE_NATIVE_mpn_lshiftc 1
 /* #undef HAVE_NATIVE_mpn_lshsub_n */
 /* #undef HAVE_NATIVE_mpn_mod_1 */
-/* #undef HAVE_NATIVE_mpn_mod_1_1p */
+#define HAVE_NATIVE_mpn_mod_1_1p 1
 /* #undef HAVE_NATIVE_mpn_mod_1c */
-/* #undef HAVE_NATIVE_mpn_mod_1s_2p */
-/* #undef HAVE_NATIVE_mpn_mod_1s_4p */
+#define HAVE_NATIVE_mpn_mod_1s_2p 1
+#define HAVE_NATIVE_mpn_mod_1s_4p 1
 #define HAVE_NATIVE_mpn_mod_34lsub1 1
-/* #undef HAVE_NATIVE_mpn_modexact_1_odd */
-/* #undef HAVE_NATIVE_mpn_modexact_1c_odd */
+#define HAVE_NATIVE_mpn_modexact_1_odd 1
+#define HAVE_NATIVE_mpn_modexact_1c_odd 1
 #define HAVE_NATIVE_mpn_mul_1 1
 #define HAVE_NATIVE_mpn_mul_1c 1
-/* #undef HAVE_NATIVE_mpn_mul_2 */
+#define HAVE_NATIVE_mpn_mul_2 1
 /* #undef HAVE_NATIVE_mpn_mul_3 */
 /* #undef HAVE_NATIVE_mpn_mul_4 */
 /* #undef HAVE_NATIVE_mpn_mul_5 */
 /* #undef HAVE_NATIVE_mpn_mul_6 */
-/* #undef HAVE_NATIVE_mpn_mul_basecase */
-/* #undef HAVE_NATIVE_mpn_mullo_basecase */
+#define HAVE_NATIVE_mpn_mul_basecase 1
+#define HAVE_NATIVE_mpn_mullo_basecase 1
 #define HAVE_NATIVE_mpn_nand_n 1
 #define HAVE_NATIVE_mpn_nior_n 1
 #define HAVE_NATIVE_mpn_popcount 1
-/* #undef HAVE_NATIVE_mpn_preinv_divrem_1 */
+#define HAVE_NATIVE_mpn_preinv_divrem_1 1
 /* #undef HAVE_NATIVE_mpn_preinv_mod_1 */
-/* #undef HAVE_NATIVE_mpn_redc_1 */
+#define HAVE_NATIVE_mpn_redc_1 1
 /* #undef HAVE_NATIVE_mpn_redc_2 */
 #define HAVE_NATIVE_mpn_rsblsh1_n 1
 #define HAVE_NATIVE_mpn_rsblsh2_n 1
-/* #undef HAVE_NATIVE_mpn_rsblsh_n */
+#define HAVE_NATIVE_mpn_rsblsh_n 1
 /* #undef HAVE_NATIVE_mpn_rsblsh1_nc */
 /* #undef HAVE_NATIVE_mpn_rsblsh2_nc */
 /* #undef HAVE_NATIVE_mpn_rsblsh_nc */
 #define HAVE_NATIVE_mpn_rsh1add_n 1
-/* #undef HAVE_NATIVE_mpn_rsh1add_nc */
+#define HAVE_NATIVE_mpn_rsh1add_nc 1
 #define HAVE_NATIVE_mpn_rsh1sub_n 1
-/* #undef HAVE_NATIVE_mpn_rsh1sub_nc */
+#define HAVE_NATIVE_mpn_rsh1sub_nc 1
 #define HAVE_NATIVE_mpn_rshift 1
 /* #undef HAVE_NATIVE_mpn_sbpi1_bdiv_r */
-/* #undef HAVE_NATIVE_mpn_sqr_basecase */
+#define HAVE_NATIVE_mpn_sqr_basecase 1
 /* #undef HAVE_NATIVE_mpn_sqr_diagonal */
 #define HAVE_NATIVE_mpn_sqr_diag_addlsh1 1
 #define HAVE_NATIVE_mpn_sub_n 1
 #define HAVE_NATIVE_mpn_sub_nc 1
 #define HAVE_NATIVE_mpn_sublsh1_n 1
-#define HAVE_NATIVE_mpn_sublsh2_n 1
+/* #undef HAVE_NATIVE_mpn_sublsh2_n */
 /* #undef HAVE_NATIVE_mpn_sublsh_n */
 /* #undef HAVE_NATIVE_mpn_sublsh1_nc */
 /* #undef HAVE_NATIVE_mpn_sublsh2_nc */
@@ -382,13 +382,13 @@ see https://www.gnu.org/licenses/.
 #define HAVE_NL_TYPES_H 1
 
 /* Define to 1 if you have the `obstack_vprintf' function. */
-/* #undef HAVE_OBSTACK_VPRINTF */
+#define HAVE_OBSTACK_VPRINTF 1
 
 /* Define to 1 if you have the `popen' function. */
 #define HAVE_POPEN 1
 
 /* Define to 1 if you have the `processor_info' function. */
-#define HAVE_PROCESSOR_INFO 1
+/* #undef HAVE_PROCESSOR_INFO */
 
 /* Define to 1 if <sys/pstat.h> `struct pst_processor' exists and contains
    `psp_iticksperclktick'. */
@@ -416,10 +416,10 @@ see https://www.gnu.org/licenses/.
 #define HAVE_SIGALTSTACK 1
 
 /* Define to 1 if you have the `sigstack' function. */
-/* #undef HAVE_SIGSTACK */
+#define HAVE_SIGSTACK 1
 
 /* Tune directory speed_cyclecounter, undef=none, 1=32bits, 2=64bits) */
-/* #undef HAVE_SPEED_CYCLECOUNTER */
+#define HAVE_SPEED_CYCLECOUNTER 2
 
 /* Define to 1 if you have the <sstream> header file. */
 #define HAVE_SSTREAM 1
@@ -464,7 +464,7 @@ see https://www.gnu.org/licenses/.
 #define HAVE_SYSCTL 1
 
 /* Define to 1 if you have the `sysctlbyname' function. */
-#define HAVE_SYSCTLBYNAME 1
+/* #undef HAVE_SYSCTLBYNAME */
 
 /* Define to 1 if you have the `syssgi' function. */
 /* #undef HAVE_SYSSGI */
@@ -497,7 +497,7 @@ see https://www.gnu.org/licenses/.
 #define HAVE_SYS_SYSCTL_H 1
 
 /* Define to 1 if you have the <sys/sysinfo.h> header file. */
-/* #undef HAVE_SYS_SYSINFO_H */
+#define HAVE_SYS_SYSINFO_H 1
 
 /* Define to 1 if you have the <sys/syssgi.h> header file. */
 /* #undef HAVE_SYS_SYSSGI_H */
@@ -530,7 +530,7 @@ see https://www.gnu.org/licenses/.
 /* #undef HOST_DOS64 */
 
 /* Assembler local label prefix */
-#define LSYM_PREFIX "L"
+#define LSYM_PREFIX ".L"
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
@@ -587,7 +587,7 @@ see https://www.gnu.org/licenses/.
 #define TIME_WITH_SYS_TIME 1
 
 /* Maximum size the tune program can test for SQR_TOOM2_THRESHOLD */
-#define TUNE_SQR_TOOM2_MAX SQR_TOOM2_MAX_GENERIC
+/* #undef TUNE_SQR_TOOM2_MAX */
 
 /* Version number of package */
 #define VERSION "6.2.1"

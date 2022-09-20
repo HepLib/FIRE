@@ -26,6 +26,10 @@ string common::config_file;
 */
 int main(int argc, char *argv[]) {
 
+//#if defined(FlintM) || defined(FlintC) || defined(FMPQ) || defined(FlintX)
+//    flint_set_num_threads(3);
+//#endif
+
     auto start_time = chrono::steady_clock::now();
 
 #ifdef WITH_DEBUG
@@ -51,10 +55,10 @@ int main(int argc, char *argv[]) {
     string srun = string(argv[0]);
 
     // this is important, there's the length of program name here!
-#if defined(PRIME) || defined(MPQ)
-    srun = srun.substr(0, srun.length() - 7);
-#else
+#if defined(PolyMode)
     srun = srun.substr(0, srun.length() - 6);
+#else
+    srun = srun.substr(0, srun.length() - 7);
 #endif
 
     if (srun[0] == '/') {  // running with full path
@@ -82,21 +86,9 @@ int main(int argc, char *argv[]) {
         forward_stage(thread_number, sector);
     } else if (sector < 0) {// backward
         perform_substitution(thread_number, -sector);
-    } else { // receive tasks from master
-        if (!common::port) {
-            cout << "Port not set, won't be able to connect to FIRE"<<endl;
-            return 1;
-        }
-        if (common::cpath == "") {
-            cout << "Storage folder not set, won't be able to exchange databases with FIRE"<<endl;
-            return 1;
-        }
-        if (common::cpath_on_substitutions && (common::threads_number != common::sthreads_number)) {
-            cout << "The number of threads and substitution threads should be equal in case of FLAME and storage on substitutions"<<endl;
-            return 1;
-        }
-        work_with_master();
-        cout << "Master communication closed" << endl;
+    } else {
+        cout << "Sector not specified" << endl;
+        abort();
     }
 
     if (common::send_to_parent) {
@@ -118,10 +110,15 @@ int main(int argc, char *argv[]) {
         
     if (!sector) cout<<"Done"<<endl;
 
+
     auto stop_time = chrono::steady_clock::now();
     if (!common::silent) {
         cout << "FLAME time ("<<sector<<"): " << chrono::duration_cast<chrono::duration<float>>(stop_time - start_time).count() << endl;
     }
+    
+#if defined(FlintM) || defined(FlintC) || defined(FMPQ) || defined(FlintX)
+    flint_cleanup();
+#endif
 
     return 0;
 }

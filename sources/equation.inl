@@ -9,20 +9,74 @@ size_t mpq_size(const mpq_class & q);
 void mpq_write(const mpq_class & q, char* &pos);
 #endif
 
+#ifdef FlintC3
+slong str_len3(const fmpz_poly_q_t p);
+void write_str3(const fmpz_poly_q_struct* p, char* &pos);
+#endif
+
 template<class I>
 void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char level, unsigned short fixed_database_sector) {
     unsigned short dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
     unsigned int string_size = 0;
+    size_t nterms = 0;
+    for (auto itr = termsB; itr != termsE; ++itr) ++nterms;
 #ifdef PRIME
     string_size = n * sizeof(unsigned long long); // we will just put our number into the buffer
 #elif defined(MPQStr)
+    vector<string> svec(nterms);
+    int svec_i = 0;
     for (auto itr = termsB; itr != termsE; ++itr) {
-        string_size += (itr->second.s.get_str(62).size() + 1); // note the 62 base
+        svec[svec_i] = itr->second.s.get_str(62);
+        string_size += (svec[svec_i].size() + 1); // note the 62 base
+        svec_i++;
     }
+    svec_i = 0;
 #elif defined(MPQBin)
     for (auto itr = termsB; itr != termsE; ++itr) {
         string_size += mpq_size(itr->second.s);
     }
+#elif defined(FlintX)
+    vector<string> svec(nterms);
+    int svec_i = 0;
+    for (auto itr = termsB; itr != termsE; ++itr) {
+        svec[svec_i] = itr->second.s.to_string();
+        string_size += (svec[svec_i].size() + 1);
+        svec_i++;
+    }
+    svec_i = 0;
+#elif defined(FlintC3)
+    for (auto itr = termsB; itr != termsE; ++itr) {
+        string_size += str_len3(itr->second.s[0])+1;
+    }
+#elif defined(FMPQ)
+    vector<string> svec(nterms);
+    int svec_i = 0;
+    for (auto itr = termsB; itr != termsE; ++itr) {
+        char * cs = fmpq_get_str(NULL,62,itr->second.s[0]); // note the 62 base
+        svec[svec_i] = cs;
+        flint_free(cs); 
+        string_size += (svec[svec_i].size() + 1);
+        svec_i++;
+    }
+    svec_i = 0;
+#elif defined(FlintC)
+    vector<string> svec(nterms);
+    int svec_i = 0;
+    for (auto itr = termsB; itr != termsE; ++itr) {        
+        svec[svec_i] = fmpz_poly_q_get_str2(itr->second.s[0]);
+        string_size += (svec[svec_i].size() + 1);
+        svec_i++;
+    }
+    svec_i = 0;
+#elif defined(FlintM)
+    vector<string> svec(nterms);
+    int svec_i = 0;
+    for (auto itr = termsB; itr != termsE; ++itr) {  
+        svec[svec_i] = fmpz_mpoly_q_get_str(itr->second.s[0]);
+        string_size += (svec[svec_i].size() + 1);
+        svec_i++;
+    }
+    svec_i = 0;
 #else
     for (auto itr = termsB; itr != termsE; ++itr) {
         string_size += (itr->second.s.size() + 1);
@@ -67,17 +121,30 @@ void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char lev
         }
     }
     char *pos = buf + 3 + points_size; // preparing a string of coeffs
-
     for (auto itr = termsB; itr != termsE; ++itr) {
 #ifdef PRIME
         *reinterpret_cast<unsigned long long *>(pos) = itr->second.n;
         pos += sizeof(unsigned long long);
 #elif defined(MPQStr)
-        auto s = itr->second.s.get_str(62); // note the 62 base
+        auto const & s = svec[svec_i];
         strncpy(pos, s.c_str(), s.size());
         pos += s.size();
+        svec[svec_i].clear();
         *pos = '|';
         ++pos;
+        svec_i++;
+#elif defined(FlintC3)
+        write_str3(itr->second.s[0], pos);
+        *pos = '|';
+        ++pos;
+#elif defined(FlintX) || defined(FMPQ) || defined(FlintC) || defined(FlintM)
+        auto const & s = svec[svec_i];
+        strncpy(pos, s.c_str(), s.size());
+        pos += s.size();
+        svec[svec_i].clear();
+        *pos = '|';
+        ++pos;
+        svec_i++;
 #elif defined(MPQBin)
         mpq_write(itr->second.s, pos);
 #else
@@ -87,7 +154,6 @@ void p_set(const point &p, unsigned int n, I termsB, I termsE, unsigned char lev
         ++pos;
 #endif
     }
-
     *pos = '\0'; // do we really need it? we won't be interpreting the contents as a string any longer
 
 

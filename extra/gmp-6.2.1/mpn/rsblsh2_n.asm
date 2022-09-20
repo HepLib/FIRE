@@ -1,1 +1,1 @@
-../mpn/arm64/aorsorrlsh2_n.asm
+../mpn/x86_64/aorrlsh2_n.asm

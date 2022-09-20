@@ -1,1 +1,1 @@
-../mpn/arm64/sec_tabselect.asm
+../mpn/x86_64/sec_tabselect.asm

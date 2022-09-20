@@ -15,14 +15,27 @@
 #include <condition_variable>
 #include <chrono>
 
-#include "FSBAllocator.hh"
-
 #ifdef MPQ
-#define MPQBin
+#define MPQStr // MPQStr - string format, MPQBin - binary format
 #endif
 
+//#ifdef FlintC
+//#define FlintC3
+//#endif
+
+#if !defined(PRIME) && !defined(MPQ) && !defined(FlintX) && !defined(FMPQ) && !defined(FlintC) && !defined(FlintM)
+#define PolyMode
+#endif
+
+#if defined(PolyMode)
+#include "FSBAllocator.hh"
+#endif
+
+#if defined(PolyMode)
 #define ALLOCATOR1 FSBAllocator2<pair<const point, vector<pair<point,COEFF> > > >
 ///<faster allocation for maps
+#endif
+
 #define ALLOCATOR2 allocator<pair<point,COEFF> >
 ///<currently a placeholder for the default allocator
 
@@ -237,7 +250,7 @@ vector<point> p_get_monoms(const point &p, unsigned short fixed_database_sector 
  */
 void calc_wrapper(string &s, unsigned short thread_number);// if null, not clearing
 
-#if (!defined(PRIME) && !defined(MPQ)) || defined(DOXYGEN_DOCUMENTATION)
+#if defined(PolyMode) || defined(DOXYGEN_DOCUMENTATION)
 
 /**
  * Usual terms normalization via fermat.

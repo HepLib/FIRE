@@ -1,1 +1,1 @@
-../mpn/arm64/mod_34lsub1.asm
+../mpn/x86_64/mod_34lsub1.asm

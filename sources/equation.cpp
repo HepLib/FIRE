@@ -167,6 +167,108 @@ mpq_class mpq_read(char* &pos) {
 }
 #endif
 
+#if defined(FlintC3)
+inline slong str_len3(const fmpz_poly_t p) {
+    static auto l62 = log((double)62);
+    slong len = p->length;
+    if(len==0) return 1;
+    fmpz* poly = p->coeffs;
+    slong bound;
+    bound = (slong) (ceil(log((double) (len + 1))/l62));
+    for (slong i = 0; i < len; i++) bound += fmpz_sizeinbase(poly + i, 62) + 1;
+    bound += len + 2;
+    return bound;
+}
+slong str_len3(const fmpz_poly_q_t p) {
+    slong len = str_len3(fmpz_poly_q_numref(p));
+    if(!fmpz_poly_is_one(fmpz_poly_q_denref(p))) len += 1+str_len3(fmpz_poly_q_denref(p));
+    return len;
+}
+
+inline void _fmpz_poly_get_str_(const fmpz_poly_t p, char* &str) {
+    slong len = p->length;
+    if (len == 0) {
+        str[0] = '0';
+        str += 1;
+    }
+    fmpz * poly = p->coeffs;
+    str += flint_sprintf(str, "%wd ", len);
+    do {
+        *str++ = ' ';
+        if (!COEFF_IS_MPZ(*poly)) {
+            mpz_t z;
+            flint_mpz_init_set_si(z, *poly);
+            mpz_get_str(str, 62, z);
+            mpz_clear(z);
+        } else mpz_get_str(str, 62, COEFF_TO_PTR(*poly));
+        while(*str!='\0') str++;
+    } while (poly++, --len);
+}
+
+void write_str3(const fmpz_poly_q_struct* p, char* &pos) {
+    _fmpz_poly_get_str_(fmpz_poly_q_numref(p), pos);
+    if(!fmpz_poly_is_one(fmpz_poly_q_denref(p))) {
+        *pos = '/';
+        pos++;
+        _fmpz_poly_get_str_(fmpz_poly_q_denref(p), pos);
+    }
+}
+
+inline int _fmpz_poly_set_str_(fmpz * poly, char *str) {
+    slong i, len;
+    if (!isdigit((unsigned char) str[0])) return -1;
+    len = atol(str);
+    if (len < 0) return -1;
+    if (len == 0) return 0;
+    while (*str!=' ') str++; 
+    char *v;
+    for (i = 0; i < len; i++) {
+        while (*str==' ') str++;
+        v = str;
+        while(*str != ' ' && *str != '\0') str++;
+        *str = '\0';
+        int ans = fmpz_set_str(poly++, v, 62);
+        if (ans) return -1;
+        str++;
+    }
+    return 0;
+}
+
+inline int fmpz_poly_set_str_(fmpz_poly_t poly, char * str) {
+    if (!isdigit((unsigned char) str[0])) return -1;
+    slong len = atol(str);
+    if (len < 0) return -1;
+    if (len == 0) {
+        fmpz_poly_zero(poly);
+        return 0;
+    }
+    fmpz_poly_fit_length(poly, len);
+    int ans = _fmpz_poly_set_str_(poly->coeffs, str);
+    if (ans == 0) {
+        _fmpz_poly_set_length(poly, len);
+        _fmpz_poly_normalise(poly);
+    } else {
+        _fmpz_vec_zero(poly->coeffs, len);
+        _fmpz_poly_set_length(poly, 0);
+    }
+    return ans;
+}
+
+inline void read_str3(fmpz_poly_q_struct* p, char* pos) {
+    char *end = pos;
+    while (*end != '/' && *end != '\0') ++end;
+    if('/'==*end) { /* numerator / denominator */
+        *end = '\0';
+        fmpz_poly_set_str_(fmpz_poly_q_numref(p),pos);
+        pos = end+1;
+        fmpz_poly_set_str_(fmpz_poly_q_denref(p),pos);
+    } else {
+        fmpz_poly_set_str_(fmpz_poly_q_numref(p),pos);
+        fmpz_poly_set_si(fmpz_poly_q_denref(p),1);
+    }
+}
+#endif
+
 // get monoms and coefficients from a point (Feynman integral). database access used
 template<class I>
 void p_get_internal(const point &p, I &terms, unsigned short dsector, unsigned short len, char* res) {
@@ -187,6 +289,41 @@ void p_get_internal(const point &p, I &terms, unsigned short dsector, unsigned s
         ++pos;
 #elif defined(MPQBin)
         c.s = mpq_read(pos);
+#elif defined(FlintX)
+        char *end = pos;
+        while (*end != '|') ++end;
+        *end = '\0';
+        c.s = pos;
+        pos = end;
+        ++pos;
+#elif defined(FlintC3)
+        char *end = pos;
+        while (*end != '|') ++end;
+        *end = '\0';
+        read_str3(c.s[0],pos);
+        pos = end;
+        ++pos;
+#elif defined(FMPQ)
+        char *end = pos;
+        while (*end != '|') ++end;
+        *end = '\0';
+        fmpq_set_str(c.s[0],pos,62); // note the 62 base
+        pos = end;
+        ++pos;
+#elif defined(FlintC)
+        char *end = pos;
+        while (*end != '|') ++end;
+        *end = '\0';
+        fmpz_poly_q_set_str2(c.s[0],pos);
+        pos = end;
+        ++pos;
+#elif defined(FlintM)
+        char *end = pos;
+        while (*end != '|') ++end;
+        *end = '\0';
+        fmpz_mpoly_q_set_str(c.s[0],pos);
+        pos = end;
+        ++pos;
 #else
         char *end = pos;
         while (*end != '|') ++end;
@@ -365,7 +502,7 @@ point point_reference(const vector<t_index> &v) {
 * calls to fermat come from here
 */
 
-#if !defined(PRIME) && !defined(MPQ)
+#if defined(PolyMode)
 
 void normalize(vector<pair<point, COEFF> > &terms, unsigned short thread_number) {
     vector<pair<point, COEFF> > mon;

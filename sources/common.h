@@ -10,8 +10,21 @@
 #ifndef COMMON_H_INCLUDED
 #define COMMON_H_INCLUDED
 
+#if !defined(PRIME) && !defined(MPQ) && !defined(FlintX) && !defined(FMPQ) && !defined(FlintC) && !defined(FlintM)
+#define PolyMode
+#endif
+
 #ifdef MPQ
 #include <gmpxx.h>
+#elif defined(FlintX)
+#include "flint/fmpz_poly_qxx.h"
+#elif defined(FMPQ)
+#include <flint/fmpq.h>
+inline void fmpq_set_si(fmpq_t res, slong p) { fmpq_set_si(res,p,1); }
+#elif defined(FlintC)
+#include "flint/fmpz_poly_q.h"
+#elif defined(FlintM)
+#include "fmpz_mpoly_q.h"
 #endif
 
 #include <iostream>
@@ -510,12 +523,6 @@ public:
     /**@}*/
 
     /**
-     * Port on which FIRE listens for connection of workers.
-     * If port == 0, that means no port is used.
-     */
-    static unsigned short port;
-
-    /**
      * True if we keep all entries, false otherwise.
      */
     static bool keep_all;
@@ -582,6 +589,11 @@ public:
     static bool cpath_on_substitutions;
 
     /**
+     * Whether to clean temporary databases after work
+     */
+    static bool clean_databases;
+
+    /**
      * True if we use all IBPs. See \#allIBP in configuration file.
      */
     static bool all_ibps;
@@ -633,7 +645,7 @@ public:
     /**
      * The diagram number in use.
      */
-    static unsigned short global_pn;
+    static unsigned int global_pn;
 
     /** @name Various thread counts.*/
     /** By default threads_number == fthreads_number == sthreads_number*/
@@ -825,6 +837,18 @@ class COEFF {
     unsigned long long n; ///< Exact value of coefficient modulo selected prime, used in PRIME mode.
 #elif defined(MPQ)
     mpq_class s; // MPQ mode
+#elif defined(FlintX)
+    flint::fmpz_poly_qxx s;
+    static string x;
+#elif defined(FMPQ)
+    vector<fmpq_t> s;
+#elif defined(FlintC)
+    vector<fmpz_poly_q_t> s;
+    static string x;
+#elif defined(FlintM)
+    vector<fmpz_mpoly_q_t> s;
+    static fmpz_mpoly_ctx_t ctx;
+    static const char** xs;
 #else
     std::string s; ///< String representation of coefficient, used in normal mode.
 #endif
@@ -834,10 +858,86 @@ class COEFF {
         n = 0;
 #elif defined(MPQ)
         s = 0;
+#elif defined(FlintX)
+        s.set_zero();
+#elif defined(FMPQ)
+        s = vector<fmpq_t>(1);  
+        fmpq_init(s[0]); 
+        fmpq_zero(s[0]);
+#elif defined(FlintC)
+        s = vector<fmpz_poly_q_t>(1);  
+        fmpz_poly_q_init(s[0]); 
+        fmpz_poly_q_zero(s[0]);
+#elif defined(FlintM)
+        s = vector<fmpz_mpoly_q_t>(1);  
+        fmpz_mpoly_q_init(s[0],ctx); 
+        fmpz_mpoly_q_zero(s[0],ctx);
 #else
         s = "";
 #endif
     }
+
+#if defined(FMPQ)
+    COEFF(const COEFF & c) {
+        s = vector<fmpq_t>(1);  
+        fmpq_init(s[0]);
+        fmpq_set(s[0],c.s[0]);
+    }
+    COEFF & operator=(const COEFF & c) {
+        s = vector<fmpq_t>(1);  
+        fmpq_init(s[0]);
+        fmpq_set(s[0],c.s[0]);
+        return *this;
+    }
+    COEFF(COEFF && c) : s(std::move(c.s)) { }
+    COEFF & operator=(COEFF && c) {
+        s = std::move(c.s);
+        return *this;
+    }
+    ~COEFF() {
+        if(s.size()>0) fmpq_clear(s[0]);
+    }
+#elif defined(FlintC)
+    COEFF(const COEFF & c) {
+        s = vector<fmpz_poly_q_t>(1);  
+        fmpz_poly_q_init(s[0]);
+        fmpz_poly_q_set(s[0],c.s[0]);
+    }
+    COEFF & operator=(const COEFF & c) {
+        s = vector<fmpz_poly_q_t>(1);  
+        fmpz_poly_q_init(s[0]);
+        fmpz_poly_q_set(s[0],c.s[0]);
+        return *this;
+    }
+    COEFF(COEFF && c) : s(std::move(c.s)) { }
+    COEFF & operator=(COEFF && c) {
+        s = std::move(c.s);
+        return *this;
+    }
+    ~COEFF() {
+        if(s.size()>0) fmpz_poly_q_clear(s[0]);
+    }
+#elif defined(FlintM)
+    COEFF(const COEFF & c) {
+        s = vector<fmpz_mpoly_q_t>(1);  
+        fmpz_mpoly_q_init(s[0],ctx);
+        fmpz_mpoly_q_set(s[0],c.s[0],ctx);
+    }
+    COEFF & operator=(const COEFF & c) {
+        s = vector<fmpz_mpoly_q_t>(1);  
+        fmpz_mpoly_q_init(s[0],ctx);
+        fmpz_mpoly_q_set(s[0],c.s[0],ctx);
+        return *this;
+    }
+    COEFF(COEFF && c) : s(std::move(c.s)) { }
+    COEFF & operator=(COEFF && c) {
+        s = std::move(c.s);
+        return *this;
+    }
+    ~COEFF() {
+        if(s.size()>0) fmpz_mpoly_q_clear(s[0],ctx);
+    }
+#endif
 
     /**
      * Constructor from a number, now supports 1 or -1
@@ -846,12 +946,32 @@ class COEFF {
      */
     COEFF(int64_t number) {
 #ifdef PRIME
-        if (number == 1)
-            n = 1;
-        else if (number == -1)
-            n = common::prime - 1;
-        else
-            abort();
+        if (number == 1) n = 1;
+        else if (number == -1) n = common::prime - 1;
+        else abort();
+#elif defined(MPQ)
+        if (number == 1) s = 1;
+        else if (number == -1) s = -1;
+        else abort();
+#elif defined(FlintX)
+    if(number==1) s=1;
+    else if(number==-1) s=-1;
+    else abort();
+#elif defined(FMPQ)
+    s = vector<fmpq_t>(1);  
+    fmpq_init(s[0]);
+    if(number==1 || number==-1) fmpq_set_si(s[0],number);
+    else abort();
+#elif defined(FlintC)
+    s = vector<fmpz_poly_q_t>(1);  
+    fmpz_poly_q_init(s[0]);
+    if(number==1 || number==-1) fmpz_poly_q_set_si(s[0],number);
+    else abort();
+#elif defined(FlintM)
+    s = vector<fmpz_mpoly_q_t>(1);  
+    fmpz_mpoly_q_init(s[0],ctx);
+    if(number==1 || number==-1) fmpz_mpoly_q_set_si(s[0],number,ctx);
+    else abort();
 #else
         if (number == 1)
             s = "1";
@@ -869,8 +989,16 @@ class COEFF {
     bool empty() const {
         #ifdef PRIME
             return (!n);
-        #elif MPQ
+        #elif defined(MPQ)
             return s==0;
+        #elif defined(FlintX)
+            return s.is_zero();
+        #elif defined(FMPQ)
+            return fmpq_is_zero(s[0]);
+        #elif defined(FlintC)
+            return fmpz_poly_q_is_zero(s[0]);
+        #elif defined(FlintM)
+            return fmpz_mpoly_q_is_zero(s[0],ctx);
         #else
             return ((s == "") || (s == "0"));
         #endif
@@ -883,9 +1011,15 @@ class COEFF {
      * @return Check result
      */
     friend bool operator==(const COEFF &c1, const COEFF &c2) {
-        COEFF result;
+        //COEFF result;
     #ifdef PRIME
         return (c1.n == c2.n);
+    #elif defined(FMPQ)
+        return fmpq_equal(c1.s[0],c2.s[0]);
+    #elif defined(FlintC)
+        return fmpz_poly_q_equal(c1.s[0],c2.s[0]);
+    #elif defined(FlintM)
+        return fmpz_mpoly_q_equal(c1.s[0],c2.s[0],ctx);
     #else
         return (c1.s == c2.s);
     #endif
@@ -905,13 +1039,18 @@ class COEFF {
         uint128_t n_new = n1 + n2;
         n_new = n_new % common::prime;
         result.n = n_new;
-#elif MPQ
-	if (c1.s == 0)
-            result.s = c2.s;
-        else if (c2.s == 0)
-            result.s = c1.s;
-        else
-            result.s = c1.s + c2.s;
+#elif defined(MPQ)
+	if (c1.s == 0) result.s = c2.s;
+        else if (c2.s == 0) result.s = c1.s;
+        else result.s = c1.s + c2.s;
+#elif defined(FlintX)
+    result.s = (c1.s+c2.s).evaluate();
+#elif defined(FMPQ)
+    fmpq_add(result.s[0],c1.s[0],c2.s[0]);
+#elif defined(FlintC)
+    fmpz_poly_q_add(result.s[0],c1.s[0],c2.s[0]);
+#elif defined(FlintM)
+    fmpz_mpoly_q_add(result.s[0],c1.s[0],c2.s[0],ctx);
 #else
         if (c1.s == "")
             result.s = c2.s;
@@ -939,15 +1078,19 @@ class COEFF {
         uint128_t n_new = n1 + n2;
         n_new = n_new % common::prime;
         result.n = n_new;
-#elif MPQ
-        if ((c1.s == 0) && (c2.s == 0))
-            result.s = 0;
-        else if (c1.s == 0)
-            result.s = -c2.s;
-        else if (c2.s == 0)
-            result.s = c1.s;
-        else
-            result.s = c1.s - c2.s;
+#elif defined(MPQ)
+        if ((c1.s == 0) && (c2.s == 0)) result.s = 0;
+        else if (c1.s == 0) result.s = -c2.s;
+        else if (c2.s == 0) result.s = c1.s;
+        else result.s = c1.s - c2.s;
+#elif defined(FlintX)
+        result.s = (c1.s-c2.s).evaluate();
+#elif defined(FMPQ)
+        fmpq_sub(result.s[0],c1.s[0],c2.s[0]);
+#elif defined(FlintC)
+        fmpz_poly_q_sub(result.s[0],c1.s[0],c2.s[0]);
+#elif defined(FlintM)
+        fmpz_mpoly_q_sub(result.s[0],c1.s[0],c2.s[0],ctx);
 #else
         if ((c1.s == "") && (c2.s == ""))
             result.s = "";
@@ -975,13 +1118,18 @@ class COEFF {
         uint128_t n_new = n1 * n2;
         n_new = n_new % common::prime;
         result.n = n_new;
-#elif MPQ
-        if (c1.s == 0)
-            result.s = 0;
-        else if (c2.s == 0)
-            result.s = 0;
-        else
-            result.s = c1.s * c2.s;
+#elif defined(MPQ)
+        if (c1.s == 0) result.s = 0;
+        else if (c2.s == 0) result.s = 0;
+        else result.s = c1.s * c2.s;
+#elif defined(FlintX)
+        result.s = (c1.s * c2.s).evaluate();
+#elif defined(FMPQ)
+        fmpq_mul(result.s[0], c1.s[0], c2.s[0]);
+#elif defined(FlintC)
+        fmpz_poly_q_mul(result.s[0], c1.s[0], c2.s[0]);
+#elif defined(FlintM)
+        fmpz_mpoly_q_mul(result.s[0], c1.s[0], c2.s[0], ctx);
 #else
         if (c1.s == "")
             result.s = "";
@@ -993,6 +1141,93 @@ class COEFF {
         return result;
     }
 };
+
+#if defined(FlintC)
+
+inline string fmpz_poly_q_get_str2(const fmpz_poly_q_struct* p) {
+    auto cs = fmpz_poly_get_str(fmpz_poly_q_numref(p));
+    string s(cs);
+    flint_free(cs);
+    if(!fmpz_poly_is_one(fmpz_poly_q_denref(p))) {
+        cs = fmpz_poly_get_str(fmpz_poly_q_denref(p));
+        string ds(cs);
+        flint_free(cs);
+        s = s+"/"+ds;
+    }
+    return s;
+}
+
+inline void fmpz_poly_q_set_str2(fmpz_poly_q_struct* p, char* pos) {
+    char *end = pos;
+    while (*end != '/' && *end != '\0') ++end;
+    if('/'==*end) { /* numerator / denominator */
+        *end = '\0';
+        fmpz_poly_set_str(fmpz_poly_q_numref(p),pos);
+        pos = end+1;
+        fmpz_poly_set_str(fmpz_poly_q_denref(p),pos);
+    } else {
+        fmpz_poly_set_str(fmpz_poly_q_numref(p),pos);
+        fmpz_poly_set_si(fmpz_poly_q_denref(p),1);
+    }
+}
+
+inline void fmpz_poly_q_set_str2(fmpz_poly_q_struct* p, const char* pos) {
+    int n = strlen(pos);
+    char buff[n+1];
+    strcpy(buff,pos);
+    fmpz_poly_q_set_str2(p, buff);
+}
+
+#elif defined(FlintM)
+
+inline string fmpz_mpoly_q_get_str(const fmpz_mpoly_q_struct* mp) {
+    auto cs = fmpz_mpoly_get_str_pretty(fmpz_mpoly_q_numref(mp),COEFF::xs,COEFF::ctx);
+    string s(cs);
+    flint_free(cs);
+    if(!fmpz_mpoly_is_one(fmpz_mpoly_q_denref(mp),COEFF::ctx)) {
+        cs = fmpz_mpoly_get_str_pretty(fmpz_mpoly_q_denref(mp),COEFF::xs,COEFF::ctx);
+        string ds(cs);
+        flint_free(cs);
+        bool is_nc = fmpz_mpoly_is_fmpz(fmpz_mpoly_q_numref(mp),COEFF::ctx);
+        bool is_dc = fmpz_mpoly_is_fmpz(fmpz_mpoly_q_denref(mp),COEFF::ctx);
+        if(!is_nc) s = "("+s+")";
+        if(!is_dc) ds = "("+ds+")";
+        s = s+"/"+ds;
+    }
+    return s;
+}
+
+inline void fmpz_mpoly_q_set_str(fmpz_mpoly_q_struct* mp, char* pos) {
+    char *end = pos;
+    while (*end != '/' && *end != '\0') ++end;
+    if('/'==*end) { /* numerator / denominator */
+        *end = '\0';
+        fmpz_mpoly_set_str_pretty(fmpz_mpoly_q_numref(mp),pos,COEFF::xs,COEFF::ctx);
+        pos = end+1;
+        fmpz_mpoly_set_str_pretty(fmpz_mpoly_q_denref(mp),pos,COEFF::xs,COEFF::ctx);
+    } else {
+        fmpz_mpoly_set_str_pretty(fmpz_mpoly_q_numref(mp),pos,COEFF::xs,COEFF::ctx);
+        fmpz_mpoly_set_si(fmpz_mpoly_q_denref(mp),1,COEFF::ctx);
+    }
+}
+
+inline void fmpz_mpoly_q_set_str(fmpz_mpoly_q_struct* mp, const char* pos) {
+    int n = strlen(pos);
+    char buff[n+1];
+    strcpy(buff,pos);
+    fmpz_mpoly_q_set_str(mp, buff);
+}
+
+inline void fmpz_mpoly_q_addmul(fmpz_mpoly_q_struct* rop, const fmpz_mpoly_q_struct* op1, const fmpz_mpoly_q_struct* op2, const fmpz_mpoly_ctx_t ctx) {
+    fmpz_mpoly_q_t mp;
+    fmpz_mpoly_q_init(mp,ctx);
+    fmpz_mpoly_q_mul(mp,op1,op2,ctx);
+    fmpz_mpoly_q_add(rop,rop,mp,ctx);
+    fmpz_mpoly_q_clear(mp,ctx);
+}
+    
+#endif
+
 
 #ifdef WITH_ZSTD
 

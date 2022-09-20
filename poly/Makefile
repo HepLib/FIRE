@@ -1,36 +1,47 @@
 vpath %.cpp ../sources
 vpath %.h ../sources
 
-CC= g++
-
-CFLAGS = -Wno-maybe-uninitialized -O3 -Wall -Wno-strict-aliasing -std=c++11 -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC
-#CFLAGS = -Wno-maybe-uninitialized -O3 -Wall -Wno-strict-aliasing -std=c++11 -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free  
-
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-LFLAGS = -L../usr/lib/ -L../usr/lib64/ -lkyotocabinet ../usr/lib/liblz4.a -lc++ -lpthread -lm -lc -lsnappy -lz
-else
-LFLAGS = -L../usr/lib/ -L../usr/lib64/ -Wl,-Bstatic -lkyotocabinet -l:liblz4.a -Wl,-Bdynamic -lstdc++ -lrt -lpthread -lm -lc -lsnappy -lz
+CC:=g++
+cc:=gcc
+CFLAGS:=-O3 -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
+ifeq ($(Thread),1)
+CFLAGS:=$(CFLAGS) -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD
+#CFLAGS:=$(CFLAGS) -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC
+endif
+ifeq ($(TcMalloc),1)
+CFLAGS:=$(CFLAGS) -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
+else ifeq ($(JeMalloc),1)
+CFLAGS:=$(CFLAGS) -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
 endif
 
+LFLAGS:=-Wl,-rpath,$$PWD/../usr/lib -L../usr/lib/ -L../usr/lib64/ -lkyotocabinet -lpthread -lm -lc -lsnappy -lz -lgmp ../usr/lib/liblz4.a ../usr/lib/libzstd.a
+UNAME_S:=$(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+LFLAGS:=$(LFLAGS) -lc++
+else
+LFLAGS:=$(LFLAGS) -lstdc++ -lrt
+endif
 
+ifeq ($(TcMalloc),1)
+LFLAGS:=$(LFLAGS) -ltcmalloc_minimal
+endif
 
 OBJ = point.o equation.o functions.o gateToFermat.o common.o parser.o
 
 default: FIRE6 FLAME6 FTool6
 
 FIRE6: $(OBJ) main.o
-	${CC} $(OBJ) main.o ${LFLAGS} -o FIRE6
+	$(CC) $(OBJ) main.o $(LFLAGS) -o FIRE6
 
 FLAME6: $(OBJ) thread.o
-	${CC} $(OBJ) thread.o ${LFLAGS} -o FLAME6
+	$(CC) $(OBJ) thread.o $(LFLAGS) -o FLAME6
 
 FTool6: $(OBJ) ftool.o
-	${CC} $(OBJ) ftool.o ${LFLAGS} -o FTool6
+	$(CC) $(OBJ) ftool.o $(LFLAGS) -o FTool6
 
 
 .cpp.o:
-	${CC} ${CFLAGS} ${INCDIR} -c $<
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	rm -f ./*.o test
