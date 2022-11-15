@@ -1,1 +1,0 @@
-../mpn/x86_64/k8/addmul_2.asm

@@ -4,11 +4,6 @@ vpath %.h ../sources
 CC:=g++
 cc:=gcc
 CFLAGS:=-O3 -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
-ifeq ($(TcMalloc),1)
-CFLAGS:=$(CFLAGS) -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
-else ifeq ($(JeMalloc),1)
-CFLAGS:=$(CFLAGS) -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
-endif
 CFLAGS:=$(CFLAGS) -DFlintM 
 
 LFLAGS:=-Wl,-rpath,$$PWD/../usr/lib -L../usr/lib/ -L../usr/lib64/ -lkyotocabinet -lpthread -lm -lc -lsnappy -lz ../usr/lib/libflint.a -lgmp -lmpfr ../usr/lib/liblz4.a ../usr/lib/libzstd.a
@@ -17,10 +12,6 @@ ifeq ($(UNAME_S),Darwin)
 LFLAGS:=$(LFLAGS) -lc++
 else
 LFLAGS:=$(LFLAGS) -lstdc++ -lrt
-endif
-
-ifeq ($(TcMalloc),1)
-LFLAGS:=$(LFLAGS) -ltcmalloc_minimal
 endif
 
 fOBJ = fmpz_mpoly_q/add.o fmpz_mpoly_q/clear.o fmpz_mpoly_q/equal.o fmpz_mpoly_q/is_canonical.o fmpz_mpoly_q/neg.o fmpz_mpoly_q/set_fmpq.o fmpz_mpoly_q/sub_fmpq.o fmpz_mpoly_q/add_fmpq.o fmpz_mpoly_q/div.o fmpz_mpoly_q/init.o fmpz_mpoly_q/mul.o fmpz_mpoly_q/print_pretty.o fmpz_mpoly_q/set_fmpz.o fmpz_mpoly_q/sub_fmpz.o fmpz_mpoly_q/add_fmpz.o fmpz_mpoly_q/div_fmpq.o fmpz_mpoly_q/inlines.o fmpz_mpoly_q/mul_fmpq.o fmpz_mpoly_q/randtest.o fmpz_mpoly_q/set_si.o fmpz_mpoly_q/swap.o fmpz_mpoly_q/canonicalise.o fmpz_mpoly_q/div_fmpz.o fmpz_mpoly_q/inv.o fmpz_mpoly_q/mul_fmpz.o fmpz_mpoly_q/set.o fmpz_mpoly_q/sub.o fmpz_mpoly_q/used_vars.o

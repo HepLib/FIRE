@@ -4,11 +4,6 @@ vpath %.h ../sources
 CC:=g++
 cc:=gcc
 CFLAGS:=-O3 -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
-ifeq ($(TcMalloc),1)
-CFLAGS:=$(CFLAGS) -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
-else ifeq ($(JeMalloc),1)
-CFLAGS:=$(CFLAGS) -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
-endif
 CFLAGS:=$(CFLAGS) -DFMPQ
 
 LFLAGS:=-Wl,-rpath,$$PWD/../usr/lib -L../usr/lib/ -L../usr/lib64/ -lkyotocabinet -lpthread -lm -lc -lsnappy -lz ../usr/lib/libflint.a -lgmp -lmpfr ../usr/lib/liblz4.a ../usr/lib/libzstd.a
@@ -17,10 +12,6 @@ ifeq ($(UNAME_S),Darwin)
 LFLAGS:=$(LFLAGS) -lc++
 else
 LFLAGS:=$(LFLAGS) -lstdc++ -lrt
-endif
-
-ifeq ($(TcMalloc),1)
-LFLAGS:=$(LFLAGS) -ltcmalloc_minimal
 endif
 
 OBJ = point.o equation.o functions.o gateToFermat.o common.o parser.o primes.o

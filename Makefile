@@ -1,6 +1,3 @@
-export Thread=0
-export TcMalloc=0
-
 all:
 	$(MAKE) -C ./FlintM
 	$(MAKE) -C ./FMPQ
@@ -30,6 +27,8 @@ cleanexe:
 	rm -f FlintC/F*
 	rm -f FlintX/F*
 
+#=====================================================
+
 dep: depend
 
 UNAME_S:=$(shell uname -s)
@@ -39,53 +38,50 @@ else
 ASIE =
 endif
 
+USR_DIR:=$(shell pwd)/usr
 depend:
+	cd extra; \
+tar zxf gmp-6.2.1.tar.gz; \
+tar zxf mpfr-4.1.0.tar.gz; \
+tar zxf flint-2.9.0.tar.gz; \
+tar zxf snappy-1.1.7.tar.gz; \
+tar zxf zstd-1.5.2.tar.gz; \
+tar zxf lz4-1.9.4.tar.gz; \
+tar zxf kyotocabinet-1.2.79.tar.gz
+
 	cp FlintM/fmpz_mpoly_q/fmpz_mpoly_q.h usr/include/
 	
-	cd extra/snappy-1.1.7/ && mkdir -p build && cd build && cmake ../
-	$(MAKE) -C ./extra/snappy-1.1.7/build
-	$(MAKE) -C ./extra/snappy-1.1.7/build DESTDIR=../../../ install
-	#===========
-	#cd extra/snappy-1.1.9/ && mkdir -p build && cd build && cmake ../
-	#$(MAKE) -C ./extra/snappy-1.1.9/build
-	#$(MAKE) -C ./extra/snappy-1.1.9/build DESTDIR=../../../ install
+	cd extra/gmp-6.2.1;\
+./configure --enable-cxx --prefix=$(USR_DIR); \
+$(MAKE) install
+	cd extra/mpfr-4.1.0; \
+./configure --with-gmp=$(USR_DIR) --prefix=$(USR_DIR); \
+$(MAKE) install
+	cd extra/flint-2.9.0; \
+./configure --with-gmp=$(USR_DIR) --with-mpfr=$(USR_DIR) --prefix=$(USR_DIR); \
+$(MAKE) install
 	
-#ifeq ($(Thread),1)
-#	cp extra/kyotocabinet-1.2.77/kccachedb.h.threadsafe.in extra/kyotocabinet-1.2.77/kccachedb.h
-#else
-#	cp extra/kyotocabinet-1.2.77/kccachedb.h.in extra/kyotocabinet-1.2.77/kccachedb.h
-#endif
-	#cd extra/kyotocabinet-1.2.77/ && ./configure --prefix=`pwd`/../../usr/
-	#$(ASIE) $(MAKE) -C ./extra/kyotocabinet-1.2.77
-	#$(MAKE) -C ./extra/kyotocabinet-1.2.77 install
-
-	cd extra/kyotocabinet-1.2.79/ && ./configure --prefix=`pwd`/../../usr/
-	$(ASIE) $(MAKE) -C ./extra/kyotocabinet-1.2.79
-	$(MAKE) -C ./extra/kyotocabinet-1.2.79 install
+	cd extra/snappy-1.1.7; \
+mkdir -p build; \
+cd build; \
+cmake -DCMAKE_INSTALL_PREFIX=$(USR_DIR) .. ; \
+$(MAKE) install
 	
-	#$(MAKE) -C ./extra/zstd-1.4.3
-	#$(MAKE) -C ./extra/zstd-1.4.3 PREFIX=`pwd`/usr/ uninstall
-	#$(MAKE) -C ./extra/zstd-1.4.3 PREFIX=`pwd`/usr/ install
-	mkdir -p extra/zstd-1.5.2/build/cmake/build ; cd extra/zstd-1.5.2/build/cmake/build && cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../../../../../usr/ .. && $(MAKE) install
+	cd extra/kyotocabinet-1.2.79; \
+./configure --prefix=$(USR_DIR); \
+$(ASIE) $(MAKE); \
+$(MAKE) install
 	
-	$(MAKE) -C ./extra/lz4-1.9.2
-	$(MAKE) -C ./extra/lz4-1.9.2 PREFIX=`pwd`/usr/ uninstall
-	$(MAKE) -C ./extra/lz4-1.9.2 PREFIX=`pwd`/usr/ install
+	mkdir -p extra/zstd-1.5.2/build/cmake/build; \
+cd extra/zstd-1.5.2/build/cmake/build; \
+cmake -DCMAKE_INSTALL_PREFIX=$(USR_DIR) ..; \
+$(MAKE) install
 	
-	cd extra/gperftools-2.10/ && ./configure --enable-minimal --prefix=`pwd`/../../usr/
-	$(MAKE) -C ./extra/gperftools-2.10
-	$(MAKE) -C ./extra/gperftools-2.10 install
-		
+	$(MAKE) -C ./extra/lz4-1.9.4 PREFIX=$(USR_DIR) install
+			
 	# needed by poly version
 	cp extra/FSBAllocator.hh usr/include/
 	
-	cd extra/gmp-6.2.1 && ./configure --enable-cxx --prefix=`pwd`/../../usr/
-	$(MAKE) -C ./extra/gmp-6.2.1 install
-	cd extra/mpfr-4.1.0 && ./configure --with-gmp=`pwd`/../../usr/ --prefix=`pwd`/../../usr/
-	$(MAKE) -C ./extra/mpfr-4.1.0 install
-	cd extra/flint-2.9.0 && ./configure --with-gmp=`pwd`/../../usr/ --with-mpfr=`pwd`/../../usr/ --prefix=`pwd`/../../usr/ 
-	$(MAKE) -C ./extra/flint-2.9.0 install
-
 cleandepall: cleandep
 	rm -rf usr/include/*
 	rm -rf usr/lib/*
@@ -95,13 +91,10 @@ cleandepall: cleandep
 	cd usr && ln -s lib lib64
 	
 cleandep:
-	$(MAKE) -C ./extra/gperftools-2.10 clean
-	
-	if [ -f extra/kyotocabinet-1.2.79/Makefile ]; then $(MAKE) -C ./extra/kyotocabinet-1.2.79 distclean; fi;
-	rm -rf extra/snappy-1.1.9/build
-	$(MAKE) -C ./extra/lz4-1.9.2 PREFIX=`pwd`/usr/ clean
-	rm -rf extra/zstd-1.5.2/build/cmake/build
-	
-	$(MAKE) -C ./extra/gmp-6.2.1 clean
-	$(MAKE) -C ./extra/mpfr-4.1.0 clean
-	$(MAKE) -C ./extra/flint-2.9.0 clean
+	rm -rf extra/gmp-6.2.1
+	rm -rf extra/mpfr-4.1.0
+	rm -rf extra/flint-2.9.0
+	rm -rf extra/snappy-1.1.7
+	rm -rf extra/zstd-1.5.2
+	rm -rf extra/lz4-1.9.4
+	rm -rf extra/kyotocabinet-1.2.79
