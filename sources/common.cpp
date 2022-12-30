@@ -91,6 +91,8 @@ int common::abs_max_level = 0;
 int common::abs_min_level = 100;
 #ifdef DISK_DB
     kyotocabinet::HashDB *common::points[MAX_SECTORS + 1];
+#elif defined(Stash_DB)
+    kyotocabinet::StashDB *common::points[MAX_SECTORS + 1];
 #else
     kyotocabinet::CacheDB *common::points[MAX_SECTORS + 1];
 #endif
@@ -352,6 +354,8 @@ void open_database(int number) {
 
     #ifdef DISK_DB
         common::points[number] = new kyotocabinet::HashDB;
+    #elif defined(Stash_DB)
+        common::points[number] = new kyotocabinet::StashDB;
     #else
         common::points[number] = new kyotocabinet::CacheDB;
     #endif
@@ -369,10 +373,12 @@ void open_database(int number) {
         common::buckets_full[number] <<= 1; //we need less buckets for memory_db
     #endif
 
+    #if !defined(Stash_DB)
     if (common::compressor != t_compressor::C_NONE) {
         pdb->tune_options(kyotocabinet::CacheDB::TLINEAR | kyotocabinet::CacheDB::TCOMPRESS);
         pdb->tune_compressor(common::compressor_class.get());
     }
+    #endif
 
     #ifndef DISK_DB
         if (!pdb->open("*")) {

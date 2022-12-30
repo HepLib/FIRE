@@ -2896,6 +2896,7 @@ void worker_thread(unsigned short thread_ready) {
             watch_child(pipe_from_child, pipe_to_child, test_sector, thread_ready, pid);
         } else {
             run_child(pipe_from_child, pipe_to_child, test_sector, thread_ready);
+            exit(0);
             // we do not get out here
         }
 
@@ -3716,7 +3717,6 @@ void apply_table(const vector<pair<point, COEFF> > &terms, bool forward_mode, bo
             split(rterms, fixed_database_sector); // classical split with vectors
         }
     } else {
-cout << endl << "rterms.size()=" << rterms.size() << endl << endl;
         p_set(rterms.back().first, rterms, 2 * sector_level, fixed_database_sector);
     }
 #endif

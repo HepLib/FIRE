@@ -3,10 +3,10 @@ vpath %.h ../sources
 
 CC:=g++
 cc:=gcc
-CFLAGS:=-O3 -Wno-deprecated-declarations -I/opt/homebrew/include  -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
-CFLAGS:=$(CFLAGS) -DFlintC
+CFLAGS:=-O3 -Wno-deprecated-declarations -I../usr/include -I/opt/homebrew/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
+CFLAGS:=$(CFLAGS) -DFMPQ
 
-LFLAGS:=-Wl,-rpath,$$PWD/../usr/lib -L../usr/lib/ -L../usr/lib64/ -lkyotocabinet -lpthread -lm -lc -lsnappy -lz ../usr/lib/libflint.a -lgmp -lmpfr ../usr/lib/liblz4.a ../usr/lib/libzstd.a
+LFLAGS:=-Wl,-rpath,$$PWD/../usr/lib -L../usr/lib/ -L../usr/lib64/ -Wl,-rpath,/opt/homebrew/lib -L/opt/homebrew/lib -lkyotocabinet -lpthread -lm -lc -lsnappy -lz /opt/homebrew/lib/libflint.a -lgmp -lmpfr ../usr/lib/liblz4.a ../usr/lib/libzstd.a
 UNAME_S:=$(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 LFLAGS:=$(LFLAGS) -lc++
@@ -70,3 +70,4 @@ ftool.o: point.h
 ftool.o: gateToFermat.h
 main.o: handler.h
 thread.o: handler.h
+

@@ -1450,16 +1450,12 @@ bool add_rules(const char *c, const unsigned short sector) {
                 }
                 current_COEFF.n = mod(current_coeff, true);
 #elif defined(FlintX)
-cout << "###### current_coeff=" << current_coeff << endl;
                 current_COEFF.s = current_coeff.c_str();
 #elif defined(FMPQ)
-cout << "###### current_coeff=" << current_coeff << endl;
                 fmpq_set_str(current_COEFF.s[0],current_coeff.c_str(),10);
 #elif defined(FlintC)
-cout << "###### current_coeff=" << current_coeff << endl;
                 fmpz_poly_q_set_str2(current_COEFF.s[0],current_coeff.c_str());
 #elif defined(FlintM)
-cout << "###### current_coeff=" << current_coeff << endl;
                 fmpz_mpoly_q_set_str(current_COEFF.s[0],current_coeff.c_str());
 #else
                 current_COEFF.s = current_coeff;

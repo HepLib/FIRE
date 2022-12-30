@@ -39,6 +39,7 @@ inline void fmpq_set_si(fmpq_t res, slong p) { fmpq_set_si(res,p,1); }
 #include <kcdb.h>
 #include <kchashdb.h>
 #include <kccachedb.h>
+#include <kcstashdb.h>
 #include <cstdint>
 #include <lz4.h>
 #include <lz4hc.h>
@@ -482,6 +483,8 @@ public:
      */
 #ifdef DISK_DB
     static kyotocabinet::HashDB *points[MAX_SECTORS + 1];
+#elif defined(Stash_DB)
+    static kyotocabinet::StashDB *points[MAX_SECTORS + 1];
 #else
     static kyotocabinet::CacheDB *points[MAX_SECTORS + 1];
 #endif
