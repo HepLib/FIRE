@@ -3,7 +3,7 @@ vpath %.h ../sources
 
 CC:=g++
 cc:=gcc
-CFLAGS:=-O3 -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
+CFLAGS:=-O3 -Wno-deprecated-declarations -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
 CFLAGS:=$(CFLAGS) -DFlintM
 
 LFLAGS:=-Wl,-rpath,$$PWD/../usr/lib -L../usr/lib/ -L../usr/lib64/ -lkyotocabinet -lpthread -lm -lc -lsnappy -lz ../usr/lib/libflint.a -lgmp -lmpfr ../usr/lib/liblz4.a ../usr/lib/libzstd.a

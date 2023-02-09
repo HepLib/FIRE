@@ -82,6 +82,7 @@ cleandepall: cleandep
 	cd usr && ln -s lib lib64
 	
 cleandep:
+	rm -rf extra/gmp-6.2.1
 	rm -rf extra/snappy-1.1.7
 	rm -rf extra/zstd-1.5.2
 	rm -rf extra/lz4-1.9.4

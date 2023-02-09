@@ -3,7 +3,7 @@ vpath %.h ../sources
 
 CC:=g++
 cc:=gcc
-CFLAGS:=-O3 -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
+CFLAGS:=-O3 -Wno-deprecated-declarations -I../usr/include -DWITH_SNAPPY -DWITH_ZLIB -DWITH_ZSTD
 ifeq ($(Thread),1)
 CFLAGS:=$(CFLAGS) -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD
 #CFLAGS:=$(CFLAGS) -DFSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC

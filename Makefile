@@ -42,7 +42,7 @@ USR_DIR:=$(shell pwd)/usr
 depend:
 	cd extra; \
 tar zxf gmp-6.2.1.tar.gz; \
-tar zxf mpfr-4.1.0.tar.gz; \
+tar zxf mpfr-4.1.1.tar.gz; \
 tar zxf flint-2.9.0.tar.gz; \
 tar zxf snappy-1.1.7.tar.gz; \
 tar zxf zstd-1.5.2.tar.gz; \
@@ -54,7 +54,7 @@ tar zxf kyotocabinet-1.2.79.tar.gz
 	cd extra/gmp-6.2.1;\
 ./configure --enable-cxx --prefix=$(USR_DIR); \
 $(MAKE) install
-	cd extra/mpfr-4.1.0; \
+	cd extra/mpfr-4.1.1; \
 ./configure --with-gmp=$(USR_DIR) --prefix=$(USR_DIR); \
 $(MAKE) install
 	cd extra/flint-2.9.0; \
@@ -92,7 +92,7 @@ cleandepall: cleandep
 	
 cleandep:
 	rm -rf extra/gmp-6.2.1
-	rm -rf extra/mpfr-4.1.0
+	rm -rf extra/mpfr-4.1.1
 	rm -rf extra/flint-2.9.0
 	rm -rf extra/snappy-1.1.7
 	rm -rf extra/zstd-1.5.2
