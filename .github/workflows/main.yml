@@ -8,11 +8,13 @@ jobs:
     name: Ubuntu 
     runs-on: ubuntu-latest
     steps:
-      - name: "Setup"
+      - name: "build"
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake
           sudo apt-get install -y g++
           sudo apt-get install -y git
+          pwd
+          ls
           make -j 4 dep
           make -j 4
