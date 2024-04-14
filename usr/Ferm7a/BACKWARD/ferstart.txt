@@ -1,0 +1,14 @@
+14000
+&t;
+&Z;
+&(_d=120);
+Func G = GCD(^xx,^yy).;
+Func XX=SDivide(gg,xx);!!Terms(gg);!!Terms(xx).;
+Func Y=SDivide(gg,yy);!!Terms(gg);!!Terms(yy).;
+Func K(n,i) = if n = 0 then n:=Deg[d]-1 fi; for i = 1,n do &(J=-Var(1)) od.;
+Func C(xz,i) = for i=1,5 do !!Content(^xz,i) od.;
+Func S(xz,i,n) = Array c[Numvars-5]; for i=1,Deg[c] do c[i]:=Prime(3i+20) od; w:=xz#(Var(6) = [c]); w.;
+Func AC(i,j,cco,ntt)=for i=1,nn do ntt:=Terms(^num[i]); for j=1,Numvars-1 do cco:=Content(^num[i],j); if cco<>1 and Terms(^cco)<>ntt then nn:+; num[nn]:=cco; SDivide(cco,num[i]); !!cco fi od od; KN;DC.;
+bp := 2^31-19;
+Func CL(i) = for i=1,nn do if Numb(num[i]) then num[i] := 1 fi od.;
+;&(R=fact9);

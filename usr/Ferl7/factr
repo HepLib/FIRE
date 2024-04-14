@@ -1,0 +1,1591 @@
+
+;---------------------------------------*******************************************-----------------------------
+;------ Fermat functions to factor multivariate polynomials.  May 30, 2023.  Robert H. Lewis, rlewis@fordham.edu
+;; Requires Fermat 7.0 or later.
+
+;; Algorithm of Daqing Wan, Factoring multivariate polynomials over large finite fields.  Mathematics of Computation volume 54.
+;; number 190, April 1990, pages 755-770.  The paper is written for the bivarite case, but can pretty easily be extended to
+;; multivariate, as here.
+
+;; Readin this file after reading your own code.
+
+;; One factor is produced (usually).
+
+;; To invoke over Z:  Use FCTZ. See documentation below. FCTZ works by dropping in and out of modular mode.  
+
+;; To invoke over Z/p: Use SPF.  See documentation below.  p is assumed to be "reasonably large", say > 150.  Perhaps
+;; more realistically, > 1000.  There are a few increment commands, i:+.  Mod p, cycling around is possible. There should be no
+;; problem if p > 30, say.
+
+;; Mod p the factor is not reduced to have leading coefficient 1. If your poly 'arg' has one or two variables,
+;; use Factor(arg, [q]). if your poly has contents, a content will be returned.
+
+;; It's assumed that &a = 1 at start.
+;; To reduce name conflicts, many of the variables (other than parameters) created and deleted here end with "_", as
+;; r_, s_, aa_, n_, etc.  Longer names do not, such as k_used, lastvar, orig_k, etc.  Check for conflicts with your own names.
+;; If you have a name identical to one of these, it will be deleted at the end of the factoring.
+
+;; This has not been tested for more than eight variables.  Should work fine.  Of course, ideally, the more vars, the smaller
+;; the argument poly should be.
+
+;; The program is quite a bit more complex than the algorithm sketched in Wan's paper, for two main reasons.
+;; First, a lot of time can be saved by looking for the "best" pair of variables to be the main pair, denoted x and y in Wan's
+;; paper.  We want a pair that will produce relatively small polys later when the argument must be made monic. Hence the array [co].
+;; Secondly, Functions G and H implement the sequence of polys denoted g_i and h_j on page 760.  We go to a lot of effort
+;; to not recompute values; hence the complexity here, [g], [h], prevr, prevs, etc.
+
+;; The code contains various explanatory messages that I found useful in debugging, such as "SUCCESS" or "FAILURE".
+;; Delete them if you desire.  Lower case "fail" messages are not serious and could be removed.
+;; Similarly, there are a couple places where &_P is used to interrupt after a failure.
+
+
+;;====================================================================================================
+
+
+;; Return j = number of 1s found in binary rep of n. binary rep of n goes into array sub, "backwards".
+;; identical to dioq
+Func Base2(n; i,j) =
+  while n > 0 do
+    i :+;
+    if n | 2 then
+      sub[i] := 1;
+      n :- ;
+      j :+
+    else
+      sub[i] := 0
+    fi;
+    n := n/2
+  od;
+  i :+ ;
+  while i <= Deg[sub] do
+    sub[i] := 0;
+    i :+
+  od;
+  j.;
+
+;; Assume array sub[Rows[a]] exists, has previous value.  Use global incr.
+;; identical to dioq
+Func Nextsub(half; j) =
+  j := half + 1;
+  while j > half do
+    incr :+ ;
+    j := Base2(incr)
+  od.;
+
+;; uses globals fir and sec, indices of highest and second highest vars that occurs in the argument ar.
+Func Set_var(i) =
+  var[1] := Var(fir);
+  var[2] := Var(sec).;
+
+;; Fill vlist, array of inidices of vars present.  Return number of such vars.
+Func Find_list(za; i,j, flevel) =
+  if Flevel = 0 then
+    flevel := Numvars + 1
+  else
+    flevel := Flevel
+  fi;
+  for i = 1, maxn do
+    if i > Numvars or i > flevel then
+      &>
+    fi;
+    if Deg(^za, i) > 0 then
+      j :+;
+      vlist[j] := i
+    fi
+  od;
+  j.;
+
+;; homogenize to put in y (fir).
+;; identical to dioq
+Func Homogy(s) =  Numer(s#(Var(sec) = Var(sec)/Var(fir))).;
+
+;; Compute homogeneous part of largest degree - k.  Use [var]. NB: enter positive k. [No, k can be 0 also.]
+;; This proc ignores the z and w [third and fourth var], as if z is in the ground field. 7651 is random.
+;; keep two top vars.  Feb 2022: dioq also uses top two vars.
+;; Update: ignore all vars but fir and sec.  "third and fourth" is obsolete.
+
+;; new Homzw.  Can no longer use [vlist].  Must use the rows of [vl], which are not in increasing order.  [var], fir, and sec have been set.
+;; Dec 2022: Note that the random values plugged in to za are there just to compute the matrix [aa] of degrees. They do not survive into the
+;; answer s.  s is part of the original za.
+Func Homzw(za, k, i, s) =
+  Array eh[lastvar];
+  [eh] := [Rand];
+  eh[fir] := Var(fir);
+  eh[sec] := Var(sec);
+  { Substitute out all other vars using [eh]. }
+  Totdeg(za#(Var(1) = [eh]), [aa]);
+  s := WDeg(za, [var], aa[1]-k);`
+  @([eh], [aa]);`
+  s.;
+
+;; make monic in y = Var(fir).  15 is just a "guaranteed" large enough value.  b0 is global.
+;; note the Homzw(u) here.
+;; Nov 2022: can't we speed up by not copying arg?
+Func Monicy(uu; i, ww, vv, k, deg) =
+  ww := Homzw(uu);
+  { ww contains no vars at levels below sec, i.e., it has only levels fir and sec. }
+  b0_ := 0;
+  for i = 1, 15 do`
+    { Oct 2022, use of k:  Nov 2022 don't bother }
+    { k := Rand; }
+    vv := ww#(Var(fir) = i);
+    vv := vv#(Var(sec) = 1);
+    if vv <> 0 then`
+      b0_ := i;`
+      &>
+    fi`
+  od;
+  if b0_ = 0 then
+    !!('FAIL monic y ', Var(fir));
+&_P;
+    Return(0)
+  fi;
+
+  k := sec;
+  deg := Deg(^uu,sec);
+  Sigma<i=0,deg> [ (Var(sec) + b0_*Var(fir))^i * Coef(^uu,Var(k),i) ]/vv.;
+
+
+;; make monic in x.  15 is just a "guaranteed" large enough value.  bb is global.
+;; note the Homzw(v) here.
+;; Nov 2022: can't we speed up by not copying arg?
+;; Dec 2022: yes speedup.  Don't copy arg. change name.  use vu created by Mkgood_arg. Create global bb and monic version of vu,
+;; named fmk by the caller.
+Func Monicx_vu(skip, i, ww, vv, k, deg) =
+  ww := Homzw(vu);
+  bb_ := 0;
+  for i = 1, 15 do
+    if i = skip then
+      &]
+    fi;
+    vv := ww#(Var(fir) = 1);
+    { Nov 2022 kill k }
+    {k := Rand;}
+    vv := vv#(Var(sec) = i);
+    if vv <> 0 then
+      bb_ := i;
+      &>
+    fi
+  od;
+  if bb_ = 0 then
+    !!('FAIL monic x');
+    Return(0)
+  fi;
+  k := fir;
+  deg := Deg(^vu,k);
+  Sigma<i=0,deg> [ (Var(fir) + bb_*Var(sec))^i * Coef(^vu,Var(k),i) ]/vv.;
+
+
+;; Do steps 2, 3, 4 on page 763 of Wan's paper.  Assume z square free.  aa is global.
+;; new version, no argument - it's arg  Nov 2022. added k
+;; Dec 2022: remove vv as local var.  This proc creates global vu instead.
+;; One of main points of this is to create fmk.
+;; Dec 2022:  The input is arg, which was created from the original poly with rx,ry.
+;; vu is created here and destroyed at end.
+;; Mar 2023, make bb11 local.
+Func Mkgood_arg(uu, i, k, vu, zero,bb11) =
+  { Step 2: u = f*, normalized w.r.t. y. Actually, should first check this is necessary. }
+  if Equal(arg,zero) then
+    !!'0 in Mkgood_arg';
+    &_P
+  fi;
+  uu := Monicy(arg);
+  while not Denom(^uu) do
+    i := Level(Denom(^uu));
+    !!('In Mkgood_arg, Denom of uu: ', i);
+    !!Terms(Denom(^uu), Denom(^uu));
+    rx[i] := Rand;
+    ry[i] := Rand;
+    arg := arg#(Var(vlist[i]) = Var(vlist[i]) + ry[i]*Var(fir) + rx[i]*Var(sec));
+    uu := Monicy(arg);
+  od;
+  { Step 3: Don't do Dixon twice. That's a huge waste of time. Just try a = 1, 2, etc. }
+  vu := Deriv(uu, Var(sec), 1);
+  aa_ := 0;
+  { 15 is a heuristic. }
+  for i = 1, 15 do
+    if GCD(uu#(Var(sec)=i), vu#(Var(sec)=i)) then
+      aa_ := i;
+      &>
+    fi
+  od;
+  if aa_ = 0 then
+    !!('FAIL Mkgood_arg. Not square free?');
+    Return(0)
+  fi;
+  Totdeg(uu, [b]);
+  aa_ := 1/aa_;
+  { vu is f^* . Note the [v] here.  Don't quite understand. But [var] is awful. Apparently here we do consider z as a var, not ground ring. }
+  { OK, Explanation:  [v] has x, y, and z. Suppose b[1] = 9.  vu must contain some monomials of total degree 9 in x and y only, no z, because
+    earlier we did the subs z = z+y.  Yes there may also be some terms like z x y^7, but those will later be considered to have degree 8, as z
+    will then be part of the ground ring. Now look at the monomials of degree 8.  There may be some like x^2 y^6. In the command below they
+    are multiplied by x (x-a actually). Those terms will "move up" to degree 9.  Fine.  But any monomial of degree 8 with a z in it, like z x y^6
+    will become z x^2 y^6, which is not really of degree 9 once z is considered part of the ground ring.  Same idea with monomials of degree 7
+    multiplied by x^2, and so on. So in vu below the highest monomials will have no z.  Not true if [var] is used. }
+  { So Yes, it's got to be [v] here. }
+
+  { Jan 2023. use new Mons( , , 3) option. }
+  Array h[b[1]+1];
+  Mons(^uu,[a]);
+  Mons(^uu,[c],3);
+  [h] := 0;
+  bb11 := b[1];
+
+  &(a=0);
+  for i = 0,Deg[c]-1 do
+    h[c[i]] := *h[c[i]] + a[i]
+  od;
+  vu := Sigma<i=0,bb11> [ h[i]*(aa_*Var(sec) - aa_)^(bb11 - i) ];
+  &(a=1);
+  @([a], [h], [c]);
+  @[b];
+  { Put it back!!}
+  aa_ := 1/aa_;
+  fmk := Monicx_vu(0).;
+
+;; Nov 2022. Compare r,s,k with the two saved previous values.
+Func SeenBefore =
+  if r_ = prevr and s_ = prevs and k = prevk then
+    Return(1)
+  fi;
+  if r_ = pprevr and s_ = pprevs and k = pprevk then
+    Return(2)
+  fi;
+  Return(0).;
+
+;; mm = impossible value for Z/p.
+;; Nov 2022. We have a previous r,s,k. Does that previous t = mm? "found" means it is the most recent previous.
+Func Prev_is_mm(found) =
+  if found then
+    Return(Equal(prevt,mm))
+  else
+    Return(Equal(pprevt,mm))
+  fi.;
+
+;; Nov 2022. We just created a new t and need to store it and maybe the r,s,k. "found" means it is the most recent previous.
+Func Store_rsk(found) =
+  { if found there is nothing to do. We'll store the new t later. }
+  if found = 2 then
+    Swap(prevr, pprevr);
+    Swap(prevs, pprevs);
+    Swap(prevk, pprevk);
+    Swap(prevt, pprevt)
+  fi.;
+
+Func Remove_rsk =
+  Swap(prevr, pprevr);
+  Swap(prevs, pprevs);
+  Swap(prevk, pprevk);
+  Swap(prevt, pprevt);
+  pprevr := mm;
+  pprevs := mm;
+  pprevk := mm;
+  pprevt := mm.;
+
+;; assume n_, r_ and s_ given as globals.  also f, gr_, hs_.  Replace Homzw. Use global [aaf]. hfktest is reduced.
+
+;;============= G and H
+;; Functions G and H implement the sequence of polys described on page 760.  We go to a lot of effort to not recompute
+;; values; hence the complexity here, prevr, prevs, etc.
+Func G(m; k, i, t, j, hfkt, hfktest, usedold, dum, found, move_t) =
+  { Nov 2022.  Use arrays [g] and [h] to store values of G(j) and H(j).  ALso store values of the poly called t here. }
+  gcount :+ ;
+  move_t := 0;
+  j := m + degf + 1 - r_;
+  if j = 0 then
+!!'failure 0 in G';
+    Return(mm)
+  fi;
+  if g[j] = mm then
+    k := r_ - m;
+    { if r=prevr and s=prevs and k=prevk then }
+    found := SeenBefore;
+    if found > 0 then
+      { Yes we have seen it before. }
+      prev_cg :+;
+      if Prev_is_mm(found) then
+        { make new t value }
+        for i = 1, k-1 do
+          hval := H(s_- k+i);
+          if hval = mm then
+            !!'failure 1 in G';
+            Return(mm)
+          fi;
+          gval := G(r_-i);
+          if gval = mm then
+            !!'failure 2a in G';
+            Return(mm)
+          fi;
+          t := t + gval*hval
+        od;
+        { later set (move) t to prevt   prevt := t }
+        move_t := 1;
+        Store_rsk(found)
+      else
+         if hfktest < 2 then
+           { This is vacuously true.  Strange.  Bug?  hfktest is used below. Nov 2022 }
+           Store_rsk(found);
+           { Maybe this can be more efficient in future. do not later move t.  }
+           t := prevt
+         fi;
+         usedold := 1;
+      fi
+    else
+      { not found; make new t value }
+      for i = 1, k-1 do
+        hval := H(s_- k+i);
+        if hval = mm then
+          !!'failure 1 in G';
+          Return(mm)
+        fi;
+        gval := G(r_-i);
+        if gval = mm then
+          !!'failure 2b in G';
+          Return(mm)
+        fi;
+        t := t + gval*hval
+      od;
+      Store_rsk(2);
+      prevr := r_;
+      prevs := s_;
+      prevk := k;
+      {move new t later to prevt}
+      move_t := 1
+    fi;
+
+    { We have a new t, if we need it, and have updated the storage prev's. Nov 2022. }
+    if hfzerg < 2 and hfk[k] = mm then
+      {Oct 2022 use fmc not fmk }
+      hfk[k] := WDeg(fmc, [var], aaf[1]-k)#(Var(fir) = 1);
+    fi;
+    if hfzerg >= 2 then
+      hfktest := 0
+    else
+      if usedold then
+         hfktest := ( hfk[k]#(Var(fir)=[e]) - t#(Var(fir)=[e]) ) | gr_;
+      else
+         hfktest := 1
+      fi
+    fi;
+    if hfktest = 0 then
+      hfzerg :+ ;
+      g[j] := 0
+    else
+      hfkt := hfk[k] - t;
+      if Deg(^hfkt,sec) >= Deg(gr_,sec) then
+        hfkt := hfkt | gr_
+      fi;
+      if hfkt = 0 then
+        { this happens occassionaly. Nov 2022 }
+        hfzerg :+
+      fi;
+      { Set parameters for multiplication: }
+      &(# = 20);
+      dum := v4v*hfkt;
+      &(# = 80);
+      g[j] := dum | gr_;
+    fi;
+    if move_t then
+      Move(t, prevt);
+    fi;
+    g[j]
+
+  else
+    { g[j] != mm, so g[j] is known already }
+    reuseg :+;
+    g[j]
+  fi.;
+
+
+;; n_, r_ and s_ are globals.   also f, gr, hs, mm, u and v.  Note Homz.  Use global [aaf]
+;; hfktest added Mar 2022.  Apr 2023, remove fail.
+Func H(m; k, i, t, j, hfkt, hfktest, dum, found, move_t, hfkt2) =
+  hcount :+ ;
+  move_t := 0;
+  j := m + degf + 1 - s_;
+  if j = 0 then
+!!'failure 0 in H';
+    Return(mm)
+  fi;
+  { hfzerg is rarely more than 2. }
+  if hfzerg >= _10 then
+    h[j] := 0;
+!!'large hfzerg in H';
+    Return(0);
+  fi;
+
+  if h[j] = mm then
+    k := s_ - m;
+    found := SeenBefore;
+    if found > 0 then
+      { Yes we have seen it before. }
+      prev_ch :+;
+      if Prev_is_mm(found) then
+        { make new t value }
+        for i = 1, k-1 do
+          hval := H(s_ - k + i);
+          if hval = mm then
+            !!'failure 1 in H';
+            Return(mm)
+          fi;
+          gval := G(r_ - i);
+          if gval = mm then
+            !!'failure 2a in H';
+            Return(mm)
+          fi;
+          t := t + gval*hval
+        od;
+        { later set (move) t to prevt   prevt := t }
+        move_t := 1;
+        Store_rsk(found)
+      else
+         Store_rsk(found);
+         { Maybe this can be more efficient in future. do not later move t.  }
+         t := prevt
+      fi
+    else
+      { not found; make new t value }
+      for i = 1, k-1 do
+        hval := H(s_ - k + i);
+        if hval = mm then
+          !!'failure 1 in G';
+          Return(mm)
+        fi;
+        gval := G(r_ - i);
+        if gval = mm then
+          !!'failure 2b in G';
+          Return(mm)
+        fi;
+        t := t + gval*hval
+      od;
+      Store_rsk(2);
+      prevr := r_;
+      prevs := s_;
+      prevk := k;
+      {move new t later to prevt}
+      move_t := 1
+    fi;
+
+    { We have a new t, if we need it, and have updated the storage prev's. Nov 2022. }
+    if hfk[k] = mm then
+      {Oct 2022 use fmc not fmk  }
+      hfk[k] := WDeg(fmc, [var], aaf[1]-k)#(Var(fir) = 1)
+    fi;
+    hfkt2 := hfk[k] - t;
+    if Deg(^hfkt2, sec) >= Deg(hs_, sec) then
+      hfkt2 := hfkt2 | hs_
+    fi;
+    &(#=20);
+    dum := u4u*hfkt2;
+    &(# = 80);
+    h[j] := dum | hs_;
+    if Deg(h[j],sec) > j then
+      !!'failure 4 in H';
+      Return(mm)
+    fi;
+    if move_t then
+      Move(t, prevt);
+    fi;
+    h[j]
+
+  else
+    reuseh :+ ;
+    h[j]
+  fi.;
+
+;; mm = impossible value for Z/p.
+;; creates (or uses) globals fn, mm, r, s, n, gr, hs, u, v, degf.
+;; same as in dioq.  Note gr and hs involve only x.
+;; modified Mar 2023 to return 0 if hs is not a poly.
+Func Setup(d) =
+  r_ := Deg(d, fir);
+  s_ := degf - r_;
+  gr_ := d#(Var(fir) = 1);
+  hs_ := fn#(Var(fir) = 1)/gr_;
+  if not Denom(hs_) then
+    Return(0)
+  fi;
+  EGCD(gr_,hs_,u4u,v4v);
+  { all of these polys only contain Var(sec) and gr*uu + hs*vv = 1. }
+  [g] := mm;
+  [h] := mm;
+  g[degf+1] := gr_;
+  h[degf+1] := hs_;
+  Return(1).;
+
+;; global ggh for second factor.  A kludge.  Uses r, degf, n.
+;; identical to that in dioq.  Oct 2022  gcount and hcount count number of calls.
+Func Fact(d; i, deg) =
+  if Setup(d) = 0 then
+    if Verbose then
+      !!('Setup returned 0, hs not poly')
+    fi;
+    Return(0)
+  fi;
+  fmc := WDeg(fmk, [var], aaf[1] - r_ - 1, +);
+  gcount := 0;
+  hcount := 0;
+  deg := r_ - 1;
+  for i = 0, deg do
+    G(deg);
+    if degf = i then
+      if Verbose then
+        !!('failure 0 Fact ', degf, i);
+      fi;
+      fail := _(fail+1) ;
+      Remove_rsk;
+      Return(0)
+    fi;
+    if Deg(g[degf-i],sec) > deg then
+      if Verbose then
+        !!('failure 1 Fact ', degf, Deg(g[degf-i], sec), deg, i, sec);
+      fi;
+      g[degf-i] := mm;
+      fail := _(fail+1) ;
+      Remove_rsk;
+      Return(0)
+    fi;
+    deg :-
+  od;
+
+  G(-1);
+  { added this Feb 2022, bug fix: }
+  if degf = r_ then
+    !!'failure 2 Fact';
+    fail := _(fail+1) ;
+    Return(0)
+  fi;
+  if g[degf - r_] <> 0 then
+    !!'failure 2';
+    fail := _(fail+1);
+    Return(0)
+  fi;
+  deg := 0;
+  for i = degf - r_ + 1, degf+1 do
+    deg := deg + Homogy(g[i])
+  od;
+  deg.;
+
+
+;;============= Initializing:
+Func Initial(again) =
+  if again = 0 then
+    &(H = 1);
+    k_used := 0;
+    orig_k := 0;
+    failurr := 0;
+    do_all := False;
+    fail := 0;
+  fi;
+  { maximum number of variables we can work with }
+  maxn := 20;
+  if Numvars > maxn then
+    !!'WARNING.  ERROR.', Numvars, ' is bigger than ', maxn);
+    &_P
+  fi;
+  { impossible value : }
+  mm := _(Modulus+1);
+  prevr := 0;
+  prevs := 0;
+  prevk := 0;
+  prevt := mm;
+  ;; Nov 2022
+  pprevr := 0;
+  pprevs := 0;
+  pprevk := 0;
+  pprevt := mm;
+  gcount := 0;
+  hcount := 0;
+  prev_cg := 0;
+  prev_ch := 0;
+  recheck := 0;
+  archeck := 0;
+  { Apr 2023 }
+  fmc := 0;
+  gval := 0;
+  hval := 0;
+  r_ := 0;
+  s_ := 0;
+  gr_ := 0;
+  hs_ := 0;
+  u4u := 0;
+  v4v := 0.;
+
+
+;;======= May 2023. new driver to call FCT repeatedly with different permutations of the vars.
+;; returns 1 = success, answer is fct.  0 = failure, fct is also 0.
+Func SPF(argg; answer) =
+  n_ := 0;
+  if Numb(^argg) then
+    Return(0)
+  fi;
+  if Flevel > 0 then
+    if Level(^argg) > Flevel then
+      Return(0)
+    fi
+  fi;
+  answer := FCT(argg);
+  { irreducible: }
+  if answer then
+    @n_;
+    fct := 1;
+    Return(1)
+  fi;
+  { not 0 means answer has been found, is in fct: }
+  if answer <> 0 then
+    @(n_, orig_last, orig_k, k_used, lastvar, do_all);
+    Return(1)
+  fi;
+
+  { Use SDR to permute vars. }
+  !!('FIRST CALL FCT FAILED.');
+  Array ans[1, orig_last], perm[orig_last], allans[50, orig_last], allarg[50];
+  { 6 better be enough! }
+  for i = 1, 6 do
+  !!('call SDR orig_last is ', orig_last, i);
+  !;
+    SDR(orig_last);
+    if Verbose < 2 then
+      !!('TRYING SDR ', i);
+      !![ans;
+    fi;
+    [allans[i,~]] := [ans];
+    for j = 1, orig_last do`
+      perm[j] := Var(ans[j])`
+    od;
+    arp2 := argg#(Var(1) = [perm]);
+    allarg[i] := arp2;
+    k_used := 0;
+    orig_k := 0;
+    failurr := 0;
+    fail := 0;
+    Cancel;
+    FCT(arp2, 1);
+    if fct = 0 or fct = 1 then
+      &]
+    fi;
+    { Invert [ans]. Rather than two steps, put inverse into perm all at once. }
+    for j = 1, orig_last do
+      perm[ans[j]] := Var(j)
+    od;
+    fct := fct#(Var(1) = [perm]);
+    if fct <> 1 and Divides(fct, argg) then
+  !!'SUCCESS';
+      @([ans], n, [perm], [allans], [allarg], orig_k, k_used, orig_last, orig_k, k_used, lastvar);
+      Return(1)
+    fi;
+  od;
+  { Try FCT once more with do_all }
+  do_all := true;
+  @([ans], [perm], [allans], [allarg]);
+  FCT(argg, 1);
+  if Numb(fct) then
+    !!'TOTAL FAILURE';
+    fct := 0;
+    @(n_, orig_k, k_used, orig_last, orig_k, k_used, lastvar, do_all);
+    Return(0)
+  fi;
+  @(n_, orig_k, k_used, orig_last, orig_k, k_used, lastvar, do_all);
+  1.;
+
+
+;; Mar 2023. Newish driver.  Use Irred and Sqfree. SPF is newer.
+;; Apr 2023. added "again".
+;; May 2023: this is the driver for one poly with one arrangement of vars.  It can be used as the top driver.
+;; input poly is myar.  Output is:  0 = failure; 1 = irreducible; 2 = success, nontrivial poly = the answer, fct,
+;; meaning the degree is positive in at least one of the vars occurring in myar.  The global fct is set to the answer.
+;; Note that FCT(arg, 1) can only return 0 or 2.
+;; FCT calls a number of procs, last is Fin.  If things fail, Fin will call FCT recursively, in which case again > 0.
+;; again is 0 only at the very start of the program.  All subsequent calls to FCT must have again > 0.
+Func FCT(myar; again, i, arsimp, answ) =
+  if again = 0 then
+    { Do all this only on first call of a problem }
+    i := Irred(^myar);
+    if i then
+      fct := 1;
+      Return(1)
+    else
+      { This will take care of the case where myar has contents }
+      if Divides(i, myar) then
+        fct := i;
+        Return(2)
+      fi
+    fi;
+    { else continue the algorithm.  There has to be a nontrivial factor. }
+    { Apr 2023:  So at the end, irreducible is not an acceptable answer! }
+    Sqfree(^myar, [q]);
+    if Rows[q] then
+      if q[2] > 1 then
+        fct := q[1];
+        @[q];
+        Return(2)
+      else
+        { typical case. continue main algorithm. }
+        @[q]
+      fi
+    else
+      fct := q[1];
+      @[q];
+      Return(2)
+    fi
+  fi;
+  Initial(again);
+  Array var[2], v[Numvars], vlist[1,maxn];
+  { fill [v].  first Numvars spots are assigned.  }
+  for i = 1, Numvars do
+    v[i] := Var(i)
+  od;
+  { n is number of vars present, important global }
+  n_ := Find_list(myar);
+  lastvar := vlist[n_];
+  if again = 0 then
+    orig_last := lastvar
+  fi;
+  answ := Pre(0);
+  if answ then
+    @([var], [v], [vlist]);
+    Return(1);
+  fi;
+  { Apr 2023, failure, quit. }
+  if answ = 2 then
+    @([var], [v], [vlist]);
+    Return(0);
+  fi;
+  First(myar);
+  Next;
+  { Next has created faf, the factor of the poly formed from myar by the normalizing substitutions. }
+  { faf = 0 means failure }
+  { Fin returns either 0 (failure) or 2 (success). answer is in fct a nontrivial poly. }
+  Fin.;
+
+;; Apr 2023.  In case we have to run the algorithm again:
+;; preconditioning. Very important stuff here! fir and sec mark the two vars we keep; others are substituted with random values.
+;; Dec 2022: global ar is the poly we are trying to factor.  No randomization here.
+;; Return early with 1 in simple cases, else return 0 at end.
+;; Produce co, fir sec, [vlist].  More explanation below.
+Func Pre(i,j,small, k, low, m, deg, next, pn, prev, pp, conum) =
+  if n_ = 0 then
+    fct := 1;
+    Return(1)
+  fi;
+  if n_ = 1 or n_ = 2 then
+    Factor(myar, [a]);
+    fct := a[Rows[a]];
+    Return(1)
+  fi;
+  { Check three (or more) variations of fir and sec.  Try to find "best." Must make sure each of the first two
+    vars is in spot three once. }
+
+  conum := n_;
+  if n_ > 4 then
+    conum := 5
+  fi;
+
+  { Dec 2022: We need to find fir and sec, the levels of the two "highest" vars that will dominate the computation.  We want a choice that has
+    a good leading coefficient; i.e. relatively small, but not too small.  This leading coeff, co, will duplicate and reproduce itself later. }
+  { [co] = conum (three or five) versions of polynomial "co", coefficient.  [vl] is three or more versions of vlist. [zer] is to note
+    degree of third var in [co]; low is lowest such degree and m is where it is.  [size] is the number of terms of each version of co.
+    The point is to find a var that should not be in the top two. }
+  { Mar 2023: change array size, add second column }
+  Array co[conum], vl[conum,n_], zer[conum], size[conum,2];
+  { the versions of vlist are all the same in the beginning.}
+
+  for i = 1, conum do
+    [vl[i,]] := [vlist[1,1~n_]]
+  od;
+  { Find which of the conum choices gives smallest co, but don't choose it if that co has only one term. That's a mess later. }
+  { k and small mark the smallest.  k is the row in [vl] that we choose for smallest. fir and sec are the first two entries there.}
+  { Use next for the next smallest, prev for previous smallest. pn marks next, pp marks prev (if found). }
+  { Mar 2023: this is all problematic. What if modulus is small? OTOH, Terms does not mod out its value. Note _4999 below. }
+  { Apr 2023: this loop is a bit of kludge.  By rights conum should be larger and most permutations tried.  }
+  for i = 1, conum do
+    fir := vl[i,1];
+    sec := vl[i,2];
+    Set_var;
+    { co depends on Var(fir) and Var(sec). }
+    co[i] := Homzw(myar);
+    size[i] := Terms(^co[i]);
+    size[i,2] := i;
+    if small = 0 or size[i] < small then
+      if i >= 3 then
+        { last one is smallest. save previous smallest }
+        prev := small;
+        pp := k
+      fi;
+      k := i;
+      small := size[i];
+    fi;
+    zer[i] := Deg(^co[i], vl[i,3]);
+    if i = 1 then
+      low := zer[i];
+      m := i;
+    else
+      if zer[i] < low then
+        low := zer[i];
+        m := i
+      fi
+    fi;
+    { find second smallest }
+    if i = 2 then
+      if k then
+        next := size[i];
+        pn := i
+      else
+        next := size[1];
+        pn := 1
+      fi
+    fi;
+    if i >= 3 then
+      if pp > 0 then
+        next := prev;
+        pn := pp;
+        pp := 0;
+      else
+        if size[i] < next then
+          next := size[i];
+          pn := i
+        fi
+      fi
+    fi;
+    { Mar 2023: was next := 49999. But we're in mod mode! }
+    if next then
+      next := _4999;
+    fi;
+    if i = conum then
+      &>
+    fi;
+    { get ready for next pass }
+    j := vl[i+1,i];
+    vl[i+1,i] := vl[i+1,3];
+    vl[i+1,3] := j;
+    if i >= 3 then
+      j := vl[i+1,1];
+      vl[i+1,1] := vl[i+1,4];
+      vl[i+1,4] := j;
+    fi;
+    if i = 4 then
+      j := vl[i+1,2];
+      vl[i+1,2] := vl[i+1,3];
+      vl[i+1,3] := j;
+    fi
+  od;
+  { See diary. this was tweaked, October 2022.  Bug fix also.  }
+  { Mar 2023:  The problem with all of these statements is that small = size[k] might STILL be too small. }
+  { Mar 2023: Note size could end up being 2.  Is that OK? }
+  { Mar 2023, bubble sort [size]. }
+  for i = 1, conum-1 do
+    for j = 1, conum-i do
+      if size[j] > size[j+1] then
+        deg := size[j];
+        size[j] := size[j+1];
+        size[j+1] := deg;
+        deg := size[j,2];
+        size[j,2] := size[j+1,2];
+        size[j+1,2] := deg
+      fi
+    od
+  od;
+  { Take the one in the middle. }
+  small := size[3];
+  k := size[3,2];
+  fir := vl[k,1];
+  sec := vl[k,2];
+  { But let's check one more thing. }
+  deg := Deg(^myar, vl[k,3]);
+  Set_var;
+  { Change vlist! }
+  @[vlist];
+  [vlist] := [vl[k,]];
+  { Apr 2023 }
+  if k_used = 0 then
+    orig_k := k
+  else
+    k := k_used + 1;
+    if k = orig_k then
+      { This shouldn't happen due to stmts elsewhere }
+      !!(' All entries in array [co] have been tried. ', k);
+      fct := 1;
+      Return(2);
+    fi;
+    if k > Deg[co] then
+      k := 1
+    fi;
+    fir := vl[k,1];
+    sec := vl[k,2];
+    deg := Deg(^myar, vl[k,3]);
+    Set_var;
+    @[vlist];
+    [vlist] := [vl[k,]]
+  fi;
+  k_used := k;
+  co := co[k];
+  if Verbose then
+    !!('co is ', Var(fir), Var(sec), co, k, small);
+  fi;
+  fct := 1;
+  Array rx[n_], ry[n_];
+  Return(0).;
+
+
+
+;;;; =========== First
+;;;==================================================================;
+;; Dec 2022: At start arg is the original poly we are factoring.
+;; We use co, fir, sec, [vlist], [rx], [ry], num_skip.
+;; Main task:  produce fmk, monic versions of original poly w.r.t. fir.
+;; here num_skip is global.  Ca uses it.
+Func First(arg; i, j, deg, k) =
+  [rx] := [RRand];
+  [ry] := [RRand];
+  { fail is used by Fact. }
+  { July 2022: This loop is OK. We know fir = vlist[1] and sec = vlist[2]. }
+  num_skip := 0;
+  { Convert arg to a poly whose leading coef w.r.t fir contains only sec.  This is done by substitution with [rx], [ry],
+    producing arg. }
+  { This loop is a huge bottleneck!. vars present in co are substituted out with random matrices rx, ry. }
+  { first_time := 1; }
+  { May 2023, check for small poly. }
+  Totdeg(^arg, [as]);
+  { Note shortcut version of function Terms. }
+  if Terms(^arg, 100) < _15 and as[1] < _9 then
+    do_all := True;
+  fi;
+  @[as];
+  { May 2023. added do_all. do_all is good for 'small' polys. Sometimes necessary!! }
+  for i = 3, n_ do
+    if do_all or Deg(^co, vlist[i]) > 0 then
+      deg := 0;
+      for j = 1, lastvar do
+        if j = vlist[i] then &] fi;
+        if Deg(^arg,j) > deg then
+          k := j;
+          deg := Deg(^arg,k)
+        fi
+      od;
+      { k := 4; }
+      k := vlist[i];
+      deg := Deg(^arg,k);
+      if k = fir or k = sec then
+        !!'error k';
+        &_P
+      fi;
+      arg := Sigma<j=0,deg> [ (Var(k) + ry[i]*Var(fir) + rx[i]*Var(sec))^j * Coef(^arg,Var(k),j) ]
+    else
+      num_skip :+ ;
+      rx[i] := 0;
+      ry[i] := 0
+    fi
+  od;
+  do_all := False;
+
+  if num_skip = n_ - 2 and n_ > 4 and Verbose then
+    !!'*** Fermat Warning. No substitutions of lower variables were done.';
+  fi;
+
+  { Dec 2022: check that no absent var has been introduced into highest coefficient.  Happens rarely. }
+  if num_skip > 0 then
+    archeck := Homzw(arg);
+    recheck := 0;
+    for i = 3, n_ do
+      if Deg(^archeck, vlist[i]) > 0 and rx[i] = 0 then
+        { Dec 2022 Apparently rare. But happened in FCT(fw) in fact9. }
+        { Mar 2023. change these fixed choices.  Below too. }
+        rx[i] := Rand;
+        ry[i] := Rand;;
+        recheck := 1;
+        {arg := arg#(Var(vlist[i]) = Var(vlist[i]) + ry[i]*Var(fir) + rx[i]*Var(sec))  new Oct 2022: }
+        k := vlist[i];
+        deg := Deg(^arg,k);
+        arg  := Sigma<j=0,deg> [ (Var(k) + ry[i]*Var(fir) + rx[i]*Var(sec))^j * Coef(^arg,Var(k),j) ]
+      fi
+    od;
+
+    { Nov 2022.  Do we have to do this loop yet again, perhaps? }
+    { Dec 2022: This has never happened, i.e., "must now sub for this 2" has never been reported, }
+    if recheck then
+      for i = 3, n_ do
+        if Deg(^archeck, vlist[i]) > 0 and rx[i] = 0 then
+          rx[i] := Rand;
+          ry[i] := Rand;
+          recheck := 1;
+          {arg := arg#(Var(vlist[i]) = Var(vlist[i]) + ry[i]*Var(fir) + rx[i]*Var(sec))  new Oct 2022: }
+          k := vlist[i];
+          deg := Deg(^arg,k);
+          arg := Sigma<j=0,deg> [ (Var(k) + ry[i]*Var(fir) + rx[i]*Var(sec))^j * Coef(^arg,Var(k),j) ]
+        fi
+      od
+    fi
+  fi;
+
+  { Create fmk from arg }
+  Mkgood_arg;
+  Array e[lastvar];
+  Ca.;
+
+
+;;========= Insert
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; changes global fkn, and array fkd.  [fkd] is array of distinct degrees of factors of fk.  last actual entry is at fkn. Nov 2022
+Func Insert(d; i,j) =
+  for i = 1, fkn do
+    if d = fkd[i] then
+      Return(0)
+    fi;
+    if d < fkd[i] then
+      fkn :+ ;
+      for j = fkn, i+1, -1 do
+        fkd[j] := fkd[j-1]
+      od;
+      fkd[i] := d;
+      Return(0)
+    fi
+  od;
+  { d must be larger than all previous }
+  fkn :+ ;
+  fkd[fkn] := d.;
+
+;; Nov 2022. Is d in the sorted array fkd?
+Func Not_there(d, i) =
+  for i = 1, fkn do
+    if d = fkd[i] then
+      Return(0)
+    fi;
+    if d < fkd[i] then
+      Return(1)
+    fi
+  od;
+  Return(1).;
+
+;; We plug in one unsubbed var.  We hope this is enough!  changes Oct 2022.  used by Ca.
+;; Dec 2022:  apparently never(?) happens, never called.
+;; Apr 2023:  happened
+Func Recomp_fn(i, k, j, deg) =
+  if recheck then
+    archeck := Homzw(arg);
+  fi;
+  { else can use previous archeck }
+  for i = 3, n_ do
+    if rx[i] = 0 then
+      { !!('****** Recomp. now sub for this ', vlist[i], Var(vlist[i])); }
+      rx[i] := Rand;
+      ry[i] := Rand;
+      k := vlist[i];
+      deg := Deg(^arg,k);
+      arg := Sigma<j=0,deg> [ (Var(k) + ry[i]*Var(fir) + rx[i]*Var(sec))^j * Coef(^arg,Var(k),j) ]
+    fi;
+    &>
+  od;
+  archeck := Homzw(arg);
+  recheck := 0;
+  for i = 3, n_ do
+    if Deg(^archeck, vlist[i]) > 0 and rx[i] = 0 then
+      { !!('****** Recomp, must now sub for this ', vlist[i], Var(vlist[i])); }
+      rx[i] := Rand;
+      ry[i] := Rand;
+      recheck := 1;
+      k := vlist[i];
+      deg := Deg(^arg,k);
+      arg := Sigma<j=0,deg> [ (Var(k) + ry[i]*Var(fir) + rx[i]*Var(sec))^j * Coef(^arg,Var(k),j) ]
+    fi
+  od;
+
+  Mkgood_arg;
+
+  fk := fmk#(Var(1) = [e]);
+
+  @[aaf];
+  Totdeg(fk, [aaf]);
+  { Use fk!  It's smaller! Oct 2022    fn := WDeg(fmk, [var], aaf[1]); }
+  fn := WDeg(fk, [var], aaf[1]);
+  degf := Deg(^fn, fir);
+  if Verbose then
+    !!'Recomp, fn is';
+    !!fn;
+  fi.;
+
+
+
+;;====== Ca
+;;=======================================================;
+Func Ca(i, done, tot2, tot, flip) =
+  { move def of [e] to First.  Oct 2022 }
+  [e] := [Rand];
+  e[fir] := Var(fir);
+  e[sec] := Var(sec);
+  { fk is two-var version.  This suffices for a lot of the work here in Ca. }
+  fk := fmk#(Var(1) = [e]);
+  { Dec 2022: remove, never used: fkc := fk; }
+  Totdeg(fk, [aaf]);
+  { Use fk!  It's smaller! Oct 2022    fn := WDeg(fmk, [var], aaf[1]); }
+  { fk is a two-var poly.  fn is its highest degree homogeneous piece. }
+  fn := WDeg(fk, [var], aaf[1]);
+  degf := Deg(^fn, fir);
+  if degf <> Deg(^fn, sec) then
+    { This has never been observed.  Apr 2023: yes it has. }
+    if Verbose then
+       !!'*** Warning. fn has contents.';
+    fi;
+    if num_skip > 0 then
+      if Verbose then
+        !!'    Must recompute fn.'
+      fi;
+      Recomp_fn
+    else
+      !!'*** This Error is fatal.';
+      &_P
+    fi
+  fi;
+  { Array [a] is created: }
+  Factor(fn, [a]);
+  dd := Rows[a];
+  { Create fkd = array of factor degrees. We assume the factors of fk have the same degrees as the factors of fmk. }
+  { The array is of unique degrees and is sorted. }
+  Array fkd[Deg(^fk,fir)];
+  { fkn = number of distinct factors of fk. Nov 2022.  [fkd] is array of distinct degrees in factors of fk.  }
+  { fk is the two-var version of fmk. }
+  fkn := 0;
+ {Dec 2022: remove, never used:  fkc := fk; }
+  while True do
+    Factor(fk,[a]);
+    Insert(Deg(a[1],fir));
+    SDivide(a[1],fk);
+    @[a];
+    if Deg(fk,fir) = 0 then
+      &>
+    fi
+  od.;
+
+
+
+;;========== Next
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; fmk is needed now only to test the answer, faf.
+;; uses fkn, dd, array [fkd].
+Func Next(i,j,ij,sum,tot,half,limit,prod) =
+  Array g[degf+1], h[degf+1], hfk[degf+1];
+  reuseg := 0;
+  reuseh := 0;
+  [hfk] := mm;
+  hfzerg := 0;
+  prevt := mm;
+  { Put larger polys first.  NO, BAD IDEA
+  for i = 1, dd \ 2 do
+    j := a[i];
+    a[i] := a[dd+1-i];
+    a[dd+1-i] := j;
+    j := a[i,2];
+    a[i,2] := a[dd+1-i,2];
+    a[dd+1-i,2] := j
+  od;}
+  { count number of polys with degree 1 and average degree. }
+  { *********** remove? ***********}
+  for i = 1, dd do
+    sum := sum + Deg(a[i], fir);
+    if Deg(a[i], fir) then
+      tot :+
+    fi
+  od;
+  { sum := average exponent }
+  sum := _(sum/dd + 1);
+  { Move up some of medium-sized exponent polys, move down the polys with exponent 1. }
+  { Apr 2023: fixed bugs in this loop: }
+  if dd > 5 and dd > tot then
+    for i = 1, tot do
+      ij := a[1];
+      j := 2;
+      while Deg(a[j], fir) < sum do
+        a[j-1] := a[j];
+        j :+ ;
+        if j > dd then
+          &>
+        fi
+      od;
+      a[j-1] := ij
+    od
+  fi;
+  sum := 0;
+  tot := 0;
+  Array sub[Rows[a]];
+  half := _(Rows[a]\2 + 1);
+  limit := Sigma<i = 1, half> [ Bin(Rows[a],i) ];
+  incr := 0;
+  for ij = 1, limit do
+    Nextsub(half);
+    sum := 0;
+    for j=1,Deg[sub] do
+      if sub[j] then
+        sum := sum + Deg(a[j],fir)
+      fi
+    od;
+    if Not_there(sum) then
+      tot :+;
+      &]
+    fi;
+    { Dec 2022: change dd to prod here: }
+    prod := 1;
+    for j = 1, Deg[sub] do
+      if sub[j] then
+        prod := prod*a[j]^a[j,2]
+      fi
+    od;
+    faf := Fact(prod);
+    if faf <> 0 then
+      { success. the 0 here means nothing: }
+      Return(0)
+    fi
+  od;
+  faf := 0.;
+
+;;========  Cancel
+Func Cancel =
+  @([e2],[g], [h], [hfk]);
+  @([var],[v],[e],[vlist]);
+  @([rx],[ry],[fkd],[sub],[aaf],[a]) ;
+  @([zer],[co],[vl],[size], fmk);
+  @(pprevk,pprevr,pprevs,pprevt,prev_cg,prev_ch,prevk,prevr,prevs,prevt);
+  @(recheck,reuseg,reuseh,u4u,v4v,archeck,bb_,b0_,aa_,degf,fmc,maxn);
+  @(hfzerg,hcount,gcount,num_skip,gval,hval,fkn,fir,sec,incr);
+  @(r_,s_,mm,faf,co,dd,gr_,hs_,fk,fn,fail).;
+
+
+;;=============================================================
+;; Generate all the derangements of integers 1-n. Apr 2023
+;; There are a couple methods here.  The easiest is just to use SDR.
+;; The others are great if you want to list to all derangements.
+Func Isin(i, msk, s; j) =
+  { Is i inside the array msk up through s? s <= Deg[msk], s could be 0. }
+  for j = 1, s do
+    if i = msk[j] then
+      Return(1)
+    fi
+  od;
+  0.;
+
+Func Derang(n, k, sk, deg_sk; i,j) =
+  if k > n then
+    cnt :+ ;
+    !![sk;
+  fi;
+  Array msk[1, deg_sk+1];
+  for i = 1, deg_sk do
+    msk[i] := sk[i]
+  od;
+  for i = 1, n do
+    if i = k then
+      &]
+    fi;
+    if Isin(i, [sk], deg_sk) then
+      &]
+    fi;
+    msk[deg_sk+1] := i;
+    Derang(n, k+1, [msk], deg_sk+1)
+  od;
+  @[msk].;
+
+;; Generate all the derangements of integers 1-n.
+Func Derang2(n, k, sk, deg_sk; i,j) =
+  if k > n then
+    cnt :+ ;
+    if cnt < 101 then
+      [ans[cnt,~]] := [sk]
+    fi
+  fi;
+  if cnt > 20*mult then
+    Return(0)
+  fi;
+  Array msk[1, deg_sk+1];
+  for i = 1, deg_sk do
+    msk[i] := sk[i]
+  od;
+  for i = 1, n do
+    if i = k or i|3=0 then
+      &]
+    fi;
+    if Isin(i, [sk], deg_sk) then
+      &]
+    fi;
+    msk[deg_sk+1] := i;
+    Derang2(n, k+1, [msk], deg_sk+1)
+  od;
+  for i = 1, n do
+    if i = k or i|3=1 then
+      &]
+    fi;
+    if Isin(i, [sk], deg_sk) then
+      &]
+    fi;
+    msk[deg_sk+1] := i;
+    Derang2(n, k+1, [msk], deg_sk+1)
+  od;
+  for i = 1, n do
+    if i = k or i|3=2 then
+      &]
+    fi;
+    if Isin(i, [sk], deg_sk) then
+      &]
+    fi;
+    msk[deg_sk+1] := i;
+    Derang2(n, k+1, [msk], deg_sk+1)
+  od;
+  @[msk].;
+
+Func Dang(n; i,j) =
+  Array de[1,1];
+  for i = 2, n do
+    de[1] := i;
+    Derang(n, 2, [de], 1);
+  od;
+  @[de];
+  cnt.;
+
+Func Dang2(n, first; i,j,cnt) =
+  Array ans[100,n], de[1,1];
+  for i = 2, n do
+    if i|3=0 then
+      &]
+    fi;
+    de[1] := i;
+    Derang2(n, 2, [de], 1);
+  od;
+  for i = 2, n do
+    if i|3=1 then
+      &]
+    fi;
+    de[1] := i;
+    Derang2(n, 2, [de], 1);
+  od;
+  for i = 2, n do
+    if i|3=2 then
+      &]
+    fi;
+    de[1] := i;
+    Derang2(n, 2, [de], 1);
+  od;
+  @[de];
+  cnt.;
+
+Func Dang2(n, first) =
+  de[1] := first;
+  Derang2(n, 2, [de], 1).;
+
+Func DR(n, cnt, mult) =
+  Array ans[100,n], de[1,1];
+  mult := 0;
+  Dang2(n, 2);
+  mult := 1;
+  Dang2(n, 5);
+  mult := 2;
+  Dang2(n, 7);
+  mult := 3;
+  Dang2(n, 4);
+  mult := 4;
+  Dang2(n, 3);
+  mult := 5;
+  Dang2(n, 6);
+  @[de].;
+
+;; find one random derangement. Following proc is better.
+Func SDR(n,i,j,k) =
+  Array ans[1,n], used[n];
+  for j = 1, n-1 do
+    while True do
+      k := Rand|n + 1;
+      if k <> j and not Isin(k, [used], j-1) then
+        &>
+      fi
+    od;
+    ans[j] := k;
+    used[j] := k
+  od;
+  { If n was taken we are OK.  Else it's impossible }
+  if Isin(n, [used], n-1) then
+    for i = 1, n-1 do
+      if not Isin(i, [used], n-1) then
+        ans[n] := i;
+        @[used];
+        Return(1)
+      fi
+    od
+  else
+    @[used];
+    Return(0)
+  fi.;
+
+;; find one random derangement.  n >= 3.  Assume Array ans[1,n] has been created.
+Func SDR(n,i,j,k) =
+  for j = 1, n-1 do
+    while True do
+      k := Rand|n + 1;
+      if k <> j and not Isin(k, [ans], j-1) then
+        &>
+      fi
+    od;
+    ans[j] := k
+  od;
+  { If n has been taken we are OK. }
+  if Isin(n, [ans], n-1) then
+    for i = 1, n-1 do
+      if not Isin(i, [ans], n-1) then
+        ans[n] := i
+      fi
+    od
+  else
+    { There's an easy fix. }
+    ans[n] := ans[n-1];
+    ans[n-1] := n
+  fi;
+  Return(1).;
+
+;; END OF DERANGEMENT STUFF ;;;;;;;;;;;;;;;;;;;;;
+;========================================================================;
+
+;; Fin returns either 0 (failure) or 2 (sucess), meaning a nontrivial poly, the answer, fct.
+;; Don't return fct, that's an unnecessary duplication.
+Func Fin(i, den, arp2, tt) =
+  Array e2[lastvar];
+  { faf is the factor of the poly formed by the substitutions. }
+  if faf = 0 then
+    fct := 1;
+    { Apr 2023 }
+    failurr :+;
+    !!'faf = 0 failure.';
+    !!(failurr, Deg[co]);
+    !;
+    { This has been observed: }
+    if failurr >= Deg[co] then
+      { Give up. }
+      fct := 0;
+      Return(0);
+    fi;
+    Cancel;
+    { Recursive call. Note the second argument 1 }
+    Return(FCT(myar, 1))
+  fi;
+  { Nov 2022. potential bug.  6 lines down we assume n = lastvar }
+  { Apr 2023:  n = lastvar is NONSENSE! But n below is correct. }
+  [e2] := 0;
+  { Nov 2022. BUG fix below!!  b0 not bb. Two places }
+  den := Var(sec) - b0_*Var(fir) - aa_;
+  e2[fir] := Var(fir) - bb_*Var(sec) + b0_*bb_*Var(fir);
+  e2[sec] := Var(sec) - b0_*Var(fir);
+  for i = 3, n_ do`
+    e2[vlist[i]] := Var(vlist[i]) - ry[i]*Var(fir) - rx[i]*Var(sec)`
+  od;
+  [e2] := [e2]/den;
+  { Nov 2022, fairly time consuming: }
+  { Nov 2022.  bug fix attempt. was using [e2] }
+  fct := Numer(faf#(Var(1) = [e2]));
+  { Nov 2022  save faf  faf := 0; }
+  Cancel;
+  if n_ > 4 then
+    tt := PDivides(fct, myar)
+  else
+    tt := Divides(fct, myar)
+  fi;
+  if tt then
+    @failurr;
+    Return(2)
+  else
+   failurr :+;
+   FCT(myar,1);
+  fi.;
+
+;;====================================================================================================================
+
+;; Factor polynomials over Z.  This works pretty well.  It will not handle cases with "large" numerical coefficients.
+;; If all coefficients of ar are < half the primes here (44449, 50051) it should work.  Furthermore, as
+;; long as ar has a factor with all coefficients < half the primes here (44449, 50051) it has a good chance of working.
+;; Difficult cases, like z^4 + y^4, return -1, can't decide.
+;;   Note use of cop.  If coeffs are too large, ar will not be brought back correctly from modular mode.
+;; Returns 1 if arg is irreducible, 0 if arg is a constant or field element, -1 if can't decide, polynomial answer
+;; placed in fct.  A return of -1  means it's probably irreducible.
+;;  The primes can be be parameters to the function.
+;; Ideally it will return a nontrivial answer and put it in fct.  If one of
+;; the coeffs of ar is divisible by one of these primes, it won't work.  If lcof is "large" it might not work.
+;; Obviously the 16 iterations can be changed.
+;; FCTZ works by dropping in and out of modular mode.  It brings out only the vars ar, fct, lcof.  All other vars
+;; created in mod mode should have been deleted in mod mode.  Be careful about modifying the code in Func Cancel.
+Func FCTZ(ar, pr1, pr2; i, best, k, fct1, ct, cop, lcof) =`
+  if Modmode then
+    !!'Error, must be in rational mode.';
+    Return(-1)
+  fi;
+  ct := Content(^ar);
+  if not Numb(ct) then
+    Return(ct)
+  fi;
+  if not ct then
+    ar := ar/ct
+  fi;
+  k := Irred(^ar);
+  if Numb(k) then
+    Return(k)
+  fi;
+  if pr1 = 0 then
+    pr1 := 44449
+  fi;
+  if pr2 = 0 then
+    pr2 := 50051
+  fi;
+  lcof := |Nlcoef(^ar)|;
+  cop := ar;
+  &(p = pr1: ar, lcof);`
+  SPF(ar);`
+  fct := fct/Nlcoef(fct);`
+  best := Log2(fct);`
+  k := 1;`
+  for i = 1,16 do`
+    if Log2(i*fct) < best then`
+      k := i;`
+      best := Log2(i*fct)
+    fi`
+  od;`
+  { One more idea: }
+  if lcof > 16 then
+    if Log2(lcof*fct) < best then
+      k := lcof
+    fi
+  fi;
+  fct := k*fct;`
+  &(p = _i: ar, fct, lcof);`
+  ct := Content(^fct);
+  if not ct then
+    SDivide(ct, fct)
+  fi;
+  if not Numb(fct) and Divides(fct, cop) then
+    Return(fct)
+  fi;
+  fct1 := fct;
+  { Do it again }
+  ar := cop;
+  &(p = pr2: ar, lcof);`
+  SPF(ar);`
+  fct := fct/Nlcoef(fct);`
+  best := Log2(fct);`
+  k := 1;`
+  for i = 1,16 do`
+    if Log2(i*fct) < best then`
+      k := i;`
+      best := Log2(i*fct)`
+    fi`
+  od;`
+  { One more idea: }
+  if lcof > 16 then
+    if Log2(lcof*fct) < best then`
+      k := lcof
+    fi
+  fi;
+  fct := k*fct;`
+  &(p = _i: ar, fct, lcof);`
+  ct := Content(^fct);
+  if not ct then
+    SDivide(ct, fct)
+  fi;
+  if not Numb(fct) and Divides(fct, cop) then
+    Return(fct)
+  fi;
+  -1.;
+
+
+&x;
+

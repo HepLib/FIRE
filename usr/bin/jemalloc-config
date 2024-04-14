@@ -1,0 +1,83 @@
+#!/bin/sh
+
+usage() {
+	cat <<EOF
+Usage:
+  /Volumes/DATA/Projects/FIREs/usr/bin/jemalloc-config <option>
+Options:
+  --help | -h  : Print usage.
+  --version    : Print jemalloc version.
+  --revision   : Print shared library revision number.
+  --config     : Print configure options used to build jemalloc.
+  --prefix     : Print installation directory prefix.
+  --bindir     : Print binary installation directory.
+  --datadir    : Print data installation directory.
+  --includedir : Print include installation directory.
+  --libdir     : Print library installation directory.
+  --mandir     : Print manual page installation directory.
+  --cc         : Print compiler used to build jemalloc.
+  --cflags     : Print compiler flags used to build jemalloc.
+  --cppflags   : Print preprocessor flags used to build jemalloc.
+  --cxxflags   : Print C++ compiler flags used to build jemalloc.
+  --ldflags    : Print library flags used to build jemalloc.
+  --libs       : Print libraries jemalloc was linked against.
+EOF
+}
+
+prefix="/Volumes/DATA/Projects/FIREs/usr"
+exec_prefix="/Volumes/DATA/Projects/FIREs/usr"
+
+case "$1" in
+--help | -h)
+	usage
+	exit 0
+	;;
+--version)
+	echo "5.3.0-0-g54eaed1d8b56b1aa528be3bdd1877e59c56fa90c"
+	;;
+--revision)
+	echo "2"
+	;;
+--config)
+	echo "--prefix=/Volumes/DATA/Projects/FIREs/usr CC=gcc CXX=g++"
+	;;
+--prefix)
+	echo "/Volumes/DATA/Projects/FIREs/usr"
+	;;
+--bindir)
+	echo "/Volumes/DATA/Projects/FIREs/usr/bin"
+	;;
+--datadir)
+	echo "/Volumes/DATA/Projects/FIREs/usr/share"
+	;;
+--includedir)
+	echo "/Volumes/DATA/Projects/FIREs/usr/include"
+	;;
+--libdir)
+	echo "/Volumes/DATA/Projects/FIREs/usr/lib"
+	;;
+--mandir)
+	echo "/Volumes/DATA/Projects/FIREs/usr/share/man"
+	;;
+--cc)
+	echo "gcc"
+	;;
+--cflags)
+	echo "-std=gnu11 -Wall -Wextra -Wsign-compare -Wundef -Wno-format-zero-length -Wpointer-arith -Wno-missing-braces -Wno-missing-field-initializers -Wno-missing-attributes -pipe -g3 -Wimplicit-fallthrough -O3 -funroll-loops"
+	;;
+--cppflags)
+	echo "-D_REENTRANT"
+	;;
+--cxxflags)
+	echo "-Wall -Wextra -g3 -Wimplicit-fallthrough -O3"
+	;;
+--ldflags)
+	echo " "
+	;;
+--libs)
+	echo "-lstdc++ -pthread"
+	;;
+*)
+	usage
+	exit 1
+esac
