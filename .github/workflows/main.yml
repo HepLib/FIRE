@@ -15,7 +15,5 @@ jobs:
           sudo apt-get install -y cmake
           sudo apt-get install -y g++
           sudo apt-get install -y git
-          pwd
-          ls
           make -j 4 dep
           make -j 4
