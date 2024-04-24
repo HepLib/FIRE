@@ -7,7 +7,7 @@ CC:=g++ -std=c++17 -fopenmp
 cc:=gcc
 CFLAGS:=-O3 -Wno-unused-result -Wno-deprecated-declarations -I${USR_DIR}/include -DPRIME
 
-LFLAGS:=-Wl,-rpath,${USR_DIR}/lib -L${USR_DIR}/lib/ -lpthread -lm -lc -lz -lgmp -lflint $(MALLOC)
+LFLAGS:=-Wl,-rpath,'$$ORIGIN/../usr/lib' -Wl,-rpath,${USR_DIR}/lib -L${USR_DIR}/lib/ -lpthread -lm -lc -lz -lgmp -lflint $(MALLOC)
 UNAME_M:=$(shell uname -m)
 ifeq ($(UNAME_M),arm64)
 CFLAGS:=$(CFLAGS) -I/opt/homebrew/include
