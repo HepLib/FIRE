@@ -1,5 +1,7 @@
 `FIRE` was developed by [A. Smirnov](https://gitlab.com/feynmanintegrals/fire). All credit for the original code goes to him and we would like to take this opportunity to thank [A. Smirnov](https://gitlab.com/feynmanintegrals/fire) for his great work!
 
+More information, please visit [Wiki Section](https://github.com/HepLib/FIRE/wiki).
+
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
