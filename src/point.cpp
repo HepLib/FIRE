@@ -14,10 +14,10 @@ vector<set<point_fast> > point::preferred_fast;
 bool point::print_g = false;
 
 // we had to move them here to avoid circular dependencies
-map<unsigned short, vector<pair<vector<t_index>, vector<pair<vector<pair<COEFF, point_fast> >, t_index> > > > > point::ibases;
+ibases_t point::ibases;
 //        sector       variants    permutation    product     sum         coefficient   indices       powers
 
-map<unsigned short, pair<vector<t_index>, vector<pair<vector<pair<COEFF, point_fast> >, t_index> > > > point::dbases;
+dbases_t point::dbases;
 //        sector           permutation    product     sum         coefficient   indices       powers
 
 vector<vector<pair<vector<COEFF>, point_fast > > > point::ibps;
@@ -86,40 +86,16 @@ bool over_fast(const point_fast &l, const point_fast &r) {
 }
 
 point::point(const point &p) {
-    #ifndef SMALL_POINT
-        reinterpret_cast<uint64_t *>(this->ww)[2] = reinterpret_cast<const uint64_t *>(p.ww)[2];
-        reinterpret_cast<uint64_t *>(this->ww)[1] = reinterpret_cast<const uint64_t *>(p.ww)[1];
-        reinterpret_cast<uint64_t *>(this->ww)[0] = reinterpret_cast<const uint64_t *>(p.ww)[0];
-    #else
-        reinterpret_cast<uint64_t *>(this->ww)[1] = reinterpret_cast<const uint64_t *>(p.ww)[1];
-        reinterpret_cast<uint64_t *>(this->ww)[0] = reinterpret_cast<const uint64_t *>(p.ww)[0];
-        //points in kyotocabinet are not aligned, so when taking data out we cannot rely on alignment
-        //reinterpret_cast<uint128_t *>(this->ww)[0] = reinterpret_cast<const uint128_t *>(p.ww)[0];
-    #endif
+  memcpy(this->ww,p.ww,std::size(this->ww));
 }
 
 point &point::operator=(const point &p) {
-    #ifndef SMALL_POINT
-        reinterpret_cast<uint64_t *>(this->ww)[2] = reinterpret_cast<const uint64_t *>(p.ww)[2];
-        reinterpret_cast<uint64_t *>(this->ww)[1] = reinterpret_cast<const uint64_t *>(p.ww)[1];
-        reinterpret_cast<uint64_t *>(this->ww)[0] = reinterpret_cast<const uint64_t *>(p.ww)[0];
-    #else
-        reinterpret_cast<uint64_t *>(this->ww)[1] = reinterpret_cast<const uint64_t *>(p.ww)[1];
-        reinterpret_cast<uint64_t *>(this->ww)[0] = reinterpret_cast<const uint64_t *>(p.ww)[0];
-        //points in kyotocabinet are not aligned, so when taking data out we cannot rely on alignment
-        //reinterpret_cast<uint128_t *>(this->ww)[0] = reinterpret_cast<const uint128_t *>(p.ww)[0];
-    #endif
+  memcpy(this->ww,p.ww,std::size(this->ww));
     return *this;
 }
 
 point::point() {
-    #ifndef SMALL_POINT
-        reinterpret_cast<uint64_t *>(this->ww)[2] = 0;
-        reinterpret_cast<uint64_t *>(this->ww)[1] = 0;
-        reinterpret_cast<uint64_t *>(this->ww)[0] = 0;
-    #else
-        reinterpret_cast<uint128_t *>(this->ww)[0] = 0;
-    #endif
+  memset(this->ww,0,std::size(this->ww));
 }
 
 
@@ -160,18 +136,13 @@ int point::level() const {
 #endif
 
 point::point(const vector<t_index> &v, virt_t virt, SECTOR ssector) {
-    #ifndef SMALL_POINT
-        reinterpret_cast<uint64_t *>(ww)[2] = 0;
-        reinterpret_cast<uint64_t *>(ww)[1] = 0;
-        reinterpret_cast<uint64_t *>(ww)[0] = 0;
-    #else
-        reinterpret_cast<uint128_t *>(ww)[0] = 0;
-    #endif
+
+  memset(ww,0,std::size(ww));
 
 
     SECTOR s = ssector;
     if (s == static_cast<SECTOR>(-1)) s = sector_fast(v);
-    unsigned short sn;
+    sector_count_t sn;
     if (s == static_cast<SECTOR>(-2)) {
         sn = 1;
     } else {
@@ -186,8 +157,8 @@ point::point(const vector<t_index> &v, virt_t virt, SECTOR ssector) {
     }
 
     if (virt != 0) {
-        *reinterpret_cast<virt_t *>(ww + sizeof(point) - 7) = virt;
-        ww[sizeof(point) - 3] = 0;
+      *reinterpret_cast<virt_t *>(ww + VIRT_OFFSET) = virt;
+        ww[VIRT_ZERO_OFFSET] = 0;
         return;
     }
 
@@ -200,7 +171,7 @@ point::point(const vector<t_index> &v, virt_t virt, SECTOR ssector) {
         #endif
         for (unsigned int i = 0; i != common::dimension; ++i) {
             #ifndef SMALL_POINT
-                ww[sizeof(point) - i - 3] = 128 + v[i];
+                ww[VIRT_ZERO_OFFSET - i] = 128 + v[i];
             #else
                 set_ww_and_shift(ww, (1u<<(BITS_PER_INDEX-1)) + v[i], bit_start, bit_end, current_byte, split_byte);
             #endif
@@ -228,7 +199,7 @@ point::point(const vector<t_index> &v, virt_t virt, SECTOR ssector) {
                 pr += ordering_now[i * common::dimension + j] * (degrees[j]);
             }
             #ifndef SMALL_POINT
-                ww[sizeof(point) - 3 - i] = pr;
+                ww[VIRT_ZERO_OFFSET - i] = pr;
             #else
                 set_ww_and_shift(ww, pr, bit_start, bit_end, current_byte, split_byte);
             #endif
@@ -240,17 +211,11 @@ point::point(const vector<t_index> &v, virt_t virt, SECTOR ssector) {
 }
 
 point::point(const point_fast &pf, SECTOR ssector) {
-    #ifndef SMALL_POINT
-        reinterpret_cast<uint64_t *>(ww)[2] = 0;
-        reinterpret_cast<uint64_t *>(ww)[1] = 0;
-        reinterpret_cast<uint64_t *>(ww)[0] = 0;
-    #else
-        reinterpret_cast<uint128_t *>(ww)[0] = 0;
-    #endif
+  memset(ww,0,std::size(ww));
 
     SECTOR s = ssector;
     if (s == static_cast<SECTOR>(-1)) { s = pf.sector_fast(); }
-    unsigned short sn = common::sector_numbers_fast[s];
+    sector_count_t sn = common::sector_numbers_fast[s];
     *h1p() = sn << 1;
     if (sn == 0) {
         cout << s << endl;
@@ -267,7 +232,7 @@ point::point(const point_fast &pf, SECTOR ssector) {
         #endif
         for (unsigned int i = 0; i != common::dimension; ++i) {
             #ifndef SMALL_POINT
-                ww[MAX_IND - i - 1] = 128 + pf.buf[i];
+                ww[VIRT_ZERO_OFFSET - i] = 128 + pf.buf[i];
             #else
                 set_ww_and_shift(ww, (1u<<(BITS_PER_INDEX-1)) + pf.buf[i], bit_start, bit_end, current_byte, split_byte);
             #endif
@@ -287,9 +252,9 @@ point::point(const point_fast &pf, SECTOR ssector) {
         #endif
         for (unsigned int i = 0; i != common::dimension; ++i) {
             #ifndef SMALL_POINT
-                ww[MAX_IND - i - 1] = 1; // to be higher than virtual anyway even for preferred
+                ww[VIRT_ZERO_OFFSET - i] = 1; // to be higher than virtual anyway even for preferred
                 for (unsigned int j = 0; j != common::dimension; ++j) {
-                    if (*pos++) ww[MAX_IND - i - 1] += (degrees.buf[j]);
+                    if (*pos++) ww[VIRT_ZERO_OFFSET - i] += (degrees.buf[j]);
                 }
             #else
                 char res = 1;
@@ -306,14 +271,7 @@ point::point(const point_fast &pf, SECTOR ssector) {
 }
 
 point::point(const point &p, const point_fast& v, SECTOR ssector, bool not_preferred) {
-    #ifndef SMALL_POINT
-        reinterpret_cast<uint64_t *>(this)[2] = reinterpret_cast<const uint64_t *>(p.ww)[2];
-        reinterpret_cast<uint64_t *>(this)[1] = reinterpret_cast<const uint64_t *>(p.ww)[1];
-        reinterpret_cast<uint64_t *>(this)[0] = reinterpret_cast<const uint64_t *>(p.ww)[0];
-    #else
-        reinterpret_cast<uint128_t *>(this)[0] = 0;
-        *h1p() = p.h1();
-    #endif
+  memcpy(this->ww,p.ww,std::size(this->ww));
 
     auto ordering_now = common::orderings_fast[ssector].get();
     SECTOR bit = 1<<(common::dimension-1);
@@ -323,7 +281,7 @@ point::point(const point &p, const point_fast& v, SECTOR ssector, bool not_prefe
             if (v.buf[j]) {
                 t_index shift = (bit & ssector) ? v.buf[j] : -v.buf[j];
                 for (unsigned int i = 0; i != common::dimension; ++i) {
-                    if (*pos) ww[MAX_IND - i - 1] += shift;
+                    if (*pos) ww[VIRT_ZERO_OFFSET - i] += shift;
                     pos += common::dimension;
                 }
                 pos -= common::dimension*common::dimension;
@@ -374,15 +332,15 @@ point::point(const point &p, const point_fast& v, SECTOR ssector, bool not_prefe
 
 
 point::point(char *buf) {
-    for (unsigned int i = 0; i != sizeof(point); ++i) {
-        ww[i] = (buf[i] << 4) ^ (buf[i + sizeof(point)] & 15);
+  for (unsigned int i = 0; i != std::size(ww); ++i) {
+        ww[i] = (buf[i] << 4) ^ (buf[i + std::size(ww)] & 15);
     }
 }
 
 void point::safe_string(char *buf) const {
-    for (unsigned int i = 0; i != sizeof(point); ++i) {
+    for (unsigned int i = 0; i != std::size(ww); ++i) {
         buf[i] = (ww[i] >> 4) | 64;
-        buf[i + sizeof(point)] = (ww[i] & 15) | 64;
+        buf[i + std::size(ww)] = (ww[i] & 15) | 64;
     }
 }
 
@@ -396,11 +354,11 @@ string point::number() const {
         unsigned short current_byte = {0};
         bool split_byte = false;
     #endif
-    for (int i = 0; i != common::dimension; ++i) {
+    for (unsigned short i = 0; i != common::dimension; ++i) {
         #ifndef SMALL_POINT
-            ss << std::setfill('0') << std::setw(3) << (int(static_cast<unsigned char>(ww[MAX_IND - i - 1])) - 1);
+            ss << std::setfill('0') << std::setw(3) << (int(static_cast<unsigned char>(ww[VIRT_ZERO_OFFSET - i])) - 1);
         #else
-            unsigned short sn = s_number();
+            sector_count_t sn = s_number();
             vector<t_index> result;
             if ((sn == 1) || (sn == common::virtual_sector)) {
                 ss << std::setfill('0') << std::setw(3) << (int(static_cast<unsigned char>(
@@ -413,11 +371,12 @@ string point::number() const {
     return ss.str();
 }
 
+//Should rewrite using memcmp
 bool point::is_zero() const {
     #ifndef SMALL_POINT
-        return  (reinterpret_cast<const uint64_t *>(this)[2] == 0) &&
-            (reinterpret_cast<const uint64_t *>(this)[1] == 0) &&
-            (reinterpret_cast<const uint64_t *>(this)[0] == 0);
+  return std::all_of(reinterpret_cast<const uint64_t *>(ww),
+		     reinterpret_cast<const uint64_t *>(ww+std::size(ww)),
+		     [](uint64_t i){return i==0;});
     #else
         return reinterpret_cast<const uint128_t *>(this)[0] == 0;
     #endif
@@ -433,7 +392,7 @@ ostream &operator<<(ostream &out, const point &p) {
     out << (point::print_g ? "G[" : "{") << common::global_pn << ",{";
     if (p.virt()) {
         out << p.s_number() << ",";
-        out << reinterpret_cast<const virt_t *>(p.ww + sizeof(point) - 7)[0];
+        out << reinterpret_cast<const virt_t *>(p.ww + VIRT_OFFSET)[0];
     } else {
         unsigned int it = 0;
         vector<t_index> v = p.get_vector();
@@ -445,7 +404,7 @@ ostream &operator<<(ostream &out, const point &p) {
 }
 
 vector<t_index> point::get_vector() const {
-    unsigned short sn = s_number();
+    sector_count_t sn = s_number();
     vector<t_index> result;
     if ((sn == 1) || (sn == common::virtual_sector)) {
         #ifdef SMALL_POINT
@@ -454,9 +413,9 @@ vector<t_index> point::get_vector() const {
             unsigned short current_byte = {0};
             bool split_byte = false;
         #endif
-        for (int i = 0; i != common::dimension; i++) {
+        for (unsigned short i = 0; i != common::dimension; i++) {
             #ifndef SMALL_POINT
-                result.push_back(ww[MAX_IND - i - 1] - 128);
+                result.push_back(ww[VIRT_ZERO_OFFSET - i] - 128);
             #else
                 char res = get_ww_and_shift(ww, bit_start, bit_end, current_byte, split_byte);
                 result.push_back(res - (1u<<(BITS_PER_INDEX-1)));
@@ -474,10 +433,10 @@ vector<t_index> point::get_vector() const {
             #endif
             t_index z = 0;
             if (!virt()) {
-                for (int j = 0; j != common::dimension; ++j) {
+                for (unsigned short j = 0; j != common::dimension; ++j) {
                     #ifndef SMALL_POINT
-                        if (iordering[i][j] == 1) z += (ww[MAX_IND - j - 1] - 1);
-                        else if (iordering[i][j] == -1) z -= (ww[MAX_IND - j - 1] - 1);
+                        if (iordering[i][j] == 1) z += (ww[VIRT_ZERO_OFFSET - j] - 1);
+                        else if (iordering[i][j] == -1) z -= (ww[VIRT_ZERO_OFFSET - j] - 1);
                     #else
                         char val = get_ww_and_shift(ww, bit_start, bit_end, current_byte, split_byte);
                         if (iordering[i][j] == 1) z += (val - 1);
@@ -503,7 +462,7 @@ set<point_fast> level_points_fast(point_fast s, const unsigned int pos, const un
         set<point_fast> old = level_points_fast(s, pos, neg - 1);
         set<point_fast> r;
         for (const auto & p : old) {
-            for (unsigned int i = 0; i < common::dimension; ++i) {
+            for (unsigned short i = 0; i < common::dimension; ++i) {
                 if (p.buf[i] <= 0) {
                     point_fast p2 = p;
                     p2.buf[i]--;
@@ -516,7 +475,7 @@ set<point_fast> level_points_fast(point_fast s, const unsigned int pos, const un
     set<point_fast> old = level_points_fast(s, pos - 1, neg);
     set<point_fast> r;
     for (const auto & p : old) {
-        for (unsigned int i = 0; i < common::dimension; ++i) {
+        for (unsigned short i = 0; i < common::dimension; ++i) {
             if (p.buf[i] > 0) {
                 point_fast p2 = p;
                 p2.buf[i]++;
@@ -534,11 +493,7 @@ inline bool file_exists(string fn) {
     return (access(fn.c_str(),F_OK)!=-1);
 }
 inline void point_output(const point & p, mpz_t & z, ostringstream &oss, void (*free_mp_str)(void *, size_t)) {
-    #ifndef SMALL_POINT
-    int wwn = 24;
-    #else
-    int wwn = 16;
-    #endif
+    int wwn = POINT_SIZE;
     auto & ww = p.ww;
     mpz_import(z, wwn, 1, sizeof(ww[0]), 0, 0, ww);
     char * str = mpz_get_str(NULL, 62, z);
@@ -584,11 +539,7 @@ inline void db_export(unsigned int sn) {
 }
 
 inline void str_z_point(const string &s, mpz_t &z, point &p) {
-    #ifndef SMALL_POINT
-    int wwn = 24;
-    #else
-    int wwn = 16;
-    #endif
+    int wwn = POINT_SIZE;
     mpz_set_str(z, s.c_str(), 62);
     int numb = 8*sizeof(p.ww[0]);
     int count = (mpz_sizeinbase(z,2)+numb-1)/numb;

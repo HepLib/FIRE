@@ -17,10 +17,10 @@
 #include "gateToFermat.h"
 
 unsigned short common::dimension;
-unique_ptr<unsigned short[]> common::sector_numbers_fast;
+unique_ptr<sector_count_t[]> common::sector_numbers_fast;
 unique_ptr<unique_ptr<t_index[]>[]> common::orderings_fast;
 
-const string common::version = "2023/11/15 (based on 6.4)";
+const string common::version = "2024/04/28 (based on 6.5)";
 map<string, string> common::prt_replace;
 int common::prt_rule_counter = 0;
 bool common::skip_if_exist = false;
@@ -43,19 +43,19 @@ bool common::split_masters = false;
 unsigned int common::master_number_min = 0;
 unsigned int common::master_number_max = 0;
 
-int common::virtual_sector = 0;
+SECTOR common::virtual_sector = 0;
 
 string common::path = "";
 
 string common::suffix = "";
 std::map<string, string> common::var_values_from_arv;
 
-vector<int> common::sector_tasks;
-int common::run_sector = 0;
+vector<int> common::sector_tasks; // not sector_count_t, due to negative sector
+int common::run_sector = 0; // int not SECTOR
 bool common::only_masters = false;
 bool common::keep_all = false;
 
-int common::abs_max_sector = 3;
+sector_count_t common::abs_max_sector = 3;
 
 int common::abs_max_level = 0;
 
@@ -85,7 +85,7 @@ vector<vector<vector<t_index> > > common::symmetries;
 vector<vector<t_index> > common::ssectors;
 set<SECTOR> common::lsectors;
 
-map<unsigned short, vector<pair<vector<pair<vector<t_index>, pair<short, bool> > >, vector<pair<string, vector<pair<vector<t_index>, short> > > > > > > common::lbases;
+common_lbases_t common::lbases;
 //      sector    condition+result        coefficients  free term   eq                 coeff     indices:   coefficients and free term
 
 vector<t_index> _sector_(const vector<t_index> &v) {
@@ -289,7 +289,7 @@ vector<vector<t_index> > all_sectors(unsigned int d, int positive, int positive_
     return (vv);
 };
 
-bool in_lsectors(unsigned short test_sector) {
+bool in_lsectors(sector_count_t test_sector) {
     if (common::lsectors.empty()) return true;
     return (common::lsectors.find(sector_fast(common::ssectors[test_sector]))!= common::lsectors.end());
 }

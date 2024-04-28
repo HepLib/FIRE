@@ -13,8 +13,8 @@
 map<vector<t_index>, point> equation::initial;
 
 // get monoms from a point (Feynman integral). database access used
-vector<point> p_get_monoms(const point &p, unsigned short fixed_database_sector) {
-    unsigned short dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
+vector<point> p_get_monoms(const point &p, sector_count_t fixed_database_sector) {
+    sector_count_t dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
     auto const & pm = DBM[dsector].pmap;
     auto itr = pm.find(p);
     vector<point> result;
@@ -23,16 +23,16 @@ vector<point> p_get_monoms(const point &p, unsigned short fixed_database_sector)
     return result;
 }
 
-bool p_is_empty(const point &p, unsigned short fixed_database_sector) {
-    unsigned short dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
+bool p_is_empty(const point &p, sector_count_t fixed_database_sector) {
+    sector_count_t dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
     auto const & pm = DBM[dsector].pmap;
     auto itr = pm.find(p);
     if (itr == pm.end()) return true;
     return itr->second.second.size() == 0;
 }
 
-void p_get(const point &p, pc_pair_ptr_vec &terms, unsigned short fixed_database_sector) {
-    unsigned short dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
+void p_get(const point &p, pc_pair_ptr_vec &terms, sector_count_t fixed_database_sector) {
+    sector_count_t dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
     auto const & pm = DBM[dsector].pmap;
     auto itr = pm.find(p);
     pc_pair_ptr_vec empty_vec;
@@ -46,9 +46,9 @@ void p_get(const point &p, pc_pair_ptr_vec &terms, unsigned short fixed_database
     for(auto const & item : itr->second.second) terms.emplace_back(item);
 }
 
-void p_get(const point &p, pc_pair_ptr_lst &terms, unsigned short fixed_database_sector) {
+void p_get(const point &p, pc_pair_ptr_lst &terms, sector_count_t fixed_database_sector) {
     terms.clear();
-    unsigned short dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
+    sector_count_t dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
     auto const & pm = DBM[dsector].pmap;
     auto itr = pm.find(p);
     if (itr == pm.end()) return;
@@ -59,8 +59,8 @@ void p_get(const point &p, pc_pair_ptr_lst &terms, unsigned short fixed_database
     for(auto const & item : itr->second.second) terms.emplace_back(item);
 }
 
-void p_set(const point &p, pc_pair_ptr_vec && terms, unsigned char level, unsigned short fixed_database_sector) {
-    unsigned short dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
+void p_set(const point &p, pc_pair_ptr_vec && terms, unsigned char level, sector_count_t fixed_database_sector) {
+    sector_count_t dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
     auto & dbn = DBM[dsector];
     dbn.need_write = true;
     auto & pm = dbn.pmap;
@@ -86,8 +86,8 @@ bool is_lower_in_orbit(const vector<t_index> &lhs, const vector<t_index> &rhs) {
     vector<t_index> s1 = _sector_(lhs);
     vector<t_index> s2 = _sector_(rhs);
     if (s1 != s2) {
-        unsigned short sn1 = common::sector_numbers_fast[sector_fast(s1)];
-        unsigned short sn2 = common::sector_numbers_fast[sector_fast(s2)];
+        sector_count_t sn1 = common::sector_numbers_fast[sector_fast(s1)];
+        sector_count_t sn2 = common::sector_numbers_fast[sector_fast(s2)];
         if (sn1 < sn2) return (true);
         if (sn1 > sn2) return (false);
     }
@@ -143,7 +143,7 @@ bool point_fast_smaller_in_sector(const point_fast & pf1, const point_fast & pf2
 // point reference version without std
 point point_reference_fast(const point_fast &v) {
     SECTOR ssector = v.sector_fast();
-    unsigned short sn = common::sector_numbers_fast[ssector];
+    sector_count_t sn = common::sector_numbers_fast[ssector];
     if (sn == 0) {
         return point();
     }
@@ -155,7 +155,7 @@ point point_reference_fast(const point_fast &v) {
         vector<vector<vector<t_index> > > &sym = common::symmetries;
         point_fast best = v;
         SECTOR best_sector = ssector;
-        unsigned short best_sn = sn;
+        sector_count_t best_sn = sn;
         for (const auto &values : sym) {
             const vector<t_index> &permutation = values[0];
             point_fast p_new;
@@ -170,7 +170,7 @@ point point_reference_fast(const point_fast &v) {
             // best_sector is either common::virtual_sector or some good sector;
 
             SECTOR new_sector = p_new.sector_fast();
-            unsigned short new_sn = common::sector_numbers_fast[new_sector];
+            sector_count_t new_sn = common::sector_numbers_fast[new_sector];
             if (new_sn == common::virtual_sector) {
                 continue; // it is a higher virtual point
             }
@@ -197,7 +197,7 @@ point point_reference_fast(const point_fast &v) {
 // get the right symmetry point by the vector of coordinates
 point point_reference(const vector<t_index> &v) {
     SECTOR ssector = sector_fast(v);
-    unsigned short sn = common::sector_numbers_fast[ssector];
+    sector_count_t sn = common::sector_numbers_fast[ssector];
     if (sn == 0) {
         return point();
     }

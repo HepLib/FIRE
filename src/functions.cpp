@@ -109,7 +109,7 @@ bool MONOM_smaller(const pc_pair_ptr & lhs, const pc_pair_ptr  & rhs) {
 equation apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast v, const SECTOR ssector_fast) {
     equation result(ibp.size());
     unsigned int length = 0;
-    unsigned short sn = common::sector_numbers_fast[ssector_fast];
+    sector_count_t sn = common::sector_numbers_fast[ssector_fast];
     point p_orig(v,ssector_fast);
 
     bool there_are_symmetries = (common::symmetries.size() > 1);
@@ -541,8 +541,8 @@ struct level_smaller {
 };
 
 
-void add_needed(map<unsigned short, set<point> > &needed_lower, const point &p) {
-    unsigned short new_sector = p.s_number();
+void add_needed(map<sector_count_t, set<point> > &needed_lower, const point &p) {
+    sector_count_t new_sector = p.s_number();
     auto itr = needed_lower.find(new_sector);
     if (itr == needed_lower.end()) {
         set<point> s;
@@ -558,7 +558,7 @@ void add_needed(map<unsigned short, set<point> > &needed_lower, const point &p) 
  * @param needed_lower_temp set in integrals at are needed in lower sectors and should be written to corresponding databases
  * @param test_sector sector we work in
  */
-void finish_sector(const set<point> &needed_lower_temp, unsigned short test_sector) {
+void finish_sector(const set<point> &needed_lower_temp, sector_count_t test_sector) {
     auto & dbn = DBM[test_sector];
     if(dbn.status!=0) {
         cout << "finish_sector: dbn.status!=0" << endl;
@@ -694,7 +694,7 @@ bool equations_less(const equation &lhs, const equation &rhs);
 * such as searching for an sbasis or lbases
 * if nothing uses Laporta
 */
-void forward_stage(unsigned short ssector_number) {
+void forward_stage(sector_count_t ssector_number) {
     if(common::run_mode>1 && read_status(ssector_number)!=0) return;
     if(common::run_mode==3) { common::sector_tasks.push_back(ssector_number); return; }
     
@@ -704,7 +704,7 @@ void forward_stage(unsigned short ssector_number) {
     auto & dbn = DBM[ssector_number];
     
     set<point> set_needed_lower;
-    set<unsigned short> set_needed_lower_sector;
+    set<sector_count_t> set_needed_lower_sector;
 
     vector<t_index> ssector = common::ssectors[ssector_number];
     unsigned short sector_level = static_cast<unsigned short>(std::count_if(ssector.begin(), ssector.end(),
@@ -1081,7 +1081,7 @@ void forward_stage(unsigned short ssector_number) {
     size_t level_tasks_n = level_tasks.size();
     // seems only a few level_tasks is slow
     for(int level_tasks_i=0; level_tasks_i<level_tasks_n; level_tasks_i++) {
-        unsigned short ssector_number = Corner.s_number();
+        sector_count_t ssector_number = Corner.s_number();
 
         vector<t_index> v = Corner.get_vector();
         point_fast p_fast(Corner);
@@ -1841,7 +1841,7 @@ bool equations_less(const equation &lhs, const equation &rhs) {
     return (j!=0);
 }
 
-void clear_sector(unsigned short sn, set<point, indirect_more> *ivpl) {
+void clear_sector(sector_count_t sn, set<point, indirect_more> *ivpl) {
     // if we do not clear, there are too many extra entries in the database for relations we started solving
     // and they hurt at the substitution stage... unless we rewrite it with finding a list of needed for higher and then building the tree
     // and since we clear, the rules points are marked as absolutely needed
@@ -1861,7 +1861,7 @@ void clear_sector(unsigned short sn, set<point, indirect_more> *ivpl) {
     }
 }
 
-void perform_substitution(unsigned short ssector_number) {
+void perform_substitution(sector_count_t ssector_number) {
     if(common::run_mode>1 && read_status(ssector_number)==2) return;
     if(common::run_mode==3) { common::sector_tasks.push_back(-ssector_number); return; }
     
@@ -1938,9 +1938,10 @@ void Evaluate() {
             inlsectors--;
 
             // list of sectors of this level
-            set<unsigned short> sector_set_this_level;
-            set<unsigned short>::reverse_iterator sector_set_this_level_itr;
-            for (unsigned short test_sector = 2; test_sector <= common::abs_max_sector; ++test_sector) {
+            set<sector_count_t> sector_set_this_level;
+            set<sector_count_t>::reverse_iterator sector_set_this_level_itr;
+            for (sector_count_t test_sector = 2; test_sector <= common::abs_max_sector; ++test_sector) {
+	      
                 vector<t_index> ssector = common::ssectors[test_sector];
 
                 unsigned short current_level = static_cast<unsigned short>(std::count_if(ssector.begin(), ssector.end(),
@@ -1983,10 +1984,10 @@ void Evaluate() {
             }
 
             // here we will be writing the integral requests into lower sector databases
-            map<unsigned short, set<point> > needed_lower;
+            map<sector_count_t, set<point> > needed_lower;
 
             for (sector_set_this_level_itr = sector_set_this_level.rbegin(); sector_set_this_level_itr != sector_set_this_level.rend(); ++sector_set_this_level_itr) {
-                unsigned short test_sector = (*sector_set_this_level_itr);
+                sector_count_t test_sector = (*sector_set_this_level_itr);
 
                 open_database(test_sector, 1);
                 auto & dbn = DBM[test_sector];
@@ -2029,10 +2030,10 @@ void Evaluate() {
                 bool inlsectorsbool = (inlsectors == 0);
 
                 // list of sectors of this level
-                set<unsigned short> sector_set_this_level;
-                set<unsigned short>::iterator sector_set_this_level_itr;
+                set<sector_count_t> sector_set_this_level;
+                set<sector_count_t>::iterator sector_set_this_level_itr;
 
-                for (int i = 2; i != common::abs_max_sector + 1; i++) {
+                for (sector_count_t i = 2; i != common::abs_max_sector + 1; i++) {
                     if (!common::sector_numbers_fast[sector_fast(common::ssectors[i])]) continue;
                     if (database_exists(i) && (positive_index(common::ssectors[i]) == last_level) && (in_lsectors(i) == inlsectorsbool)) {
                         sector_set_this_level.insert(i);
@@ -2047,11 +2048,11 @@ void Evaluate() {
                 for (sector_set_this_level_itr = sector_set_this_level.begin();
                         sector_set_this_level_itr != sector_set_this_level.end();
                         ++sector_set_this_level_itr) {
-                    unsigned short test_sector = *sector_set_this_level_itr;
+                    sector_count_t test_sector = *sector_set_this_level_itr;
                     if(common::run_mode>1 && read_status(test_sector)==2) continue;
                     open_database(test_sector);
                     auto & dbn = DBM[test_sector];
-                    map<unsigned short, set<point> > needed_lower;
+                    map<sector_count_t, set<point> > needed_lower;
                     
                     // here we read and fill needed_for for the current sector
                     int64_t new_size = dbn.lower_size;
@@ -2116,7 +2117,7 @@ void Evaluate() {
 
 }
 
-set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_more> &to_test, unsigned short sector_number) {
+set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_more> &to_test, sector_count_t sector_number) {
     for (auto itr = to_test.begin(); itr != to_test.end(); ) {
         point p = *itr;
         if (p.s_number() != sector_number) {
@@ -2205,7 +2206,7 @@ void add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, bool skip_la
 }
 
 void apply_table(const pc_pair_ptr_vec &terms,
-                 unsigned short fixed_database_sector, unsigned short sector_level) {
+                 sector_count_t fixed_database_sector, unsigned short sector_level) {
     bool changed = false;
     auto end = terms.cend();
     --end;
@@ -2232,7 +2233,7 @@ void apply_table(const pc_pair_ptr_vec &terms,
     p_set(result.back()->first, result, 2 * sector_level, fixed_database_sector);
 }
 
-void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_more>::const_reverse_iterator ritr, unsigned short fixed_database_sector) {
+void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_more>::const_reverse_iterator ritr, sector_count_t fixed_database_sector) {
 // -- original version
 //    for (auto itr = ritr; itr != cur_set.rend(); ++itr) {
 //        point p = *itr;
@@ -2314,7 +2315,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
                     const point & p = *citr;
                     worker_point.emplace_back(p);
                     
-                    unsigned short dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
+                    auto dsector = (fixed_database_sector == 0) ? p.s_number() : fixed_database_sector;
                     auto const & pm = DBM[dsector].pmap;
                     auto itr = pm.find(p);
                     if(itr==pm.end()) continue;
@@ -2374,7 +2375,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
     worker_pass_back(cur_set);
 }
 
-pc_pair_ptr_lst::iterator split(pc_pair_ptr_lst &terms, unsigned short sector_number, uint64_t virts_temp) {
+pc_pair_ptr_lst::iterator split(pc_pair_ptr_lst &terms, sector_count_t sector_number, uint64_t virts_temp) {
     if (terms.empty()) return terms.begin();
     auto itr = terms.begin();
     size_t size = 0;

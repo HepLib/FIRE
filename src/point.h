@@ -9,6 +9,39 @@ class point_fast;
 
 typedef vector<pair<vector<COEFF>, point_fast > > ibp_type;
 
+
+// sector variants permutation product sum coefficient indices powers
+// vector - because there can be multiple
+typedef map<sector_count_t, vector<pair<vector<t_index>, vector<pair<vector<pair<COEFF, point_fast>>, t_index>>>>> ibases_t;
+
+
+// sector permutation product sum coefficient indices powers
+typedef map<sector_count_t, pair<vector<t_index>, vector<pair<vector<pair<COEFF, point_fast>>, t_index>>>> dbases_t;
+
+#ifndef SMALL_POINT
+static const size_t POINT_ALIGN = 8;  //Default size is 24, so align by 8
+static const size_t POINT_SIZE = (sizeof(sector_count_t) + MAX_IND + 7) & -POINT_ALIGN;  //Bit magic for rounding to the nearest multiple of POINT_ALIGN
+#else
+static const size_t POINT_SIZE = 16;
+static const size_t POINT_ALIGN = 16;//Small-point size is 16, let's alighn by 16 too
+#endif
+
+
+
+static const size_t POINT_SECTOR_OFFSET_FROM_BACK = sizeof(sector_count_t);
+
+//As per the comments in point, the byte at MAX_IND-1 is 0 for virtual,
+//and the previous 4 bytes (virt_t is a uint32) are where the virtual number is stored
+static const size_t VIRT_ZERO_OFFSET = MAX_IND-1;
+static const size_t VIRT_OFFSET = VIRT_ZERO_OFFSET-sizeof(virt_t);
+
+/**
+ * @brief Ordered point class.
+ *
+ * Contains point's degrees already multiplied by ordering matrix and calculated sector number.
+ * There also are virtual points - there are not real integrals, but some masking expressions of tails in lower sectors.
+ * Point is designed to fit into the 24 = 3*8 byte size
+ */
 class point {
 public:
     static vector<set<vector<t_index> > > preferred;
@@ -21,25 +54,21 @@ public:
     point &operator=(const point &);
     point(const vector<t_index> &v, virt_t virt = 0, SECTOR ssector = -1);
     point(char *buf);
-    #ifndef SMALL_POINT
-    char ww[24];
-    #else
-    char ww[16];
-    #endif
+    char ww[POINT_SIZE];
 
-    unsigned short h1() const {
-        return *reinterpret_cast<const unsigned short*>(ww + sizeof(point) - 2);
+    sector_count_t h1() const {
+      return *reinterpret_cast<const sector_count_t*>(ww + std::size(ww) - POINT_SECTOR_OFFSET_FROM_BACK);
     };
 
-    unsigned short* h1p() {
-        return reinterpret_cast<unsigned short*>(ww + sizeof(point) - 2);
+    sector_count_t* h1p() {
+        return reinterpret_cast<sector_count_t*>(ww + std::size(ww)  - POINT_SECTOR_OFFSET_FROM_BACK);
     };
 
     string number() const;
 
-    unsigned short s_number() const { return (h1() >> 1); }
+    sector_count_t s_number() const { return (h1() >> 1); }
 
-    bool virt() const { return (ww[sizeof(point) - 3] == 0); }
+    bool virt() const { return (ww[VIRT_ZERO_OFFSET] == 0); }
 
     int level() const;
 
@@ -50,14 +79,8 @@ public:
     bool is_zero() const;
 
     friend bool operator==(const point &p1, const point &p2) {
-        #ifndef SMALL_POINT
-            if (reinterpret_cast<const uint64_t *>(p1.ww)[2] ^ reinterpret_cast<const uint64_t *>(p2.ww)[2]) return false;
-            if (reinterpret_cast<const uint64_t *>(p1.ww)[1] ^ reinterpret_cast<const uint64_t *>(p2.ww)[1]) return false;
-            if (reinterpret_cast<const uint64_t *>(p1.ww)[0] ^ reinterpret_cast<const uint64_t *>(p2.ww)[0]) return false;
-            return true;
-        #else
-            return !(reinterpret_cast<const uint128_t *>(p1.ww)[0] ^ reinterpret_cast<const uint128_t *>(p2.ww)[0]);
-        #endif
+      //All we care about is exact equality between the buffers, so just check for that
+      return memcmp(p1.ww,p2.ww,std::size(p1.ww))==0;
     }
 
     friend bool operator!=(const point &p1, const point &p2) {
@@ -76,16 +99,21 @@ public:
         #endif
     }
 
-    friend bool operator<(const point &p1, const point &p2) {
-        #ifndef SMALL_POINT
-        if (reinterpret_cast<const uint64_t *>(p1.ww)[2] ^ reinterpret_cast<const uint64_t *>(p2.ww)[2]) {
-            return reinterpret_cast<const uint64_t *>(p1.ww)[2] < reinterpret_cast<const uint64_t *>(p2.ww)[2];
+    friend bool operator<(const point &p1, const point &p2) {     
+#ifndef SMALL_POINT
+      //This should maybe become a static const, but I believe almost all other use cases
+      //have been switched over to using memcmp, memset, or similar byte-level manips
+      size_t ww_as_int64_size = std::size(p1.ww)/sizeof(uint64_t);
+      //Other sections of the process rely on this specific order of comparisons, so
+      //can't just do memcmp
+      for(size_t i = 1;i<ww_as_int64_size;++i){
+	if (reinterpret_cast<const uint64_t *>(p1.ww)[ww_as_int64_size-i] ^ reinterpret_cast<const uint64_t *>(p2.ww)[ww_as_int64_size-i]) {
+            return reinterpret_cast<const uint64_t *>(p1.ww)[ww_as_int64_size-i] < reinterpret_cast<const uint64_t *>(p2.ww)[ww_as_int64_size-i];
         }
-        if (reinterpret_cast<const uint64_t *>(p1.ww)[1] ^ reinterpret_cast<const uint64_t *>(p2.ww)[1]) {
-            return reinterpret_cast<const uint64_t *>(p1.ww)[1] < reinterpret_cast<const uint64_t *>(p2.ww)[1];
-        }
-        return reinterpret_cast<const uint64_t *>(p1.ww)[0] < reinterpret_cast<const uint64_t *>(p2.ww)[0];
-        #else
+	
+      }
+      return reinterpret_cast<const uint64_t *>(p1.ww)[0] < reinterpret_cast<const uint64_t *>(p2.ww)[0];
+#else
             return reinterpret_cast<const uint128_t *>(p1.ww)[0] < reinterpret_cast<const uint128_t *>(p2.ww)[0];
         #endif
     }
@@ -93,47 +121,13 @@ public:
 
     friend ostream &operator<<(ostream &out, const point &p);
 
-    static map<unsigned short,
-            vector< // because there can be multiple
-                    pair<vector<t_index>,
-                            vector<
-                                    pair<
-                                            vector<
-                                                    pair<COEFF, point_fast>
-                                            >,
-                                            t_index>
-                            >
-                    >
-            >
-    > ibases;
+    static ibases_t ibases;
 
-    static map<unsigned short,
-            pair<vector<t_index>,
-                    vector<
-                            pair<
-                                    vector<
-                                            pair<COEFF, point_fast>
-                                    >,
-                                    t_index>
-                    >
-            >
-    > dbases;
+    static dbases_t dbases;
 
     static vector<ibp_type> ibps;
-    
-//    friend size_t hash_value(const point &p) {
-//        #ifndef SMALL_POINT
-//        return phmap::HashState().combine(0, reinterpret_cast<const uint64_t *>(p.ww)[2], reinterpret_cast<const uint64_t *>(p.ww)[1], reinterpret_cast<const uint64_t *>(p.ww)[0]);
-//        #else
-//        return std::has(reinterpret_cast<const uint128_t *>(p.ww)[0]);
-//        #endif
-//    }
 }
-#ifndef SMALL_POINT
-__attribute__((aligned (8))); // size is 24, so align by 8
-#else
-__attribute__((aligned (16))); // size is 16, let's alighn by 16 too
-#endif
+__attribute__((aligned (POINT_ALIGN))); 
 
 class point_fast {
 public:

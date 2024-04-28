@@ -102,11 +102,7 @@ int main(int argc, char *argv[]) {
     common::fermat = srun + "/../usr/Ferl7/fer64";
     #endif
 
-    #ifndef SMALL_POINT
-    static_assert(sizeof(point) == 24, "Strange size of point class");
-    #else
-    static_assert(sizeof(point) == 16, "Strange size of point class");
-    #endif
+    static_assert(sizeof(point) == POINT_SIZE, "Strange size of point class");
 
     parseArgcArgv(argc, argv);
 
@@ -158,7 +154,7 @@ int main(int argc, char *argv[]) {
     
     if(!common::silent) cout << "----------------------------------------" <<  endl;
 
-    map<unsigned short, set<point> > needed;
+    map<sector_count_t, set<point> > needed;
     for (const auto &pnt : points) add_needed(needed, pnt);
 
     for (const auto &item : needed) {
@@ -220,7 +216,7 @@ int main(int argc, char *argv[]) {
     } else { // now the only masters way
         // we need to locate masters and add them to the final list
         if(!common::silent) cout << "Identifying Master Integrals ..." << endl;
-        for (unsigned short test_sector = 2; test_sector <= common::abs_max_sector; ++test_sector) {
+        for (sector_count_t test_sector = 2; test_sector <= common::abs_max_sector; ++test_sector) {
             if (!database_exists(test_sector)) continue;
             auto const & pm = DBM[test_sector].pmap;
             for(auto const & kv : pm) {

@@ -348,7 +348,7 @@ COEFF generate_free_coeff_from_string(string cc) {
  * @param sn of sector we are working in.
  * @param right the right-hand side of the symmetry that is a permutation and list of sums in different powers
  */
-void store_symmetry_dependencies(const unsigned short sn,const pair<vector<t_index>, vector<pair<vector<pair<COEFF, point_fast> >, t_index> > >& right) {
+void store_symmetry_dependencies(const sector_count_t sn,const pair<vector<t_index>, vector<pair<vector<pair<COEFF, point_fast> >, t_index> > >& right) {
     vector<t_index>& v = common::ssectors[sn];
     vector<t_index> vres;
     vres.reserve(common::dimension);
@@ -387,7 +387,7 @@ void store_symmetry_dependencies(const unsigned short sn,const pair<vector<t_ind
         --zeros;
     }
     for (auto& vec: lower_secs) {
-        unsigned short sn2 = common::sector_numbers_fast[sector_fast(vec)];
+        sector_count_t sn2 = common::sector_numbers_fast[sector_fast(vec)];
         if (sn2 && sn!=sn2) {
             dependencies[sn][sn2] = true;
             //cout<<sn<<"->"<<sn2<<endl;
@@ -474,7 +474,7 @@ bool add_lbases(const char *c) {
         SECTOR sf;
         move = s2sf(it, sf);
         it += move;
-        unsigned short sn = common::sector_numbers_fast[sf];
+        sector_count_t sn = common::sector_numbers_fast[sf];
         if (sn == 0) {
             cout << "Undefined sector: {" << pn << ", ";
             print_sector_fast(sf);
@@ -732,7 +732,7 @@ bool add_lbases(const char *c) {
             abort();
         }
         it++;
-        unsigned short sn = common::sector_numbers_fast[sf];
+        sector_count_t sn = common::sector_numbers_fast[sf];
         if ((sn == 0) || (sn == 1) || (sn == common::virtual_sector))  {  // printing only in main thread
             cout << "Ignoring rule for sector: {" << common::global_pn << ", ";
             print_sector_fast(sf);
@@ -934,7 +934,7 @@ bool add_lbases(const char *c) {
                 abort();
             }
             it++;
-            unsigned short sn = common::sector_numbers_fast[sf];
+            sector_count_t sn = common::sector_numbers_fast[sf];
             if ((sn == 0) || (sn == 1) || (sn == common::virtual_sector)) {  // printing only in main thread
                 cout << "Ignoring rule for sector: {" << common::global_pn << ", ";
                 print_sector_fast(sf);
@@ -1103,7 +1103,7 @@ bool add_lbases(const char *c) {
  */
 bool add_single_preferred(const vector<t_index> &v) {
     SECTOR s = sector_fast(v);
-    unsigned short sn = common::sector_numbers_fast[s];
+    sector_count_t sn = common::sector_numbers_fast[s];
     bool result = (point::preferred[sn].find(v)==point::preferred[sn].end());
     point::preferred[sn].insert(v);
     point::preferred_fast[sn].insert(point_fast(v));
@@ -1554,7 +1554,7 @@ bool add_problem(const unsigned int problem_number, const char *cc) {
                 common::orderings_fast = unique_ptr<unique_ptr<t_index[]>[]>{new unique_ptr<t_index[]>[1 << (n)]{}};
 
                 size_t max_sectors = (1u << n);
-                common::sector_numbers_fast = unique_ptr<unsigned short[]>{new unsigned short[max_sectors]()};
+                common::sector_numbers_fast = unique_ptr<sector_count_t[]>{new sector_count_t[max_sectors]()};
 
                 point::preferred.reserve(max_sectors+1);
                 point::preferred_fast.reserve(max_sectors+1);
@@ -1573,7 +1573,7 @@ bool add_problem(const unsigned int problem_number, const char *cc) {
                     else if (i & ((1 << (n - positive)) - 1))  {
                         common::sector_numbers_fast[i] = 0;
                     }
-                    else common::sector_numbers_fast[i] = static_cast<unsigned short>(-1); // number will be given later
+                    else common::sector_numbers_fast[i] = static_cast<sector_count_t>(-1); // number will be given later
                 }
                 str = "";
                 continue;
@@ -1745,7 +1745,7 @@ bool add_problem(const unsigned int problem_number, const char *cc) {
     all.reserve(all0.size());
 
     for (const auto & sector_in_all : all0) {
-        if (common::sector_numbers_fast[sector_fast(sector_in_all)] == static_cast<unsigned short>(-1)) {
+        if (common::sector_numbers_fast[sector_fast(sector_in_all)] == static_cast<sector_count_t>(-1)) {
             all.push_back(sector_in_all);
         }
         // non-zero sectors
@@ -1756,7 +1756,7 @@ bool add_problem(const unsigned int problem_number, const char *cc) {
 
     common::ssectors.emplace_back();
     common::ssectors.emplace_back();
-    unsigned int current_sector = 2;
+    sector_count_t current_sector = 2;
 
     for (const auto &l_sector : all) {
         // we do not enumerate sectors with level 16+
@@ -1771,7 +1771,7 @@ bool add_problem(const unsigned int problem_number, const char *cc) {
                 itr++;
             }
 
-            if (common::sector_numbers_fast[sector_fast(*lowest)] == static_cast<unsigned short>(-1)) {
+            if (common::sector_numbers_fast[sector_fast(*lowest)] == static_cast<sector_count_t>(-1)) {
                 common::sector_numbers_fast[sector_fast(*lowest)] = current_sector;
                 common::ssectors.push_back(*lowest);
                 if (positive_index(*lowest) < common::abs_min_level) { common::abs_min_level = positive_index(*lowest); }
@@ -1790,7 +1790,7 @@ bool add_problem(const unsigned int problem_number, const char *cc) {
     for (const auto &l_sector : all) {
         // we do not enumerate sectors with level 16+
         if (positive_index(l_sector) <= 15) {
-            if (common::sector_numbers_fast[sector_fast(l_sector)] == static_cast<unsigned short>(-1)) {
+            if (common::sector_numbers_fast[sector_fast(l_sector)] == static_cast<sector_count_t>(-1)) {
                 common::sector_numbers_fast[sector_fast(l_sector)] = common::virtual_sector;
                 // all sectors in higher symmetry orbits are marked as common::virtual_sector for faster comparing
             }
@@ -1863,11 +1863,11 @@ bool add_problem(const unsigned int problem_number, const char *cc) {
 void initialize_dependencies() {
     dependencies.reserve(common::abs_max_sector + 1);
     needed_sectors.reserve(common::abs_max_sector + 1);
-    for (int i = 0; i!=common::abs_max_sector + 1; ++i) {
+    for (sector_count_t i = 0; i!=common::abs_max_sector + 1; ++i) {
         vector<bool> dependency;
         if (i>1) {
             dependency.reserve(common::abs_max_sector + 1);
-            for (int j = 0; j!=common::abs_max_sector + 1; ++j) {
+            for (sector_count_t j = 0; j!=common::abs_max_sector + 1; ++j) {
                 dependency.push_back(false);
             }
             if (in_lsectors(i)) {
@@ -2371,7 +2371,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                     }
                 }
             } else if (str.substr(0, 10) == "#integrals") { // parse integrals right here
-                for (int i = 2; i < common::abs_max_sector; ++i) {
+                for (sector_count_t i = 2; i < common::abs_max_sector; ++i) {
                     if (point::preferred[i].empty()) {
                         // no preferred, have to add them
                         vector<t_index> v = common::ssectors[i];
@@ -2460,7 +2460,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                         if (!p.is_zero()) {
                             points.insert(p);
                             int level = positive_index(common::ssectors[p.s_number()]);
-                            int s_number = p.s_number();
+                            sector_count_t s_number = p.s_number();
                             if (level > common::abs_max_level) { common::abs_max_level = level; }
                             if (s_number > common::abs_max_sector) {
                                 cout << "Integral in a sector that does not exist!"<<endl;
@@ -2499,11 +2499,11 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
         //recursvely building dependencies
         while (true) {
             bool changed = false;
-            for (int i = 2; i!=common::abs_max_sector + 1; ++i) {
-                for (int j = 2; j!=common::abs_max_sector + 1; ++j) {
+            for (sector_count_t i = 2; i!=common::abs_max_sector + 1; ++i) {
+                for (sector_count_t j = 2; j!=common::abs_max_sector + 1; ++j) {
                     if (dependencies[i][j]) {
                         // i depends on j, let's look further
-                        for (int k = 2; k!=common::abs_max_sector + 1; ++k) {
+                        for (sector_count_t k = 2; k!=common::abs_max_sector + 1; ++k) {
                             if (dependencies[j][k] && !dependencies[i][k]) {
                                 dependencies[i][k] = true;
                                 changed = true;
@@ -2519,7 +2519,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             std::ofstream out;
             out.open(common::dep_file);
             out<<"{{";
-            for (int i = 2; i!=common::abs_max_sector + 1; ++i) {
+            for (sector_count_t i = 2; i!=common::abs_max_sector + 1; ++i) {
                 out<<"{"<<i<<",";
                 vector<t_index>& v = common::ssectors[i];
                 auto it = v.begin();
@@ -2531,9 +2531,9 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 if (i!=common::abs_max_sector) out<<", "<<endl;
             }
             out<<"},"<<endl<<"{";
-            for (int i = 2; i!=common::abs_max_sector + 1; ++i) {
+            for (sector_count_t i = 2; i!=common::abs_max_sector + 1; ++i) {
                 out<<"{";
-                for (int j = 2; j!=common::abs_max_sector + 1; ++j) {
+                for (sector_count_t j = 2; j!=common::abs_max_sector + 1; ++j) {
                     if (i==j) out<<1; else out<<dependencies[i][j];
                     if (j!=common::abs_max_sector) out<<",";
                 }
@@ -2546,12 +2546,12 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
         }
 
         // create the list of sectors where reduction is needed, set others to zero
-        for (int i = 2; i!=common::abs_max_sector + 1; ++i) {
+        for (sector_count_t i = 2; i!=common::abs_max_sector + 1; ++i) {
             bool needed = false;
             if (needed_sectors[i]) {
                 needed = true;
             } else {
-                for (int j = 2; j!=common::abs_max_sector + 1; ++j) {
+                for (sector_count_t j = 2; j!=common::abs_max_sector + 1; ++j) {
                     if (dependencies[i][j] && needed_sectors[j]) {
                         needed = true;
                         break;

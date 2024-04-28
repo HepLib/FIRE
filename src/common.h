@@ -89,6 +89,7 @@ inline void set_str(fmpz_mpoly_q_struct* mp, const char* pos, const char** xs, f
 }
 #endif
 
+/** Used for storing indices of integrals */
 typedef char t_index;
 
 #ifndef SMALL_POINT
@@ -97,12 +98,31 @@ constexpr size_t MAX_IND = {22};
 constexpr size_t MAX_IND = {18};
 constexpr size_t BITS_PER_INDEX = {6};
 #endif
+// 22 indices should be enough for most problems;
+// 5-loop propagator = 20;
+// 6-loop bubble = 21;
 
-constexpr unsigned short MAX_SECTORS  = { 128*256 };
+
+typedef uint16_t sector_count_t;
+// Typedef for variables that involve the number of sectors.
+// point::ww and database functions have compile-time constants defined
+// based on the size of the type
+constexpr sector_count_t MAX_SECTORS  = {1<<15};
+// Number of sectors should fit into 2^15.
+// It is possible to increase the allowed MAX_SECTORS by changing
+// the associated sector_count_t to uint32_t.  However, because
+// there are a number of statically-allocated data structures
+// sized by MAX_SECTORS, there are potential linker/assembler problems
+// when using values larger than ~2^21.  Any possible need to use
+// values greater than 2^31 will also require some type promotions
+// in the signatures of functions::run/watch_child (which take negative
+// sector numbers during back substitution), and for a few variables
+// in functions::Evaluate
 
 typedef uint32_t SECTOR;
-
 //static set<unsigned short> needed_for[MAX_SECTORS + 1];
+
+typedef map<sector_count_t, vector<pair<vector<pair<vector<t_index>, pair<short, bool>>>, vector<pair<string, vector<pair< vector<t_index>, short>>>>>>> common_lbases_t;
 
 int positive_index(vector<t_index> v);
 
@@ -113,7 +133,7 @@ pair<unsigned int, unsigned int> level(const vector<t_index> &v);
 void print_vector(const vector<t_index> &v);
 void print_sector_fast(const SECTOR &sf);
 void Orbit(const vector<t_index> &v, vector<vector<t_index> > &orbit, vector<vector<vector<t_index> > > &sym);
-void make_ordering(t_index *, const vector<t_index> &);
+void make_ordering(t_index *mat, const vector<t_index> &sector);
 vector<vector<t_index> > all_sectors(unsigned int d, int positive, int positive_start);
 SECTOR sector_fast(const vector<t_index> &v);
 
@@ -122,24 +142,24 @@ public:
     static map<string, string> prt_replace;
     static int prt_rule_counter;
     const static string version;
-    static int run_sector;
+    static int run_sector; // int not SECTOR
     static int verb;
-    static vector<int> sector_tasks;
+    static vector<int> sector_tasks; // not sector_count_t, due to negative sector
     static bool skip_if_exist;
     static int run_mode;
     static bool o_output;
     static string dep_file;
     static int pos_pref;
-    static unique_ptr<unsigned short[]> sector_numbers_fast;
+    static unique_ptr<sector_count_t[]> sector_numbers_fast;
     static unique_ptr<unique_ptr<t_index[]>[]> orderings_fast;
     static unsigned short dimension;
     static bool disable_presolve;
     static string suffix;
     static std::map<string, string> var_values_from_arv;
-    static int virtual_sector;
+    static SECTOR virtual_sector;
     static int abs_min_level;
     static int abs_max_level;
-    static int abs_max_sector;
+    static sector_count_t abs_max_sector;
     static bool split_masters;
     static unsigned int master_number_min;
     static unsigned int master_number_max;
@@ -157,7 +177,7 @@ public:
     static vector<vector<vector<t_index> > >  symmetries;
     static set<SECTOR> lsectors;
 
-    static map<unsigned short, vector<pair<vector<pair<vector<t_index>,pair<short, bool>>>, vector<pair<string,vector<pair< vector<t_index>, short>>>>>>> lbases;
+    static common_lbases_t lbases;
     static unsigned int global_pn;
 
     static unsigned int t1;
@@ -173,7 +193,7 @@ public:
      
 };
 
-bool in_lsectors(unsigned short test_sector);
+bool in_lsectors(sector_count_t test_sector);
 
 int128_t mul_inv(int128_t a, int128_t b);
 prime_type mod(const string &s, bool positive_number_in_range = false);
