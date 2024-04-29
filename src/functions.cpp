@@ -1784,8 +1784,15 @@ if(common::ltm) { // using cached equation
             }
 
             for (k = 0; k != write; ++k) {  //cycle of same starting point
-//#define Mode1
-#ifdef Mode1
+int mode = common::code_flow_mode;
+if(mode==0) {
+    #if defined(FlintM)
+    mode = 2;
+    # else
+    mode = 1;
+    #endif
+}
+if(mode==1) {
                 pc_pair_ptr_lst result;
                 for (unsigned int i = 0; i != eqs[k].length; ++i) {
                     result.emplace_back(std::move(eqs[k].terms[i]));
@@ -1842,7 +1849,7 @@ if(common::ltm) { // using cached equation
                 
                 // now substituting back
                 worker_to_substitue(to_substitute);
-#else
+} else {
                 map<point, pc_pair_ptr_lst, indirect_more> to_test;
                 for (unsigned int i = 0; i != eqs[k].length; ++i) {
                     pc_pair_ptr_lst v;
@@ -1910,7 +1917,7 @@ if(common::ltm) { // using cached equation
                 }
 
                 apply_table_mode2(terms, false, ssector_number, sector_level, db_rw_mutex, virts_number);
-#endif
+}
             } // cycle of same starting point
             
             if (!hint_exists) {

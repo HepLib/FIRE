@@ -122,6 +122,11 @@ int main(int argc, char *argv[]) {
     if (!common::silent) {
         cout << "----------------------------------------" << endl;
         cout << "Version: " << common::version << endl;
+        cout << "Mode: ";
+        if(common::code_flow_mode==0) cout << " Auto";
+        else if(common::code_flow_mode==1) cout << " Flow Mode 1 (PRIME@FIRE)";
+        else if(common::code_flow_mode==2) cout << " Flow Mode 2 (POLY@FIRE)";
+        cout << endl;
         if(COEFF::prime) {
             cout << "Prime Index: " << COEFF::prime_number << endl;
             cout << "Prime Number: " << COEFF::prime << endl;

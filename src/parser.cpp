@@ -2700,7 +2700,7 @@ void parseArgcArgv(int argc, char *argv[]) {
             s2u(str.c_str(), common::lmt2);
             lmt2 = true;
             i++;
-        }  else if((i + 1 != argc) && (!strcmp(argv[i],"-ltm"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-ltm"))) {
             string str(argv[i + 1]);
             s2i(str.c_str(), common::ltm);
             i++;
@@ -2709,6 +2709,10 @@ void parseArgcArgv(int argc, char *argv[]) {
             int t = 0;
             s2i(str.c_str(), t);
             if(t>1) flint_set_num_threads(t);
+            i++;
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-mode"))) {
+            string str(argv[i + 1]);
+            s2i(str.c_str(), common::code_flow_mode);
             i++;
         } else if (!strcmp(argv[i],"-oo")) {
             if(common::run_mode<1) common::o_output = 1;

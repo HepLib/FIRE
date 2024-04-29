@@ -63,6 +63,7 @@ int common::abs_min_level = 100;
 
 unsigned int common::global_pn = 0;
 int common::ltm = 0;
+int common::code_flow_mode = 0;
 #if defined(FMPQ) || defined(FloatR)
 unsigned int common::t1 = 4;
 unsigned int common::lt1 = 4;

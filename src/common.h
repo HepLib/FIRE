@@ -187,6 +187,7 @@ public:
     static unsigned int lmt1;
     static unsigned int lmt2;
     static int ltm;
+    static int code_flow_mode; // 0-auto, 1-prime, 2-poly
     static map<string, string> variable_replacements;
     static bool small;
     static bool hint;
