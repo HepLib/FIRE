@@ -688,6 +688,136 @@ string now(bool use_date=false) {
     return tmp;
 }
 
+void add_mode2(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+    rterms.clear();
+
+    auto eq2end = terms2.end();
+    eq2end--;
+
+    pc_pair_ptr_lst::const_iterator itr1;
+    pc_pair_ptr_lst::const_iterator itr2;
+    itr1 = terms1.begin();
+    itr2 = terms2.begin();
+    while (itr2 != eq2end) {
+        if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
+            rterms.emplace_back(*itr1);
+            ++itr1;
+        } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
+            COEFF o;
+            _mul_(o, (*itr2)->second,  coeff);
+            rterms.emplace_back(make_pc_ptr((*itr2)->first, std::move(o)));
+            ++itr2;
+        } else { // both equations. have to multiply and add
+            COEFF o;
+            _mul_(o, (*itr2)->second, coeff);
+            _add_(o, o, (*itr1)->second);
+            rterms.emplace_back(make_pc_ptr((*itr2)->first, std::move(o)));
+            ++itr1;
+            ++itr2;
+        }
+    }
+
+    while (itr1 != terms1.end()) {
+        rterms.emplace_back(*itr1);
+        ++itr1;
+    }
+}
+void apply_table_mode2(const pc_pair_ptr_lst &terms, bool fixed_last, sector_count_t fixed_database_sector, unsigned short sector_level, std::shared_mutex & db_rw_mutex, atomic<uint64_t> & virts_number) {
+
+    bool changed = false;
+    auto end = terms.cend();
+    if (fixed_last) --end;
+
+    pc_pair_ptr_lst rterms1;
+    bool first = true;
+    pc_pair_ptr_lst rterms2;
+    COEFF o;
+    for (auto itr = terms.cbegin(); itr != end; ++itr) {
+        const point &p = (*itr)->first;
+        if ((((p.s_number() < fixed_database_sector) || p.virt())) || (p.s_number() == 1)) {
+            if (first) {
+                rterms1.push_back(*itr);
+            } else {
+                rterms2.push_back(*itr);
+            }
+        } else {
+            pc_pair_ptr_lst terms2;
+            p_get(p, terms2, fixed_database_sector);
+            if (terms2.empty()) {
+                if (first) {
+                    rterms1.push_back(*itr);
+                } else {
+                    rterms2.push_back(*itr);
+                }
+            } else {
+                changed = true;
+                _div_neg_(o, (*itr)->second, terms2.back()->second);
+                if(!is_zero(o)) {
+                    if (first) {
+                        add_mode2(rterms1, terms2, rterms2, o);
+                        first = false;
+                    } else {
+                        add_mode2(rterms2, terms2, rterms1, o);
+                        first = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if (fixed_last) {
+        if (first) {
+            rterms1.push_back(terms.back());
+        } else {
+            rterms2.push_back(terms.back());
+        }
+    }
+
+    pc_pair_ptr_lst *rterms_p;
+    if (first) {
+        rterms_p = &rterms1;
+    } else {
+        rterms_p = &rterms2;
+    }
+
+    pc_pair_ptr_lst &rterms = *rterms_p;
+
+    if (rterms.empty()) return;
+
+    if (!changed) {
+        if (!fixed_last) {
+            // means that it is a pure equation that should be checked for having at lease something over the corner and set
+            const point &after = rterms.back()->first;
+            if ((after.s_number() >= fixed_database_sector) && (!after.virt())) {
+                p_set(after, rterms, 2 * sector_level, fixed_database_sector);
+            }
+        }
+        return;
+    }
+
+    //normalize(rterms, thread_number);
+    pc_pair_ptr_vec rterms_vec;
+    for(auto item : rterms) {
+        if(is_zero(item->second)) continue;
+        rterms_vec.emplace_back(item);
+    }
+    sort(rterms_vec.begin(), rterms_vec.end(), pair_point_COEFF_smaller_mode2);
+    
+    if (rterms_vec.empty()) return;
+    {
+        pc_pair_ptr_lst rterms;
+        for(auto & item : rterms_vec) rterms.emplace_back(item);
+        if ((rterms.back()->first.s_number() == fixed_database_sector) && (!(rterms.back()->first.virt()))) {
+            { // write locker block
+                std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
+                split(rterms, fixed_database_sector, ++virts_number); // classical split with vectors
+            }
+        }
+    }
+    
+}
+
+
 bool equations_less(const equation &lhs, const equation &rhs);
 /* main worker in a sector
 * tries different methods
@@ -1654,6 +1784,8 @@ if(common::ltm) { // using cached equation
             }
 
             for (k = 0; k != write; ++k) {  //cycle of same starting point
+//#define Mode1
+#ifdef Mode1
                 pc_pair_ptr_lst result;
                 for (unsigned int i = 0; i != eqs[k].length; ++i) {
                     result.emplace_back(std::move(eqs[k].terms[i]));
@@ -1710,6 +1842,75 @@ if(common::ltm) { // using cached equation
                 
                 // now substituting back
                 worker_to_substitue(to_substitute);
+#else
+                map<point, pc_pair_ptr_lst, indirect_more> to_test;
+                for (unsigned int i = 0; i != eqs[k].length; ++i) {
+                    pc_pair_ptr_lst v;
+                    to_test.emplace(eqs[k].terms[i]->first, v);
+                }
+                { // bool has_high = express_and_pass_back(to_test, ssector_number, virts_number);
+                
+                    bool has_high = false;
+                    auto ritr = to_test.rbegin();
+                    for (auto itr = to_test.begin(); itr != to_test.end();) {
+                        const point &p = itr->first;
+                        if ((p.s_number() != ssector_number) || (p.virt())) {
+                            ritr = map<point, pc_pair_ptr_lst, indirect_more>::reverse_iterator(itr);
+                            break;
+                        }
+                        p_get(p, itr->second, ssector_number);
+                        if (!itr->second.empty()) {
+                            auto insert_itr = itr;
+                            auto mitr = itr->second.rbegin(); // the highest, that will be skipped
+                            for (++mitr; mitr != itr->second.rend(); ++mitr) {
+                                // last is equal to p. not to check it all the time
+                                if (((*mitr)->first.s_number() == ssector_number) && (!(*mitr)->first.virt())) {
+                                    pc_pair_ptr_lst v;
+                                    insert_itr = to_test.insert(insert_itr, make_pair((*mitr)->first, v)); // we keep moving to lower entries, they will come later
+                                } else {
+                                    break; // as soon as we see something out of the sector, there is no need to search more
+                                }
+                            }
+                            ++itr;
+                        } else {
+                            has_high = true;
+                            // it's been an empty table, but we don't change anything, it will be skipped on the back pass
+                            ++itr;
+                        }
+                    }
+
+                    if (!has_high) { continue; }
+
+                    //pass_back
+                    for (auto itr = ritr; itr != to_test.rend(); ++itr) {
+                        auto &terms = itr->second;
+                        if (!terms.empty()) {
+                            apply_table_mode2(terms, true, ssector_number, 0, db_rw_mutex, virts_number);
+                        }
+                    }
+                
+                }
+                
+
+                if (common::hint && !hint_exists) {
+                    unsigned short i = eqs[k].source.second;
+                    point_fast &p = eqs[k].source.first;
+                    if (used_number) out << "," << endl;
+                    out << "{{";
+                    for (unsigned j = 0; j + 1 != common::dimension; ++j) {
+                        out << int(p.buf[j]) << ",";
+                    }
+                    out << int(p.buf[common::dimension - 1]) << "}" << "," << i << "}";
+                }
+
+                ++used_number;
+                pc_pair_ptr_lst terms;
+                for (unsigned int i = 0; i != eqs[k].length; ++i) {
+                    terms.emplace_back(eqs[k].terms[i]);
+                }
+
+                apply_table_mode2(terms, false, ssector_number, sector_level, db_rw_mutex, virts_number);
+#endif
             } // cycle of same starting point
             
             if (!hint_exists) {

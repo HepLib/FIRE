@@ -1,5 +1,18 @@
+# GMP
+GMP:=gmp-6.3.0
+GMPx:=tar.gz
+# MPFR
+MPFR:=mpfr-4.2.1
+MPFRx:=tar.gz
+# Flint
+FLINT:=flint-3.1.3
+FLINTx:=tar.gz
+# XMalloc
+XMALLOC:=jemalloc-5.3.0 # mimalloc-2.1.4 | gperftools-2.10
+XMALLOCx:=tar.bz2
+
 ifeq ($(strip $(MALLOC)),)
-MALLOC:=-ljemalloc
+MALLOC:=-ljemalloc # -lmimalloc | -ltcmalloc
 endif
 
 ifeq ($(strip $(USR_DIR)),)
@@ -54,31 +67,20 @@ ASIE =
 endif
 
 UNAME_M:=$(shell uname -m)
-ifeq ($(UNAME_M),arm64)
+ifeq ($(UNAME_M),arm64) # Apple Silicon Chip
 #===============================================
 dep:
 	cd usr-src; \
-tar xf flint-3.1.2.tar.gz; \
-tar xf jemalloc-5.3.0.tar.bz2; \
-tar xf gperftools-2.10.tar.gz; \
-tar xf mimalloc-2.1.2.tar.gz;
+tar xf $(strip $(FLINT)).$(FLINTx); \
+tar xf $(strip $(XMALLOC)).$(XMALLOCx);
 
-	cd usr-src/flint-3.1.2; \
+	cd usr-src/$(FLINT); \
 ./bootstrap.sh; \
 ./configure --disable-static --with-gmp=/opt/homebrew --with-mpfr=/opt/homebrew --prefix=$(USR_DIR) CFLAGS="-O3"; \
 $(MAKE) install
 
-	cd usr-src/jemalloc-5.3.0; \
+	cd usr-src/$(XMALLOC); \
 ./configure --prefix=$(USR_DIR); \
-$(MAKE) install
-
-	cd usr-src/gperftools-2.10; \
-./configure --prefix=$(USR_DIR); \
-$(MAKE) install
-
-	cd usr-src/mimalloc-2.1.2; \
-mkdir build && cd build; \
-cmake -DCMAKE_INSTALL_PREFIX=$(USR_DIR) .. ; \
 $(MAKE) install
 
 cleandepall: cleandep
@@ -90,53 +92,41 @@ cleandepall: cleandep
 	cd usr && ln -s lib lib64
 	
 cleandep:
-	rm -rf usr-src/flint-3.1.2
-	rm -rf usr-src/jemalloc-5.3.0
-	rm -rf usr-src/gperftools-2.10
-	rm -rf usr-src/mimalloc-2.1.2
+	rm -rf usr-src/$(FLINT)
+	rm -rf usr-src/$(XMALLOC)
+
 #===============================================
 else
 #===============================================
 dep:
 	cd usr-src; \
-tar xf gmp-6.2.1.tar.gz; \
-tar xf mpfr-4.2.1.tar.gz; \
-tar xf flint-3.1.2.tar.gz; \
-tar xf jemalloc-5.3.0.tar.bz2; \
-tar xf gperftools-2.10.tar.gz; \
-tar xf mimalloc-2.1.2.tar.gz;
+tar xf $(strip $(GMP)).$(GMPx); \
+tar xf $(strip $(MPFR)).$(MPFRx); \
+tar xf $(strip $(FLINT)).$(FLINT); \
+tar xf $(strip $(XMALLOC)).$(XMALLOC);
 
-	cd usr-src/gmp-6.2.1;\
+	cd usr-src/$(GMP);\
 ./configure --enable-cxx --prefix=$(USR_DIR); \
 $(MAKE) install
-	cd usr-src/mpfr-4.2.1; \
+
+	cd usr-src/$(MPFR); \
 ./configure --with-gmp=$(USR_DIR) --prefix=$(USR_DIR); \
 $(MAKE) install
-	cd usr-src/flint-3.1.2; \
+
+	cd usr-src/$(FLINT); \
 ./bootstrap.sh; \
 ./configure --disable-static --enable-avx2 --with-gmp=$(USR_DIR) --with-mpfr=$(USR_DIR) --prefix=$(USR_DIR) CFLAGS="-O3"; \
 $(MAKE) install
-		
-	cd usr-src/jemalloc-5.3.0; \
+	
+	cd usr-src/$(XMALLOC); \
 ./configure --prefix=$(USR_DIR); \
-$(MAKE) install
-
-	cd usr-src/gperftools-2.10; \
-./configure --prefix=$(USR_DIR); \
-$(MAKE) install
-
-	cd usr-src/mimalloc-2.1.2; \
-mkdir build && cd build; \
-cmake -DCMAKE_INSTALL_PREFIX=$(USR_DIR) .. ; \
 $(MAKE) install
 
 cleandep:
-	rm -rf usr-src/gmp-6.2.1
-	rm -rf usr-src/mpfr-4.2.1
-	rm -rf usr-src/flint-3.1.2
-	rm -rf usr-src/jemalloc-5.3.0
-	rm -rf usr-src/gperftools-2.10
-	rm -rf usr-src/mimalloc-2.1.2
+	rm -rf usr-src/$(GMP)
+	rm -rf usr-src/$(MPFR)
+	rm -rf usr-src/$(FLINT)
+	rm -rf usr-src/$(XMALLOC)
 
 cleandepall: cleandep
 	rm -rf usr/include/*

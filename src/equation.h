@@ -23,6 +23,7 @@ public:
 };
 
 bool pair_point_COEFF_smaller(const pc_pair &lhs, const pc_pair &rhs);
+bool pair_point_COEFF_smaller_mode2(const pc_pair_ptr &lhs, const pc_pair_ptr &rhs);
 bool p_is_empty(const point &, sector_count_t fixed_database_sector = 0);
 void p_get(const point &p, pc_pair_ptr_vec &terms, sector_count_t fixed_database_sector = 0);
 void p_get(const point &p, pc_pair_ptr_lst &terms, sector_count_t fixed_database_sector = 0);

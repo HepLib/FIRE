@@ -114,6 +114,9 @@ bool is_lower_in_orbit(const vector<t_index> &lhs, const vector<t_index> &rhs) {
 bool pair_point_COEFF_smaller(const pc_pair &lhs, const pc_pair &rhs) {
     return lhs.first < rhs.first;
 }
+bool pair_point_COEFF_smaller_mode2(const pc_pair_ptr &lhs, const pc_pair_ptr &rhs) {
+    return lhs->first < rhs->first;
+}
 
 
 bool point_fast_smaller_in_sector(const point_fast & pf1, const point_fast & pf2, SECTOR s) {
