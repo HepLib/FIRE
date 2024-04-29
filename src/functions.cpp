@@ -803,7 +803,7 @@ void forward_stage(sector_count_t ssector_number) {
         auto litr = common::lbases.find(ssector_number);
 
         if (litr != common::lbases.end()) {
-            if (!common::silent) cout << "L-basis found." << endl;
+            //if (!common::silent) cout << "L-basis found." << endl;
             vector<pair<vector<pair<vector<t_index>, pair<short, bool> > >, vector<pair<string, vector<pair<vector<t_index>, short> > > > > > lbasis = litr->second;
             for (ivpl_counter = ivpl.begin(); ivpl_counter != ivpl.end(); ++ivpl_counter) {
                 point p = *ivpl_counter;

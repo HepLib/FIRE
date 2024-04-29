@@ -2638,7 +2638,7 @@ vector<COEFF> split_coeff(const string &s) {
 }
 
 void parseArgcArgv(int argc, char *argv[]) {
-    bool t1 = false, t2 = false, lt1 = false, lt2 = false;
+    bool t1 = false, t2 = false, lt1 = false, lt2 = false, lmt1 = false, lmt2 = false;
     for (int i = 1; i < argc; ++i) {
         if ((i + 1 != argc) && (!strcmp(argv[i],"-c"))) {
             common::config_file = string(argv[i + 1]);
@@ -2683,13 +2683,22 @@ void parseArgcArgv(int argc, char *argv[]) {
             s2u(str.c_str(), common::lt2);
             lt2 = true;
             i++;
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt"))) {
+            string str(argv[i + 1]);
+            unsigned int lmt;
+            s2u(str.c_str(), lmt);
+            if(!lmt1) common::lmt1 = lmt;
+            if(!lmt2) common::lmt2 = lmt;
+            i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt1"))) {
             string str(argv[i + 1]);
             s2u(str.c_str(), common::lmt1);
+            lmt1 = true;
             i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt2"))) {
             string str(argv[i + 1]);
             s2u(str.c_str(), common::lmt2);
+            lmt2 = true;
             i++;
         }  else if((i + 1 != argc) && (!strcmp(argv[i],"-ltm"))) {
             string str(argv[i + 1]);
@@ -2753,3 +2762,4 @@ void parseArgcArgv(int argc, char *argv[]) {
         abort();
     }
 }
+

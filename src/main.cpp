@@ -60,7 +60,8 @@ int main(int argc, char *argv[]) {
             cout << "-lt <num>: to set both -lt1/-lt2, lower priority than -lt1/-lt2." << endl;
             cout << "-lmt1 <num>: set limit to activate -lt1." << endl;
             cout << "-lmt2 <num>: set limit to activate -lt2." << endl;
-            cout << "-ltm <numb>: to set lt mode in forward-stage." << endl;
+            cout << "-lmt <num>: to set both -lmt1/-lmt2, lower priority than -lmt1/-lmt2." << endl;
+            cout << "-ltm <numb>: to set lt mode in forward-stage, non-zero for cached mode." << endl;
             cout << "-dbo: DB exported to and imported from file to save memory." << endl;
             cout << "-re: will continue to run from the saving point (imply -dbo)." << endl;
             cout << "-skip: just by pass if the .tables exists." << endl;

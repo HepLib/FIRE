@@ -220,6 +220,8 @@ int iniCalc(const char *path, const string & vars) {
 }
 
 string calc(const string & in_buf) {
+    static std::shared_mutex fer_mutex;
+    std::lock_guard<std::shared_mutex> write_locker(fer_mutex);
     string buf = in_buf;
     if(has_vv) {
         for(auto vi : v_vec) {
