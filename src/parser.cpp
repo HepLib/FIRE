@@ -1257,7 +1257,7 @@ void set_masters_to_zero(const char *c, bool zero_sector =false) {
                 point p1(p.get_vector(), 0, -2); // sending to sector 1
                 terms.emplace_back(make_pc_ptr(p1,CO_1));
             } else {
-                if (!common::silent && zero_sector) cout<<"Setting master integral to zero: "<<p<<endl;
+                //if (!common::silent && zero_sector) cout<<"Setting master integral to zero: "<<p<<endl;
             }
 
             if (zero_sector) {
@@ -2561,7 +2561,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             if (needed) {
                 //if (!sector) cout<<"Needed sector: "<<i<<endl;
             } else {
-                if (!common::silent) cout<<"Setting sector to zero: "<<i<<endl;
+                //if (!common::silent) cout<<"Setting sector to zero: "<<i<<endl;
                 vector<vector<t_index> > orbit;
                 vector<t_index> v = common::ssectors[i];
                 Orbit(v, orbit, common::symmetries);

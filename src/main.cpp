@@ -61,7 +61,8 @@ int main(int argc, char *argv[]) {
             cout << "-lmt1 <num>: set limit to activate -lt1." << endl;
             cout << "-lmt2 <num>: set limit to activate -lt2." << endl;
             cout << "-lmt <num>: to set both -lmt1/-lmt2, lower priority than -lmt1/-lmt2." << endl;
-            cout << "-ltm <numb>: to set lt mode in forward-stage, non-zero for cached mode." << endl;
+            cout << "-ltm <num>: to set lt mode in forward-stage, non-zero for cached mode." << endl;
+            cout << "-mode <num>: to set instruction flow mode in forward stage, 0-auto, 1-prime, 2-poly." << endl;
             cout << "-dbo: DB exported to and imported from file to save memory." << endl;
             cout << "-re: will continue to run from the saving point (imply -dbo)." << endl;
             cout << "-skip: just by pass if the .tables exists." << endl;
@@ -122,10 +123,16 @@ int main(int argc, char *argv[]) {
     if (!common::silent) {
         cout << "----------------------------------------" << endl;
         cout << "Version: " << common::version << endl;
-        cout << "Mode: ";
-        if(common::code_flow_mode==0) cout << " Auto";
-        else if(common::code_flow_mode==1) cout << " Flow Mode 1 (PRIME@FIRE)";
-        else if(common::code_flow_mode==2) cout << " Flow Mode 2 (POLY@FIRE)";
+        cout << "Instruction Flow Mode: ";
+        if(common::code_flow_mode==0) {
+            cout << "Auto ";
+            #if defined(FlintM)
+            cout << "(POLY@FIRE)";
+            #else
+            cout << "(PRIME@FIRE)";
+            #endif
+        } else if(common::code_flow_mode==1) cout << "1st (PRIME@FIRE)";
+        else if(common::code_flow_mode==2) cout << "2nd (POLY@FIRE)";
         cout << endl;
         if(COEFF::prime) {
             cout << "Prime Index: " << COEFF::prime_number << endl;
@@ -137,7 +144,7 @@ int main(int argc, char *argv[]) {
         cout << "Forward : T1/LT1/LMT1 = " << common::t1 << "/" << common::lt1 << "/" << common::lmt1 << endl;
         cout << "Backward: T2/LT2/LMT2 = " << common::t2 << "/" << common::lt2 << "/" << common::lmt2 << endl;
         if(common::prt_rule_counter) cout << "Rules: " << common::prt_rule_counter << endl;
-        cout << "Mode: DB-" << common::run_mode << ", LT1-" << common::ltm << endl;
+        cout << "DB Mode: DB-" << common::run_mode << ", LTM: " << common::ltm << endl;
         if(!common::prt_replace.empty()) {
             cout << "Parameters: " << endl;
             for(auto kv : common::prt_replace) cout << "  " << kv.first << " -> " << kv.second << endl;
