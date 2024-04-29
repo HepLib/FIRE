@@ -102,8 +102,8 @@ dep:
 	cd usr-src; \
 tar xf $(strip $(GMP)).$(GMPx); \
 tar xf $(strip $(MPFR)).$(MPFRx); \
-tar xf $(strip $(FLINT)).$(FLINT); \
-tar xf $(strip $(XMALLOC)).$(XMALLOC);
+tar xf $(strip $(FLINT)).$(FLINTx); \
+tar xf $(strip $(XMALLOC)).$(XMALLOCx);
 
 	cd usr-src/$(GMP);\
 ./configure --enable-cxx --prefix=$(USR_DIR); \
