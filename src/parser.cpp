@@ -1418,11 +1418,11 @@ bool add_rules(const char *c) {
                                 t.emplace_back(make_pc_ptr(p3, CO_1));
                                 t.emplace_back(make_pc_ptr(p2, CO_1m));
                                 p_set(p2, std::move(t), 127);  // the rule right-hand sides are masters
+                                masters.insert(p2);
+                                mon.emplace_back(p3, std::move(current_COEFF));
                             }
                             close_database(p2.s_number());
                         }
-                        masters.insert(p2);
-                        mon.emplace_back(p3, std::move(current_COEFF));
                     } else {
                         mon.emplace_back(p3, std::move(current_COEFF));
                     }
@@ -1954,7 +1954,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             continue; // comment
         } else if (str.substr(0, 7) == "#fermat") {
             size_t pos = 7;
-            while (str[pos] == ' ') pos++;
+            while (str[pos] == ' ' || str[pos] == '\t') pos++;
             fermat = str.substr(pos);
             fermat[fermat.find('\n')] = '\0';
         } else if (str.substr(0, 8) == "#threads") {
@@ -1979,14 +1979,14 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             continue; // skip
         } else if (str.substr(0, 9) == "#pos_pref") {
             size_t pos = 10;
-            while (str[pos] == ' ') pos++;
+            while (str[pos] == ' ' || str[pos] == '\t') pos++;
             str = str.substr(pos);
             int pos_pref;
             s2i(str.c_str(), pos_pref);
             common::pos_pref = pos_pref;
         } else if (str.substr(0, 10) == "#variables") {
             size_t pos = 10;
-            while (str[pos] == ' ') pos++;
+            while (str[pos] == ' ' || str[pos] == '\t') pos++;
             char variables_temp[COEFF_BUF_SIZE];
             strcpy(variables_temp, (str.substr(pos)).c_str());
             char *begin = variables_temp;
@@ -2040,7 +2040,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
          } else if (str.substr(0, 9) == "#database") {
             if (common::path == "") {
                 size_t pos = 9;
-                while (str[pos] == ' ') pos++;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
                 common::path = str.substr(pos);
                 common::path.erase(common::path.find('\n'));
                 if (common::suffix != "") {
@@ -2062,7 +2062,6 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                         }
                     }
                 }
-                
             } else {
                 cout<<"#database setting ignored"<<endl;
             }
@@ -2070,7 +2069,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             #if defined(PRIME) || defined(FloatR)
             if (!COEFF::prime) {
                 int pos = 7;
-                while (str[pos] == ' ') pos++;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
                 str = str.substr(pos);
                 sscanf(str.c_str(), "%hu", &COEFF::prime_number);
                 if (COEFF::prime_number > 127) {
@@ -2128,7 +2127,23 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 return 1;
             }
             if (common::path == "") {
-                common::path = "db"+common::config_file;
+                common::path = "db-"+common::config_file;
+                if (common::run_mode) {
+                    if(access(common::path.c_str(), 0)) mkpath(common::path, 0777);
+                    // clean on database
+                    if(!common::run_sector) {
+                        for (const auto & file : std::filesystem::directory_iterator(common::path)) {
+                            if(common::run_mode==1) file_remove(file.path());
+                            else {
+                                int status = 0;
+                                fstream db(file.path(), fstream::in);
+                                db >> status;
+                                db.close();
+                                if(status==0) file_remove(file.path());
+                            }
+                        }
+                    }
+                }
             }
             if (common::t1 <= 0) {
                 cerr << "No proper #threads setting, exiting" << endl;
@@ -2154,7 +2169,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
 
             if (str.substr(0, 7) == "#folder") {
                 size_t pos = 7;
-                while (str[pos] == ' ') pos++;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
                 str = str.substr(pos);
                 str.erase(str.find('\n'));
                 folder = str;
@@ -2162,7 +2177,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 // problem should be parsed even for substitutions, however coefficients should not be loaded
                 size_t pos = 8;
                 unsigned int pn;
-                while (str[pos] == ' ') pos++;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
                 str = str.substr(pos);
 
                 str.erase(str.find('\n'));
@@ -2178,7 +2193,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
 
             } else if (str.substr(0, 5) == "#hint") {
                 size_t pos = 6;
-                while (str[pos] == ' ') pos++;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
                 common::hint = true;
                 common::hint_path = str.substr(pos);
                 common::hint_path.erase(common::hint_path.find('\n'));
@@ -2189,7 +2204,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 {
                     // we need to load preferred from rules anyway
                     size_t pos = 6;
-                    while (str[pos] == ' ') pos++;
+                    while (str[pos] == ' ' || str[pos] == '\t') pos++;
                     str = str.substr(pos);
                     str.erase(str.find('\n'));
                     const char *r;
@@ -2209,7 +2224,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             } else if (str.substr(0, 7) == "#lbases") {
                 {  // only for particular sector work, but still for the main thread to produce warnings
                     size_t pos = 7;
-                    while (str[pos] == ' ') pos++;
+                    while (str[pos] == ' ' || str[pos] == '\t') pos++;
                     str = str.substr(pos);
                     str.erase(str.find('\n'));
                     const char *r;
@@ -2227,7 +2242,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             } else if (str.substr(0, 7) == "#output") {
                 {
                     size_t pos = 7;
-                    while (str[pos] == ' ') pos++;
+                    while (str[pos] == ' ' || str[pos] == '\t') pos++;
                     bool norepeat = false;
                     if (str[pos] == '!') {
                         ++pos;
@@ -2263,20 +2278,18 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                         }
                     }
                 }
-//            } else if (str.substr(0, 9) == "#dep_file") {
-//                if (sector == 0) {
-//                    size_t pos = 9;
-//                    while (str[pos] == ' ') pos++;
-//                    common::dep_file = str.substr(pos);
-//                    common::dep_file.erase(common::dep_file.find('\n'));
-//                    if (common::dep_file[0] != '/') {
-//                        common::dep_file = folder + common::dep_file;
-//                    }
-//                    if (!common::silent) { cout << "Dependency file will be saved to " << common::dep_file << endl; }
-//                }
+            } else if (str.substr(0, 9) == "#dep_file") {
+                size_t pos = 9;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
+                common::dep_file = str.substr(pos);
+                common::dep_file.erase(common::dep_file.find('\n'));
+                if (common::dep_file[0] != '/') {
+                    common::dep_file = folder + common::dep_file;
+                }
+                //if (!common::silent) { cout << "Dependency file will be saved to " << common::dep_file << endl; }
             } else if (str.substr(0, 8) == "#masters") {
                 size_t pos = 8;
-                while (str[pos] == ' ') pos++;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
                 str = str.substr(pos);
                 if (str.find('\n') != string::npos) { str.erase(str.find('\n')); }
                 if ((str[0] == '|') || (common::master_number_min)) {
@@ -2360,7 +2373,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                         return 1;
                     }
                     size_t pos = 10;
-                    while (str[pos] == ' ') pos++;
+                    while (str[pos] == ' ' || str[pos] == '\t') pos++;
                     str = str.substr(pos);
                     if (str.find('\n') != string::npos) str.erase(str.find('\n'));
                     if (str[0]!='/') str = folder + str;
@@ -2403,7 +2416,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                     common::abs_max_level = common::abs_min_level;
 
                     size_t pos = 10;
-                    while (str[pos] == ' ') pos++;
+                    while (str[pos] == ' ' || str[pos] == '\t') pos++;
                     str = str.substr(pos);
                     if (str.find('\n') != string::npos) { str.erase(str.find('\n')); }
                     FILE *integral_file;
@@ -2542,7 +2555,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
             }
             out<<"}}"<<endl;
             out.close();
-            cout<<"Dependency file saved!"<<endl;
+            //cout<<"Dependency file saved!"<<endl;
         }
 
         // create the list of sectors where reduction is needed, set others to zero
@@ -2638,7 +2651,7 @@ vector<COEFF> split_coeff(const string &s) {
 }
 
 void parseArgcArgv(int argc, char *argv[]) {
-    bool t1 = false, t2 = false, lt1 = false, lt2 = false, lmt1 = false, lmt2 = false;
+    bool t1 = false, t2 = false, lt1 = false, lt2 = false, llt1 = false, llt2 = false, lmt1 = false, lmt2 = false;
     for (int i = 1; i < argc; ++i) {
         if ((i + 1 != argc) && (!strcmp(argv[i],"-c"))) {
             common::config_file = string(argv[i + 1]);
@@ -2673,15 +2686,32 @@ void parseArgcArgv(int argc, char *argv[]) {
             if(!lt1) common::lt1 = lt;
             if(!lt2) common::lt2 = lt;
             i++;
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-llt"))) {
+            string str(argv[i + 1]);
+            unsigned int llt;
+            s2u(str.c_str(), llt);
+            if(!llt1) common::llt1 = llt;
+            if(!llt2) common::llt2 = llt;
+            i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-lt1"))) {
             string str(argv[i + 1]);
             s2u(str.c_str(), common::lt1);
             lt1 = true;
             i++;
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-llt1"))) {
+            string str(argv[i + 1]);
+            s2u(str.c_str(), common::llt1);
+            llt1 = true;
+            i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-lt2"))) {
             string str(argv[i + 1]);
             s2u(str.c_str(), common::lt2);
             lt2 = true;
+            i++;
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-llt2"))) {
+            string str(argv[i + 1]);
+            s2u(str.c_str(), common::llt2);
+            llt2 = true;
             i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt"))) {
             string str(argv[i + 1]);
@@ -2710,9 +2740,9 @@ void parseArgcArgv(int argc, char *argv[]) {
             s2i(str.c_str(), t);
             if(t>1) flint_set_num_threads(t);
             i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-mode"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-ifm"))) {
             string str(argv[i + 1]);
-            s2i(str.c_str(), common::code_flow_mode);
+            s2i(str.c_str(), common::ifm);
             i++;
         } else if (!strcmp(argv[i],"-oo")) {
             if(common::run_mode<1) common::o_output = 1;

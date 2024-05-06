@@ -20,7 +20,7 @@ unsigned short common::dimension;
 unique_ptr<sector_count_t[]> common::sector_numbers_fast;
 unique_ptr<unique_ptr<t_index[]>[]> common::orderings_fast;
 
-const string common::version = "2024/04/28 (based on 6.5)";
+const string common::version = "2024/05/01 (based on v6.5)";
 map<string, string> common::prt_replace;
 int common::prt_rule_counter = 0;
 bool common::skip_if_exist = false;
@@ -63,20 +63,24 @@ int common::abs_min_level = 100;
 
 unsigned int common::global_pn = 0;
 int common::ltm = 0;
-int common::code_flow_mode = 0;
+int common::ifm = 0;
 #if defined(FMPQ) || defined(FloatR)
 unsigned int common::t1 = 4;
 unsigned int common::lt1 = 4;
+unsigned int common::llt1 = 0;
 unsigned int common::lmt1 = 10;
 unsigned int common::t2 = 4;
 unsigned int common::lt2 = 4;
+unsigned int common::llt2 = 2;
 unsigned int common::lmt2 = 5000;
 #else
 unsigned int common::t1 = 4;
 unsigned int common::lt1 = 4;
+unsigned int common::llt1 = 0;
 unsigned int common::lmt1 = 3;
 unsigned int common::t2 = 4;
 unsigned int common::lt2 = 4;
+unsigned int common::llt2 = 2;
 unsigned int common::lmt2 = 100;
 #endif
 

@@ -3,6 +3,6 @@
 export tn=8
 
 echo M/FIRE -c softQuadrupleBox -t $tn
-../../M/FIRE -c softQuadrupleBox -t $tn
+time ../../M/FIRE -c softQuadrupleBox -t $tn
 echo
 

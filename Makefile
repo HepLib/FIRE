@@ -53,7 +53,7 @@ cleanexe:
 tgz:
 	/bin/rm -rf FIREs FIREs.tar.gz; \
 mkdir FIREs; \
-cp -r src M Q F P Makefile usr usr-src FIREs/; \
+cp -r src M Q F P Makefile usr usr-src examples FIREs/; \
 make cleanall -C FIREs; \
 /bin/rm -f FIREs/.DS_Store FIREs/*/.DS_Store FIREs/*/*/.DS_Store FIREs/*/*/*/.DS_Store;\
 gtar cfz FIREs.tar.gz FIREs; \

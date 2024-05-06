@@ -183,11 +183,13 @@ public:
     static unsigned int t1;
     static unsigned int t2;
     static unsigned int lt1;
+    static unsigned int llt1;
     static unsigned int lt2;
+    static unsigned int llt2;
     static unsigned int lmt1;
     static unsigned int lmt2;
     static int ltm;
-    static int code_flow_mode; // 0-auto, 1-prime, 2-poly
+    static int ifm; // 0-auto, 1-prime, 2-poly
     static map<string, string> variable_replacements;
     static bool small;
     static bool hint;

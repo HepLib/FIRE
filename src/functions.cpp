@@ -21,6 +21,8 @@
 #include <malloc.h>
 #endif
 
+#include "flint/thread_support.h"
+
 inline char digit2char(const int i) {
     if (0 <= i && i <= 9) {
         return static_cast<char>('0' + i);
@@ -134,7 +136,7 @@ equation apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast 
         t_index *pos = v.buf;
         _set_(o1, (read->first)[0]);
         for (unsigned short i = 0; i != common::dimension; ++i, ++pos) {
-            _set_(o2, int(*pos));
+            _set_(o2, int128_t(*pos));
             _add_mul_(o1, o2, (read->first)[i+1]);
         }
         if (!o1.is_zero()) {
@@ -688,9 +690,8 @@ string now(bool use_date=false) {
     return tmp;
 }
 
-void add_mode2(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+void add_mode2_v0(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
     rterms.clear();
-
     auto eq2end = terms2.end();
     eq2end--;
 
@@ -716,13 +717,145 @@ void add_mode2(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
             ++itr2;
         }
     }
-
+    
     while (itr1 != terms1.end()) {
         rterms.emplace_back(*itr1);
         ++itr1;
     }
 }
-void apply_table_mode2(const pc_pair_ptr_lst &terms, bool fixed_last, sector_count_t fixed_database_sector, unsigned short sector_level, std::shared_mutex & db_rw_mutex, atomic<uint64_t> & virts_number) {
+
+struct args_type {
+    vector<pair<int,vector<pc_pair_ptr>>> *todo_vec;
+    pc_pair_ptr_vec *rterms_vec;
+    const COEFF *coeff;
+};
+void do_func(long i, void *args_in) {
+    args_type *args = (args_type *)(args_in);
+    auto & todo_vec = *(args->todo_vec);
+    auto & rterms_vec = *(args->rterms_vec);
+    auto const & coeff = *(args->coeff);
+    auto mode = todo_vec[i].first;
+    auto items = todo_vec[i].second;
+    if(mode==1) {
+        rterms_vec[i] = items[0];
+    } else if(mode==2) {
+        COEFF o;
+        _mul_(o, items[0]->second,  coeff);
+        rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+    } else {
+        COEFF o;
+        _mul_(o, items[1]->second, coeff);
+        _add_(o, o, items[0]->second);
+        rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+    }
+}
+void add_mode2_v1(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+    rterms.clear();
+    auto eq2end = terms2.end();
+    eq2end--;
+
+    pc_pair_ptr_lst::const_iterator itr1;
+    pc_pair_ptr_lst::const_iterator itr2;
+    itr1 = terms1.begin();
+    itr2 = terms2.begin();
+    vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
+    while (itr2 != eq2end) {
+        if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
+            vector<pc_pair_ptr> items { *itr1 };
+            todo_vec.emplace_back(make_pair(1, items));
+            ++itr1;
+        } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
+            vector<pc_pair_ptr> items { *itr2 };
+            todo_vec.emplace_back(make_pair(2, items));
+            ++itr2;
+        } else { // both equations. have to multiply and add
+            vector<pc_pair_ptr> items { *itr1, *itr2 };
+            todo_vec.emplace_back(make_pair(3, items));
+            ++itr1;
+            ++itr2;
+        }
+    }
+    
+    pc_pair_ptr_vec rterms_vec(todo_vec.size());
+    args_type args;
+    args.todo_vec = &todo_vec;
+    args.rterms_vec = &rterms_vec;
+    args.coeff = &coeff;
+    flint_parallel_do(do_func, &args, todo_vec.size(), 0, FLINT_PARALLEL_STRIDED);
+    
+    for(auto & item : rterms_vec) rterms.emplace_back(item);
+    while (itr1 != terms1.end()) {
+        rterms.emplace_back(*itr1);
+        ++itr1;
+    }
+}
+
+void add_mode2_v2(int llt, const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+    rterms.clear();
+    auto eq2end = terms2.end();
+    eq2end--;
+
+    pc_pair_ptr_lst::const_iterator itr1;
+    pc_pair_ptr_lst::const_iterator itr2;
+    itr1 = terms1.begin();
+    itr2 = terms2.begin();
+    vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
+    while (itr2 != eq2end) {
+        if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
+            vector<pc_pair_ptr> items { *itr1 };
+            todo_vec.emplace_back(make_pair(1, items));
+            ++itr1;
+        } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
+            vector<pc_pair_ptr> items { *itr2 };
+            todo_vec.emplace_back(make_pair(2, items));
+            ++itr2;
+        } else { // both equations. have to multiply and add
+            vector<pc_pair_ptr> items { *itr1, *itr2 };
+            todo_vec.emplace_back(make_pair(3, items));
+            ++itr1;
+            ++itr2;
+        }
+    }
+    
+    pc_pair_ptr_vec rterms_vec(todo_vec.size());
+    atomic<long> atomic_index(0);
+    auto call_back = [&]() {
+        while(true) {
+            long i = atomic_index.fetch_add(1);
+            if(i>=todo_vec.size()) {
+                flint_cleanup();
+                return;
+            }
+            auto mode = todo_vec[i].first;
+            auto items = todo_vec[i].second;
+            if(mode==1) {
+                rterms_vec[i] = items[0];
+            } else if(mode==2) {
+                COEFF o;
+                _mul_(o, items[0]->second,  coeff);
+                rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+            } else {
+                COEFF o;
+                _mul_(o, items[1]->second, coeff);
+                _add_(o, o, items[0]->second);
+                rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+            }
+        }
+    };
+    
+    int nnn = llt;
+    if(nnn>todo_vec.size()) nnn = todo_vec.size();
+    std::thread threads[nnn];
+    for (int i=0; i<nnn; i++) threads[i] = std::thread(call_back);
+    for (int i=0; i<nnn; i++) threads[i].join();
+    
+    for(auto & item : rterms_vec) rterms.emplace_back(item);
+    while (itr1 != terms1.end()) {
+        rterms.emplace_back(*itr1);
+        ++itr1;
+    }
+}
+void apply_table_mode2(const pc_pair_ptr_lst &terms, bool forward_mode, bool fixed_last, sector_count_t fixed_database_sector, unsigned short sector_level, std::shared_mutex & db_rw_mutex, atomic<uint64_t> & virts_number) {
 
     bool changed = false;
     auto end = terms.cend();
@@ -734,7 +867,7 @@ void apply_table_mode2(const pc_pair_ptr_lst &terms, bool fixed_last, sector_cou
     COEFF o;
     for (auto itr = terms.cbegin(); itr != end; ++itr) {
         const point &p = (*itr)->first;
-        if ((((p.s_number() < fixed_database_sector) || p.virt())) || (p.s_number() == 1)) {
+        if ((forward_mode && ((p.s_number() < fixed_database_sector) || p.virt())) || (p.s_number() == 1)) {
             if (first) {
                 rterms1.push_back(*itr);
             } else {
@@ -754,10 +887,22 @@ void apply_table_mode2(const pc_pair_ptr_lst &terms, bool fixed_last, sector_cou
                 _div_neg_(o, (*itr)->second, terms2.back()->second);
                 if(!is_zero(o)) {
                     if (first) {
-                        add_mode2(rterms1, terms2, rterms2, o);
+                        if(forward_mode) {
+                            if(common::llt1<2 || rterms1.size()+terms2.size()<10) add_mode2_v0(rterms1, terms2, rterms2, o);
+                            else add_mode2_v2(common::llt1, rterms1, terms2, rterms2, o);
+                        } else {
+                            if(common::llt2<2 || rterms1.size()+terms2.size()<10) add_mode2_v0(rterms1, terms2, rterms2, o);
+                            else add_mode2_v2(common::llt2, rterms1, terms2, rterms2, o);
+                        }
                         first = false;
                     } else {
-                        add_mode2(rterms2, terms2, rterms1, o);
+                        if(forward_mode) {
+                            if(common::llt1<2 || rterms2.size()+terms2.size()<10) add_mode2_v0(rterms2, terms2, rterms1, o);
+                            else add_mode2_v2(common::llt1, rterms2, terms2, rterms1, o);
+                        } else {
+                            if(common::llt2<2 || rterms2.size()+terms2.size()<10) add_mode2_v0(rterms2, terms2, rterms1, o);
+                            else add_mode2_v2(common::llt2, rterms2, terms2, rterms1, o);
+                        }
                         first = true;
                     }
                 }
@@ -789,7 +934,10 @@ void apply_table_mode2(const pc_pair_ptr_lst &terms, bool fixed_last, sector_cou
             // means that it is a pure equation that should be checked for having at lease something over the corner and set
             const point &after = rterms.back()->first;
             if ((after.s_number() >= fixed_database_sector) && (!after.virt())) {
-                p_set(after, rterms, 2 * sector_level, fixed_database_sector);
+                { // write locker block
+                    std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
+                    p_set(after, rterms, 2 * sector_level, fixed_database_sector);
+                }
             }
         }
         return;
@@ -807,10 +955,17 @@ void apply_table_mode2(const pc_pair_ptr_lst &terms, bool fixed_last, sector_cou
     {
         pc_pair_ptr_lst rterms;
         for(auto & item : rterms_vec) rterms.emplace_back(item);
-        if ((rterms.back()->first.s_number() == fixed_database_sector) && (!(rterms.back()->first.virt()))) {
+        if (forward_mode) {
+            if ((rterms.back()->first.s_number() == fixed_database_sector) && (!(rterms.back()->first.virt()))) {
+                { // write locker block
+                    std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
+                    split(rterms, fixed_database_sector, ++virts_number); // classical split with vectors
+                }
+            }
+        }   else {
             { // write locker block
                 std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
-                split(rterms, fixed_database_sector, ++virts_number); // classical split with vectors
+                p_set(rterms.back()->first, rterms, 2 * sector_level, fixed_database_sector);
             }
         }
     }
@@ -1784,15 +1939,15 @@ if(common::ltm) { // using cached equation
             }
 
             for (k = 0; k != write; ++k) {  //cycle of same starting point
-int mode = common::code_flow_mode;
-if(mode==0) {
+int if_mode = common::ifm;
+if(if_mode==0) {
     #if defined(FlintM)
-    mode = 2;
+    if_mode = 2;
     # else
-    mode = 1;
+    if_mode = 1;
     #endif
 }
-if(mode==1) {
+if(if_mode==1) {
                 pc_pair_ptr_lst result;
                 for (unsigned int i = 0; i != eqs[k].length; ++i) {
                     result.emplace_back(std::move(eqs[k].terms[i]));
@@ -1849,7 +2004,7 @@ if(mode==1) {
                 
                 // now substituting back
                 worker_to_substitue(to_substitute);
-} else {
+} else if(if_mode==2) {
                 map<point, pc_pair_ptr_lst, indirect_more> to_test;
                 for (unsigned int i = 0; i != eqs[k].length; ++i) {
                     pc_pair_ptr_lst v;
@@ -1887,13 +2042,135 @@ if(mode==1) {
                     }
 
                     if (!has_high) { continue; }
+                    
+                    {
+                    
+                    // -- original version
+                    // pass_back
+                    //for (auto itr = ritr; itr != to_test.rend(); ++itr) {
+                    //    auto &terms = itr->second;
+                    //    if (!terms.empty()) {
+                    //        apply_table_mode2(terms, true, true, ssector_number, 0, db_rw_mutex, virts_number);
+                    //    }
+                    //}
 
-                    //pass_back
-                    for (auto itr = ritr; itr != to_test.rend(); ++itr) {
-                        auto &terms = itr->second;
-                        if (!terms.empty()) {
-                            apply_table_mode2(terms, true, ssector_number, 0, db_rw_mutex, virts_number);
-                        }
+
+                        struct worker_item_type {
+                            int i;
+                            set<int> iset;
+                            worker_item_type(int _i, set<int> && _iset) : i(_i), iset(std::move(_iset)) { }
+                        };
+                        
+                        vector<pc_pair_ptr_lst> worker_pcs;
+                        list<worker_item_type> worker_items;
+                        int worker_left = 0;
+                        mutex worker_mutex;
+                        condition_variable worker_cond;
+                        int total_threads = common::lt1;
+                        if(total_threads<1) total_threads = 1;
+                        thread worker[total_threads];
+                        map<int,bool> item_ready;
+
+                        auto worker_main = [&]() {
+                            int i;
+                            while(true) {
+                                auto itr = worker_items.begin();
+                                unique_lock<mutex> guard(worker_mutex);
+                                worker_cond.wait(guard, [&]() {
+                                    if(!worker_left) return true;
+                                    itr = worker_items.begin();
+                                    while(itr!=worker_items.end()) {
+                                        auto & iset = itr->iset;
+                                        bool ok = true;
+                                        for(auto ii : iset) if(!item_ready[ii]) {
+                                            ok = false;
+                                            break;
+                                        }
+                                        if(ok) break;
+                                        itr++;
+                                    }
+                                    if(itr!=worker_items.end()) return true;
+                                    else return false;
+                                });
+
+                                if (!worker_left) return;
+                                i = itr->i;
+                                worker_items.erase(itr);
+                                guard.unlock();
+
+                                auto const & terms = worker_pcs[i];
+                                if (!terms.empty()) apply_table_mode2(terms, true, true, ssector_number, 0, db_rw_mutex, virts_number);
+                                {
+                                    lock_guard<mutex> guard(worker_mutex);
+                                    worker_left--;
+                                    item_ready[i] = true;
+                                }
+                                worker_cond.notify_all();
+                                if(!worker_left) return;
+                            }
+                        };
+
+                        auto worker_pass_back = [&](const map<point, pc_pair_ptr_lst, indirect_more> &cur_map) {
+                            if(total_threads>1) {
+                                if(common::run_sector && !common::silent) cout << cur_map.size() << flush;
+                                {
+                                    lock_guard<mutex> guard(worker_mutex);
+                                    worker_left = 0;
+                                    worker_pcs.clear();
+                                    worker_items.clear();
+                                    worker_pcs.reserve(cur_map.size());
+                                    map<point, int> p2i; // point to index
+                                    for (auto citr = ritr; citr != cur_map.rend(); ++citr) {
+                                        const point & p = citr->first;
+                                        auto const & terms = citr->second;
+                                        if(terms.empty()) continue;
+                                        
+                                        set<int> iset;
+                                        bool changed = false;
+                                        auto end = terms.cend();
+                                        --end;
+                                        for (auto itr2 = terms.cbegin(); itr2 != end; ++itr2) {
+                                            const point & p2 = (*itr2)->first;
+                                            auto itr3 = p2i.find(p2);
+                                            if(itr3 != p2i.end()) iset.insert(itr3->second);
+                                            if (!changed && pm.find(p2) != pm.end()) changed = true;
+                                        }
+                                        p2i[p] = worker_left;
+                                        item_ready[worker_left] = !changed;
+                                        worker_pcs.emplace_back(terms);
+                                        worker_items.emplace_back(worker_left, std::move(iset));
+                                        worker_left++;
+                                    }
+                                }
+
+                                if(worker_left>common::lmt1) {
+                                    for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
+                                    for(int i=0; i<total_threads; ++i) worker[i].join();
+                                    if(common::run_sector && !common::silent) cout << ".." << flush;
+                                } else {
+                                    for(auto & item : worker_items) {
+                                        auto const & terms = worker_pcs[item.i];
+                                        if (!terms.empty()) {
+                                            apply_table_mode2(terms, true, true, ssector_number, 0, db_rw_mutex, virts_number);
+                                        }
+                                    }
+                                    if(common::run_sector && !common::silent) cout << "." << flush;
+                                }
+                            } else { // original version
+                                if(common::run_sector && !common::silent) cout << cur_map.size() << flush;
+                                // pass_back - original version
+                                for (auto itr = ritr; itr != cur_map.rend(); ++itr) {
+                                    auto &terms = itr->second;
+                                    if (!terms.empty()) {
+                                        apply_table_mode2(terms, true, true, ssector_number, 0, db_rw_mutex, virts_number);
+                                    }
+                                }
+                                if(common::run_sector && !common::silent) cout << "." << flush;
+                            }
+                        };
+                        
+                        worker_pass_back(to_test);
+
                     }
                 
                 }
@@ -1916,7 +2193,7 @@ if(mode==1) {
                     terms.emplace_back(eqs[k].terms[i]);
                 }
 
-                apply_table_mode2(terms, false, ssector_number, sector_level, db_rw_mutex, virts_number);
+                apply_table_mode2(terms, true, false, ssector_number, sector_level, db_rw_mutex, virts_number);
 }
             } // cycle of same starting point
             
@@ -2452,6 +2729,16 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
 //        }
 //    }
 
+    int if_mode = common::ifm;
+    if(if_mode==0) {
+        #if defined(FlintM)
+        if_mode = 2;
+        # else
+        if_mode = 1;
+        #endif
+    }
+    std::shared_mutex db_rw_mutex;
+
     struct worker_item_type {
         int i;
         set<int> iset;
@@ -2461,6 +2748,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
     vector<point> worker_point;
     list<worker_item_type> worker_items;
     int worker_left = 0;
+    int worker_total = 0;
     mutex worker_mutex;
     condition_variable worker_cond;
     int total_threads = common::lt2;
@@ -2474,6 +2762,14 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
             auto itr = worker_items.begin();
             unique_lock<mutex> guard(worker_mutex);
             worker_cond.wait(guard, [&]() {
+            
+                if(common::run_sector && !common::silent) {
+                    cout << "\r";
+                    for(int j=0; j<100; j++) cout << " ";
+                    cout << "\r";
+                    cout << "Task: " << (worker_total-worker_left) << "/" << worker_total << " @ " << now(true) << flush;
+                }
+            
                 if(!worker_left) return true;
                 itr = worker_items.begin();
                 while(itr!=worker_items.end()) {
@@ -2496,9 +2792,16 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
             guard.unlock();
 
             const point & p = worker_point[i];
-            pc_pair_ptr_vec terms;
-            p_get(p, terms, fixed_database_sector);
-            if (!terms.empty()) apply_table(terms, fixed_database_sector, 0);
+            if(if_mode==1) {
+                pc_pair_ptr_vec terms;
+                p_get(p, terms, fixed_database_sector);
+                if (!terms.empty()) apply_table(terms, fixed_database_sector, 0);
+            } else if(if_mode==2) {
+                pc_pair_ptr_lst terms;
+                p_get(p, terms, fixed_database_sector);
+                atomic<uint64_t> virts_number; // not matter
+                if (!terms.empty()) apply_table_mode2(terms, false, true, fixed_database_sector, 0, db_rw_mutex, virts_number);
+            }
             {
                 lock_guard<mutex> guard(worker_mutex);
                 worker_left--;
@@ -2510,15 +2813,15 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
     };
 
     auto worker_pass_back = [&](const set<point, indirect_more> &cur_set) {
+        if(common::run_sector && !common::silent) cout << "Start @ " << now(true) << endl;
         if(total_threads>1) {
-            if(common::run_sector && !common::silent) cout << cur_set.size() << flush;
             {
                 lock_guard<mutex> guard(worker_mutex);
                 worker_left = 0;
                 worker_point.clear();
                 worker_items.clear();
                 worker_point.reserve(cur_set.size());
-                map<point, int> p2i;
+                map<point, int> p2i; // point to index
                 for (auto citr = ritr; citr != cur_set.rend(); ++citr) {
                     const point & p = *citr;
                     worker_point.emplace_back(p);
@@ -2537,12 +2840,9 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
                     --end;
                     for (auto itr2 = terms.cbegin(); itr2 != end; ++itr2) {
                         const point & p2 = (*itr2)->first;
-                        if (p2.s_number() == 1) continue;
-                        else {
-                            auto itr3 = p2i.find(p2);
-                            if(itr3 != p2i.end()) iset.insert(itr3->second);
-                            if (!changed && pm.find(p2) != pm.end()) changed = true;
-                        }
+                        auto itr3 = p2i.find(p2);
+                        if(itr3 != p2i.end()) iset.insert(itr3->second);
+                        if (!changed && pm.find(p2) != pm.end()) changed = true;
                     }
                     p2i[p] = worker_left;
                     item_ready[worker_left] = !changed;
@@ -2554,32 +2854,41 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
             if(worker_left>common::lmt2) {
                 for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
                 for(int i=0; i<total_threads; ++i) worker[i].join();
-                if(common::run_sector && !common::silent) cout << ".." << flush;
             } else {
                 for(auto & item : worker_items) {
                     const point & p = worker_point[item.i];
-                    pc_pair_ptr_vec terms;
-                    p_get(p, terms, fixed_database_sector);
-                    if (!terms.empty()) {
-                        apply_table(terms, fixed_database_sector, 0);  // backward reduction with 0 as sector and 0 as thread_number
+                    if(if_mode==1) {
+                        pc_pair_ptr_vec terms;
+                        p_get(p, terms, fixed_database_sector);
+                        if (!terms.empty()) apply_table(terms, fixed_database_sector, 0);  // backward reduction with 0 as sector and 0 as thread_number
+                    } else if(if_mode==2) {
+                        pc_pair_ptr_lst terms;
+                        p_get(p, terms, fixed_database_sector);
+                        atomic<uint64_t> virts_number; // not matter
+                        if (!terms.empty()) apply_table_mode2(terms, false, true, fixed_database_sector, 0, db_rw_mutex, virts_number);
                     }
                 }
-                if(common::run_sector && !common::silent) cout << "." << flush;
             }
         } else { // original version
             if(common::run_sector && !common::silent) cout << cur_set.size() << flush;
             for (auto itr = ritr; itr != cur_set.rend(); ++itr) {
                 point p = *itr;
-                pc_pair_ptr_vec terms;
-                p_get(p, terms, fixed_database_sector);
-                if (!terms.empty()) {
-                    apply_table(terms, fixed_database_sector, 0);  // backward reduction with 0 as sector and 0 as thread_number
+                if(if_mode==1) {
+                    pc_pair_ptr_vec terms;
+                    p_get(p, terms, fixed_database_sector);
+                    if (!terms.empty()) apply_table(terms, fixed_database_sector, 0);  // backward reduction with 0 as sector and 0 as thread_number
+                } else if(if_mode==2) {
+                    pc_pair_ptr_lst terms;
+                    p_get(p, terms, fixed_database_sector);
+                    atomic<uint64_t> virts_number; // not matter
+                    if (!terms.empty()) apply_table_mode2(terms, false, true, fixed_database_sector, 0, db_rw_mutex, virts_number);
                 }
             }
-            if(common::run_sector && !common::silent) cout << "." << flush;
         }
+        if(common::run_sector && !common::silent) cout << "Fininsh @ " << now(true) << endl;
     };
     
+    worker_total = cur_set.size();
     worker_pass_back(cur_set);
 }
 
