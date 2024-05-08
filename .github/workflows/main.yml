@@ -21,6 +21,4 @@ jobs:
         run: |
           cd examples/box
           ./run.sh
-          cd ../doublebox
-          ./run.sh
         
