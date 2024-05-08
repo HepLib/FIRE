@@ -180,15 +180,17 @@ public:
     static common_lbases_t lbases;
     static unsigned int global_pn;
 
-    static unsigned int t1;
-    static unsigned int t2;
-    static unsigned int lt1;
-    static unsigned int llt1;
-    static unsigned int lt2;
-    static unsigned int llt2;
-    static unsigned int lmt1;
-    static unsigned int lmt2;
-    static int ltm;
+    static unsigned int t1a; // Level 1
+    static unsigned int t1b;
+    static unsigned int t2a; // Level 2
+    static unsigned int t2b;
+    static unsigned int t3a; // Level 3
+    static unsigned int t3b;
+    static unsigned int lmt2a; // Limit Level 2
+    static unsigned int lmt2b;
+    static unsigned int lmt3a; // Limit Level 2
+    static unsigned int lmt3b;
+    static unsigned int len;
     static int ifm; // 0-auto, 1-prime, 2-poly
     static map<string, string> variable_replacements;
     static bool small;
@@ -284,6 +286,17 @@ public:
             gr_set_si(r, n, ctx);
             #endif
         }
+    }
+    
+    size_t length() const {
+        #if defined(PRIME) || defined(FMPQ) || defined(FloatR)
+        return 1;
+        #elif defined(FlintM)
+        fmpz_mpoly_q_struct* mp = (fmpz_mpoly_q_struct*)r;
+        size_t len = fmpz_mpoly_length(fmpz_mpoly_q_numref(mp), TO_CTX(ctx));
+        len += fmpz_mpoly_length(fmpz_mpoly_q_denref(mp), TO_CTX(ctx));
+        return len;
+        #endif
     }
     
     void init_p(const string str, int base=10) {

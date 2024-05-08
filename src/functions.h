@@ -12,7 +12,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
 
 pc_pair_ptr_lst::iterator split(pc_pair_ptr_lst &terms, sector_count_t sector_number, uint64_t virts_number);
 void mul_add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last);
-void add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, bool skip_last);
+void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last);
 
 equation apply(const vector<pair<vector<COEFF>, point_fast > >& ibp, point_fast v, const SECTOR ssector_fast);
 

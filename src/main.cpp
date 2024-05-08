@@ -47,35 +47,30 @@ int main(int argc, char *argv[]) {
         if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
             cout << "---------------------------------------------------------------" << endl;
             cout << "Version: " << common::version << endl;
-            cout << "------------------" << endl;
-            cout << "Supported options: " << endl;
-            cout << "------------------" << endl;
-            cout << "-c <fn>: to provide config file name." << endl;
-            cout << "-prime <num>: set prime index, higher priority than config file" << endl;
-            cout << "-t1 <num>: set threads for forward-stage." << endl;
-            cout << "-t2 <num>: set threads for backward-stage." << endl;
-            cout << "-t <num>: to set both -t1/-t2, lower priority than -t1/-t2." << endl;
-            cout << "-lt1 <num>: set 2nd threads in each t1 run." << endl;
-            cout << "-lt2 <num>: set 2nd threads in each t2 run." << endl;
-            cout << "-lt <num>: to set both -lt1/-lt2, lower priority than -lt1/-lt2." << endl;
-            cout << "-lmt1 <num>: set limit to activate -lt1." << endl;
-            cout << "-lmt2 <num>: set limit to activate -lt2." << endl;
-            cout << "-lmt <num>: to set both -lmt1/-lmt2, lower priority than -lmt1/-lmt2." << endl;
-            cout << "-ltm <num>: to set lt mode in forward-stage, non-zero for cached mode." << endl;
-            cout << "-ifm <num>: to set instruction flow mode in forward stage, 0-auto, 1-prime, 2-poly." << endl;
+            cout << "Supported commond line options:" << endl;
+            cout << "---------------------------------------------------------------" << endl;
+            cout << "-c <fn>: config file name." << endl;
+            cout << "-prime <n>: prime index, higher priority than config file." << endl;
+            cout << "-t1 <n|n1,n2>: threads at 1st level, n1-forward & n2-backward." << endl;
+            cout << "-t2 <n|n1,n2>: threads at 2nd level, n1-forward & n2-backward." << endl;
+            cout << "-t3 <n|n1,n2>: threads at 3rd level, n1-forward & n2-backward." << endl;
+            cout << "-lmt2 <n|n1,n2>: limit to activate -t2, (n terms)." << endl;
+            cout << "-lmt3 <n|n1,n2>: limit to activate -t3, (n terms)." << endl;
+            cout << "-len <n>: set length limit to activate -t3, (a term)." << endl;
+            cout << "-ifm <n>: instruction flow mode, 0-auto | 1-prime | 2-poly." << endl;
             cout << "-dbo: DB exported to and imported from file to save memory." << endl;
-            cout << "-re: will continue to run from the saving point (imply -dbo)." << endl;
-            cout << "-skip: just by pass if the .tables exists." << endl;
-            cout << "-var <x1=v1,x22=v2>: to set x1->v1 and x2->v2, seperated by ',' or '|'," << endl;
+            cout << "-re:  continue to run from the saving point (imply -dbo)." << endl;
+            cout << "-skip: just by pass if .tables exists." << endl;
+            cout << "-var <x1=v1,x2=v2>: to set x1->v1 and x2->v2, using ',' or '|'" << endl;
             cout << "    e.g., -var \"d=11/5,m=1\", higher priority than config file." << endl;
             cout << "-variables: just the same as -var." << endl;
             cout << "-suffix <abc>: append '-abc' to filename of db/tables." << endl;
-            cout << "-sector <num>: only run the sector where num can be 0, >0 or <0." << endl;
-            cout << "    using num=0 to list the needed sector in next run." << endl;
-            cout << "-ft <num>: call flint_set_num_threads(num) if num>1." << endl;
-            cout << "-oo: the same output as official FIRE, i.e., 4/2 may appear." << endl;
+            cout << "-sector <n>: only run the sector where num can be 0, >0 or <0." << endl;
+            cout << "             use n=0 to list the needed sectors in next run." << endl;
+            cout << "-ft <n>: call flint_set_num_threads(n) if n>1." << endl;
+            cout << "-oo: the same output as official FIRE, e.g., 4/2 may appear." << endl;
             #if defined(FloatR)
-            cout << "-fp <num>: set 2^fp as float precision." << endl;
+            cout << "-fp <n>: set 2^n as float precision." << endl;
             #endif
             cout << "---------------------------------------------------------------" << endl;
             return 0;
@@ -141,10 +136,12 @@ int main(int argc, char *argv[]) {
         #if defined(FloatR)
         cout << "Float Precision: 2^" << COEFF::fp << endl;
         #endif
-        cout << "Forward : T1/LT1/LLT1/LMT1 = " << common::t1 << "/" << common::lt1 << "/" << common::llt1 << "/" << common::lmt1 << endl;
-        cout << "Backward: T2/LT2/LLT2/LMT2 = " << common::t2 << "/" << common::lt2 << "/" << common::llt2 << "/" << common::lmt2 << endl;
+        cout << "Forward : T1/T2/T3: " << common::t1a << "/" << common::t2a << "/" << common::t3a;
+        cout << "  LMT2/LMT3: " << common::lmt2a << "/" << common::lmt3a << endl;
+        cout << "Backward: T1/T2/T3: " << common::t1b << "/" << common::t2b << "/" << common::t3b;
+         cout << "  LMT2/LMT3: " << common::lmt2b << "/" << common::lmt3b << endl;
         if(common::prt_rule_counter) cout << "Rules: " << common::prt_rule_counter << endl;
-        cout << "DB Mode: DB-" << common::run_mode << ", LTM: " << common::ltm << endl;
+        cout << "DB Mode: " << common::run_mode << "   Length LMT @T3: " << common::len << endl;
         if(!common::prt_replace.empty()) {
             cout << "Parameters: " << endl;
             for(auto kv : common::prt_replace) cout << "  " << kv.first << " -> " << kv.second << endl;

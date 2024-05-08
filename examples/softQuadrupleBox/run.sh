@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-export tn=8
+export tn=4
 
-echo M/FIRE -c softQuadrupleBox -t $tn
-time ../../M/FIRE -c softQuadrupleBox -t $tn
+echo M/FIRE -c softQuadrupleBox -t1 $tn -t2 $tn
+time ../../M/FIRE -c softQuadrupleBox -t1 $tn -t2 $tn
 echo
 

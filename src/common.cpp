@@ -62,26 +62,31 @@ int common::abs_max_level = 0;
 int common::abs_min_level = 100;
 
 unsigned int common::global_pn = 0;
-int common::ltm = 0;
 int common::ifm = 0;
 #if defined(FMPQ) || defined(FloatR)
-unsigned int common::t1 = 4;
-unsigned int common::lt1 = 4;
-unsigned int common::llt1 = 0;
-unsigned int common::lmt1 = 10;
-unsigned int common::t2 = 4;
-unsigned int common::lt2 = 4;
-unsigned int common::llt2 = 2;
-unsigned int common::lmt2 = 5000;
+unsigned int common::t1a = 4; // Level 1
+unsigned int common::t1b = 4;
+unsigned int common::t2a = 4; // Level 2
+unsigned int common::t2b = 4;
+unsigned int common::t3a = 0; // Level 3
+ unsigned int common::t3b = 0;
+unsigned int common::lmt2a = 10; // Limit Level 2
+unsigned int common::lmt2b = 5000;
+unsigned int common::lmt3a = 1000;
+unsigned int common::lmt3b = 5000;
+unsigned int common::len = 0;
 #else
-unsigned int common::t1 = 4;
-unsigned int common::lt1 = 4;
-unsigned int common::llt1 = 0;
-unsigned int common::lmt1 = 3;
-unsigned int common::t2 = 4;
-unsigned int common::lt2 = 4;
-unsigned int common::llt2 = 2;
-unsigned int common::lmt2 = 100;
+unsigned int common::t1a = 4; // Level 1
+unsigned int common::t1b = 4;
+unsigned int common::t2a = 4; // Level 2
+unsigned int common::t2b = 4;
+unsigned int common::t3a = 0; // Level 3
+ unsigned int common::t3b = 0;
+unsigned int common::lmt2a = 10; // Limit Level 2
+unsigned int common::lmt2b = 100;
+unsigned int common::lmt3a = 500;
+unsigned int common::lmt3b = 500;
+unsigned int common::len = 10000;
 #endif
 
 vector<vector<vector<t_index> > > common::iorderings;

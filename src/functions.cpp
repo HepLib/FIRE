@@ -690,7 +690,7 @@ string now(bool use_date=false) {
     return tmp;
 }
 
-void add_mode2_v0(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+void add_mode2(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
     rterms.clear();
     auto eq2end = terms2.end();
     eq2end--;
@@ -724,32 +724,7 @@ void add_mode2_v0(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, 
     }
 }
 
-struct args_type {
-    vector<pair<int,vector<pc_pair_ptr>>> *todo_vec;
-    pc_pair_ptr_vec *rterms_vec;
-    const COEFF *coeff;
-};
-void do_func(long i, void *args_in) {
-    args_type *args = (args_type *)(args_in);
-    auto & todo_vec = *(args->todo_vec);
-    auto & rterms_vec = *(args->rterms_vec);
-    auto const & coeff = *(args->coeff);
-    auto mode = todo_vec[i].first;
-    auto items = todo_vec[i].second;
-    if(mode==1) {
-        rterms_vec[i] = items[0];
-    } else if(mode==2) {
-        COEFF o;
-        _mul_(o, items[0]->second,  coeff);
-        rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
-    } else {
-        COEFF o;
-        _mul_(o, items[1]->second, coeff);
-        _add_(o, o, items[0]->second);
-        rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
-    }
-}
-void add_mode2_v1(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+void add_mode2_p(int t, int lmt, const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
     rterms.clear();
     auto eq2end = terms2.end();
     eq2end--;
@@ -759,6 +734,7 @@ void add_mode2_v1(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, 
     itr1 = terms1.begin();
     itr2 = terms2.begin();
     vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
+    size_t len = 0;
     while (itr2 != eq2end) {
         if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
             vector<pc_pair_ptr> items { *itr1 };
@@ -766,10 +742,14 @@ void add_mode2_v1(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, 
             ++itr1;
         } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
             vector<pc_pair_ptr> items { *itr2 };
+            size_t l = (*itr2)->second.length();
+            if(l>len) len = l;
             todo_vec.emplace_back(make_pair(2, items));
             ++itr2;
         } else { // both equations. have to multiply and add
             vector<pc_pair_ptr> items { *itr1, *itr2 };
+            size_t l = (*itr1)->second.length() + (*itr2)->second.length();
+            if(l>len) len = l;
             todo_vec.emplace_back(make_pair(3, items));
             ++itr1;
             ++itr2;
@@ -777,55 +757,40 @@ void add_mode2_v1(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, 
     }
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    args_type args;
-    args.todo_vec = &todo_vec;
-    args.rterms_vec = &rterms_vec;
-    args.coeff = &coeff;
-    flint_parallel_do(do_func, &args, todo_vec.size(), 0, FLINT_PARALLEL_STRIDED);
-    
-    for(auto & item : rterms_vec) rterms.emplace_back(item);
-    while (itr1 != terms1.end()) {
-        rterms.emplace_back(*itr1);
-        ++itr1;
-    }
-}
-
-void add_mode2_v2(int llt, const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
-    rterms.clear();
-    auto eq2end = terms2.end();
-    eq2end--;
-
-    pc_pair_ptr_lst::const_iterator itr1;
-    pc_pair_ptr_lst::const_iterator itr2;
-    itr1 = terms1.begin();
-    itr2 = terms2.begin();
-    vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
-    while (itr2 != eq2end) {
-        if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
-            vector<pc_pair_ptr> items { *itr1 };
-            todo_vec.emplace_back(make_pair(1, items));
-            ++itr1;
-        } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
-            vector<pc_pair_ptr> items { *itr2 };
-            todo_vec.emplace_back(make_pair(2, items));
-            ++itr2;
-        } else { // both equations. have to multiply and add
-            vector<pc_pair_ptr> items { *itr1, *itr2 };
-            todo_vec.emplace_back(make_pair(3, items));
-            ++itr1;
-            ++itr2;
-        }
-    }
-    
-    pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    atomic<long> atomic_index(0);
-    auto call_back = [&]() {
-        while(true) {
-            long i = atomic_index.fetch_add(1);
-            if(i>=todo_vec.size()) {
-                flint_cleanup();
-                return;
+    if(todo_vec.size()>lmt && len>common::len) {
+        atomic<long> atomic_index(0);
+        auto call_back = [&]() {
+            while(true) {
+                long i = atomic_index.fetch_add(1);
+                if(i>=todo_vec.size()) {
+                    flint_cleanup();
+                    return;
+                }
+                auto mode = todo_vec[i].first;
+                auto items = todo_vec[i].second;
+                if(mode==1) {
+                    rterms_vec[i] = items[0];
+                } else if(mode==2) {
+                    COEFF o;
+                    _mul_(o, items[0]->second,  coeff);
+                    rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+                } else {
+                    COEFF o;
+                    _mul_(o, items[1]->second, coeff);
+                    _add_(o, o, items[0]->second);
+                    rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+                }
             }
+        };
+    
+        int tn = t;
+        if(tn>todo_vec.size()) tn = todo_vec.size();
+        std::thread threads[tn];
+        for (int i=0; i<tn; i++) threads[i] = std::thread(call_back);
+        call_back(); // reuse the current thread
+        for (int i=0; i<tn; i++) threads[i].join();
+    } else {
+        for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;
             auto items = todo_vec[i].second;
             if(mode==1) {
@@ -841,13 +806,7 @@ void add_mode2_v2(int llt, const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst 
                 rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
             }
         }
-    };
-    
-    int nnn = llt;
-    if(nnn>todo_vec.size()) nnn = todo_vec.size();
-    std::thread threads[nnn];
-    for (int i=0; i<nnn; i++) threads[i] = std::thread(call_back);
-    for (int i=0; i<nnn; i++) threads[i].join();
+    }
     
     for(auto & item : rterms_vec) rterms.emplace_back(item);
     while (itr1 != terms1.end()) {
@@ -888,20 +847,20 @@ void apply_table_mode2(const pc_pair_ptr_lst &terms, bool forward_mode, bool fix
                 if(!is_zero(o)) {
                     if (first) {
                         if(forward_mode) {
-                            if(common::llt1<2 || rterms1.size()+terms2.size()<10) add_mode2_v0(rterms1, terms2, rterms2, o);
-                            else add_mode2_v2(common::llt1, rterms1, terms2, rterms2, o);
+                            if(common::t3a<2) add_mode2(rterms1, terms2, rterms2, o);
+                            else add_mode2_p(common::t3a, common::lmt3a, rterms1, terms2, rterms2, o);
                         } else {
-                            if(common::llt2<2 || rterms1.size()+terms2.size()<10) add_mode2_v0(rterms1, terms2, rterms2, o);
-                            else add_mode2_v2(common::llt2, rterms1, terms2, rterms2, o);
+                            if(common::t3b<2) add_mode2(rterms1, terms2, rterms2, o);
+                            else add_mode2_p(common::t3b, common::lmt3b, rterms1, terms2, rterms2, o);
                         }
                         first = false;
                     } else {
                         if(forward_mode) {
-                            if(common::llt1<2 || rterms2.size()+terms2.size()<10) add_mode2_v0(rterms2, terms2, rterms1, o);
-                            else add_mode2_v2(common::llt1, rterms2, terms2, rterms1, o);
+                            if(common::t3a<2) add_mode2(rterms2, terms2, rterms1, o);
+                            else add_mode2_p(common::t3a, common::lmt3a, rterms2, terms2, rterms1, o);
                         } else {
-                            if(common::llt2<2 || rterms2.size()+terms2.size()<10) add_mode2_v0(rterms2, terms2, rterms1, o);
-                            else add_mode2_v2(common::llt2, rterms2, terms2, rterms1, o);
+                            if(common::t3b<2) add_mode2(rterms2, terms2, rterms1, o);
+                            else add_mode2_p(common::t3b, common::lmt3b, rterms2, terms2, rterms1, o);
                         }
                         first = true;
                     }
@@ -1495,7 +1454,7 @@ void forward_stage(sector_count_t ssector_number) {
         condition_variable worker_cond;
         condition_variable worker_done_cond;
         bool worker_stop = false;
-        int total_threads = common::lt1;
+        int total_threads = common::t2a;
         if(total_threads<1) total_threads = 1;
         thread worker[total_threads];
         
@@ -1503,169 +1462,7 @@ void forward_stage(sector_count_t ssector_number) {
         std::function<void(list<pc_pair_ptr_lst> &to_substitute)> worker_to_substitue;
         map<int, list<pc_pair_ptr_lst>> cache_mul_eqs;
         map<int,bool> item_in_use;
-        
-if(common::ltm) { // using cached equation
-
-        worker_main = [&]() {
-            int i1, i2;
-            uint64_t i3;
-            while(true) {
-                auto itr = worker_items.begin();
-                unique_lock<mutex> guard(worker_mutex);
-                worker_cond.wait(guard, [&]() {
-                    if(worker_stop) return true;
-                    if(!worker_left) return false;
-                    itr = worker_items.begin();
-                    while(itr!=worker_items.end()) {
-                        auto & ii1 = itr->i1;
-                        auto & ii2 = itr->i2;
-                        if(ii1==ii2 && item_left[ii1]==1) break;
-                        if(ii1<ii2 && item_left[ii1]==0) break;
-                        itr++;
-                    }
-                    if(itr!=worker_items.end()) return true;
-                    else return false;
-                });
                 
-                if (worker_stop) return;
-
-                i1 = itr->i1;
-                i2 = itr->i2;
-                i3 = itr->i3;
-                const COEFF & o = itr->o;
-                worker_items.erase(itr);
-                guard.unlock();
-                    
-                auto itrFrom = worker_itr[i1];
-                auto itrTo = worker_itr[i2];
-                
-                if(i1==i2) {
-                    auto const & eqs = cache_mul_eqs[i2];
-                    for(auto eq : eqs) add_to(*itrTo, eq, false);
-                    pc_pair_ptr_lst::iterator new_start;
-                    { // write locker block
-                        std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
-                        new_start = split(*itrTo, ssector_number, i3);
-                    }
-                    while (itrTo->begin() != new_start) itrTo->pop_front();
-                    {
-                        lock_guard<mutex> guard(worker_mutex);
-                        worker_left--;
-                        item_left[i2]--; // now item_left[i2] should be 0
-                        if(!worker_left) cache_mul_eqs.clear();
-                    }
-                    if(!worker_left) worker_done_cond.notify_one();
-                    else worker_cond.notify_all();
-                } else {
-                    COEFF c;
-                    _div_neg_(c, o, (*(itrFrom->back())).second);
-                    pc_pair_ptr_lst eq;
-                    for(auto item : *itrFrom) {
-                        COEFF co;
-                        _mul_(co, c, item->second);
-                        eq.emplace_back(make_pc_ptr(item->first, std::move(co)));
-                    }
-                    {
-                        lock_guard<mutex> guard(worker_mutex);
-                        item_left[i2]--;
-                        cache_mul_eqs[i2].emplace_back(std::move(eq));
-                    }
-                }
-            }
-        };
-        
-        worker_to_substitue = [&](list<pc_pair_ptr_lst> &to_substitute) {
-            //if(common::run_sector && !common::silent) cout << to_substitute.size() << flush;
-            bool use_parallel = false;
-            int eval_n = 0, eval_p;
-            {
-                lock_guard<mutex> guard(worker_mutex);
-                int worker_total = to_substitute.size();
-                worker_itr.clear();
-                worker_items.clear();
-                item_left.clear();
-                cache_mul_eqs.clear();
-                worker_itr.reserve(worker_total);
-                for(auto itr = to_substitute.begin(); itr != to_substitute.end(); ++itr) {
-                    worker_itr.push_back(itr);
-                }
-                vector<pc_pair_ptr_lst::iterator> term_vec(worker_total);
-                vector<bool> changed_vec(worker_total);
-                for(int i=0; i<worker_total; i++) {
-                    term_vec[i] = worker_itr[i]->begin();
-                    item_left[i] = 0;
-                    changed_vec[i] = false;
-                    cache_mul_eqs[i];
-                }
-                eval_n = 0;
-                for(int i=0; i<worker_total; i++) {
-                    if (changed_vec[i]) {
-                        item_left[i]++;
-                        worker_left++;
-                        worker_items.emplace_back(i,i,++virts_number);
-                    }
-                    auto itrFrom = worker_itr[i];
-                    const point &p = (*(itrFrom->rbegin()))->first;
-                    for (int j=i+1; j<worker_total; j++) {
-                        auto itrTo = worker_itr[j];
-                        auto itrTerm = term_vec[j];
-                        for (; itrTerm != itrTo->end(); ++itrTerm) {
-                            if (p == (*itrTerm)->first) {
-                                worker_items.emplace_back(i,j,(*itrTerm)->second);
-                                changed_vec[j] = true;
-                                item_left[j]++;
-                                eval_n++;
-                                ++itrTerm; // we move it before, or it will be invalidated
-                                break;
-                            } else if (p < (*itrTerm)->first) {
-                                break; // this relation does not go there
-                            }
-                        }
-                        term_vec[j] = itrTerm;
-                    }
-                }
-                if(total_threads>1 && worker_left>common::lmt1) {
-                    use_parallel = true;
-                    eval_p = worker_left;
-                } else {
-                    worker_left = 0;
-                }
-            }
-            
-            if(use_parallel) {
-                //if(common::run_sector && !common::silent) cout << "|" << eval_n << flush;
-                worker_cond.notify_all();
-                {
-                    unique_lock<mutex> guard(worker_mutex);
-                    worker_done_cond.wait(guard,[&worker_left](){ return !worker_left; });
-                }
-                //if(common::run_sector && !common::silent) cout << "|" << eval_p << flush;
-            } else {
-                for(auto & itr : worker_items) {
-                    int i1 = itr.i1;
-                    int i2 = itr.i2;
-                    int i3 = itr.i3;
-                    COEFF c(itr.o);
-                    auto itrFrom = worker_itr[i1];
-                    auto itrTo = worker_itr[i2];
-                    if(i1==i2) {
-                        pc_pair_ptr_lst::iterator new_start;
-                        { // write locker block
-                            std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
-                            new_start = split(*itrTo, ssector_number, i3);
-                        }
-                        while (itrTo->begin() != new_start) itrTo->pop_front();
-                    } else {
-                        _div_neg_(c, c, (*(itrFrom->back())).second);
-                        mul_add_to(*itrTo, *itrFrom, c, false);
-                    }
-                }
-                //if(common::run_sector && !common::silent) cout << "|" << eval_n << flush;
-            }
-        };
-    
-} else {
-        
         worker_main = [&]() {
             while(true) {
                 list<worker_item_type> wi_items;
@@ -1731,7 +1528,8 @@ if(common::ltm) { // using cached equation
                     } else {
                         COEFF c;
                         _div_neg_(c, o, (*(itrFrom->back())).second);
-                        mul_add_to(*itrTo, *itrFrom, c, false);
+                        if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, c, false);
+                        else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, c, false);
                     }
                 }
                 {
@@ -1798,7 +1596,7 @@ if(common::ltm) { // using cached equation
                             term_vec[j] = itrTerm;
                         }
                     }
-                    if(worker_left>common::lmt1) {
+                    if(worker_left>common::lmt2a) {
                         use_parallel = true;
                         eval_p = worker_left;
                     } else {
@@ -1831,7 +1629,8 @@ if(common::ltm) { // using cached equation
                             while (itrTo->begin() != new_start) itrTo->pop_front();
                         } else {
                             _div_neg_(c, c, (*(itrFrom->back())).second);
-                            mul_add_to(*itrTo, *itrFrom, c, false);
+                            if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, c, false);
+                            else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, c, false);
                         }
                     }
                     //if(common::run_sector && !common::silent) cout << "|" << eval_n << flush;
@@ -1850,7 +1649,8 @@ if(common::ltm) { // using cached equation
                             if (p == (*itrTerm)->first) {
                                 eval_n++;
                                 _div_neg_(o, (*itrTerm)->second, (*(itrFrom->back())).second);
-                                mul_add_to(*itrTo, *itrFrom, o, false);
+                                if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, o, false);
+                                else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, o, false);
                                 changed = true;
                                 ++itrTerm; // we move it before, or it will be invalidated
                                 break;
@@ -1874,9 +1674,6 @@ if(common::ltm) { // using cached equation
             }
         };
         
-}
-
-    
         if(total_threads>1) for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
         
         auto worker_join = [&]() {
@@ -1972,7 +1769,8 @@ if(if_mode==1) {
                             to_substitute.emplace_front(terms2l);
                             COEFF o;
                             _div_neg_(o, (*itr)->second, terms2l.back()->second);
-                            mul_add_to(result, terms2l, o, true); // last term still stays here
+                            if(common::t3a<2) mul_add_to(result, terms2l, o, true); // last term still stays here
+                            else mul_add_to(common::t3a, common::lmt3a, result, terms2l, o, true); // last term still stays here
                             result.erase(next(itr--).base());
                             if (result.empty()) break;
                         }
@@ -2066,7 +1864,7 @@ if(if_mode==1) {
                         int worker_left = 0;
                         mutex worker_mutex;
                         condition_variable worker_cond;
-                        int total_threads = common::lt1;
+                        int total_threads = common::t2a;
                         if(total_threads<1) total_threads = 1;
                         thread worker[total_threads];
                         map<int,bool> item_ready;
@@ -2143,7 +1941,7 @@ if(if_mode==1) {
                                     }
                                 }
 
-                                if(worker_left>common::lmt1) {
+                                if(worker_left>common::lmt2a) {
                                     for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
                                     for(int i=0; i<total_threads; ++i) worker[i].join();
                                     if(common::run_sector && !common::silent) cout << ".." << flush;
@@ -2453,9 +2251,9 @@ void Evaluate() {
             std::atomic<int> n{0};
             auto worker_tasks_n = worker_tasks.size();
             if (!common::silent && worker_tasks_n) cout << "  \\--Start @ " << now(true) << endl;
-            int nts = common::t1;
+            int nts = common::t1a;
             if(nts>worker_tasks_n) nts = worker_tasks_n;
-            #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(common::t1>1 && worker_tasks_n>1 && common::run_mode!=3)
+            #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(common::t1a>1 && worker_tasks_n>1 && common::run_mode!=3)
             for(int ti=0; ti<worker_tasks_n; ++ti) {
                 while (lock.test_and_set(std::memory_order_acquire)) ;
                 if (!common::silent) cout << "\r                       \r  \\--Evaluating " << (++n) << "/" << worker_tasks_n << " @ " << now() << flush;
@@ -2504,7 +2302,7 @@ void Evaluate() {
     }
 
     // backward substitutions level by level
-    if (not common::only_masters) {
+    if (!common::only_masters) {
         if (!common::silent) cout << "----------------------------------------" << endl;
         while (last_level <= common::abs_max_level) {
             if (!common::silent) {
@@ -2576,9 +2374,9 @@ void Evaluate() {
                 std::atomic<int> n{0};
                 std::atomic_flag lock = ATOMIC_FLAG_INIT;
                 if (!common::silent && worker_tasks_n) cout << "  \\--Start @ " << now(true) << endl;
-                int nts = common::t2;
+                int nts = common::t1b;
                 if(nts>worker_tasks_n) nts = worker_tasks_n;
-                #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(common::t2>1 && worker_tasks_n>1 && common::run_mode!=3)
+                #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(common::t1b>1 && worker_tasks_n>1 && common::run_mode!=3)
                 for(int ti=0; ti<worker_tasks_n; ++ti) {
                     while (lock.test_and_set(std::memory_order_acquire)) ;
                     if (!common::silent) cout << "\r                       \r  \\--Evaluating " << (++n) << "/" << worker_tasks_n << " @ " << now() << flush;
@@ -2625,7 +2423,104 @@ set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_mor
     return to_test.rbegin();
 }
 
-void mul_add_to(pc_pair_ptr_lst &terms1, pc_pair_ptr_lst::const_iterator termsB, pc_pair_ptr_lst::const_iterator termsE, const COEFF &coeff, bool skip_last) {
+void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last) {
+    pc_pair_ptr_lst::const_iterator termsB = terms2.begin();
+    pc_pair_ptr_lst::const_iterator termsE = terms2.end();
+    auto eq2end = termsE;
+    if (skip_last) { eq2end--; }
+    auto itr1 = terms1.begin();
+    auto itr2 = termsB;
+    
+    vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
+    vector<pc_pair_ptr_lst::iterator> itr_vec;
+    size_t len = 0;
+    while (itr2 != eq2end) {
+        if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
+            ++itr1;
+        } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
+            if(!is_zero((*itr2)->second)) {
+                itr1 = terms1.emplace(itr1, *itr2); // to set point from *itr2
+                itr_vec.push_back(itr1);
+                vector<pc_pair_ptr> items { *itr2 };
+                size_t l = (*itr2)->second.length();
+                if(l>len) len = l;
+                todo_vec.emplace_back(make_pair(2, items));
+                ++itr1;
+            }
+            ++itr2;
+        } else { // both equations. have to multiply and add
+            itr_vec.push_back(itr1);
+            vector<pc_pair_ptr> items { *itr1, *itr2 };
+            size_t l = (*itr1)->second.length() + (*itr2)->second.length();
+            if(l>len) len = l;
+            todo_vec.emplace_back(make_pair(3, items));
+            ++itr1;
+            ++itr2;
+        }
+    }
+    
+    pc_pair_ptr_vec rterms_vec(todo_vec.size());
+    if(todo_vec.size()>lmt && len>common::len) {
+        atomic<long> atomic_index(0);
+        auto call_back = [&]() {
+            while(true) {
+                long i = atomic_index.fetch_add(1);
+                if(i>=todo_vec.size()) {
+                    flint_cleanup();
+                    return;
+                }
+                auto mode = todo_vec[i].first;
+                auto items = todo_vec[i].second;
+                if(mode==1) {
+                    rterms_vec[i] = items[0];
+                } else if(mode==2) {
+                    COEFF o;
+                    _mul_(o, items[0]->second,  coeff);
+                    rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+                } else {
+                    COEFF o;
+                    _mul_(o, items[1]->second, coeff);
+                    _add_(o, o, items[0]->second);
+                    rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+                }
+            }
+        };
+    
+        int tn = t;
+        if(tn>todo_vec.size()) tn = todo_vec.size();
+        std::thread threads[tn];
+        for (int i=0; i<tn; i++) threads[i] = std::thread(call_back);
+        call_back(); // reuse the current thread
+        for (int i=0; i<tn; i++) threads[i].join();
+    } else {
+        for(int i=0; i<todo_vec.size(); i++) {
+            auto mode = todo_vec[i].first;
+            auto items = todo_vec[i].second;
+            if(mode==1) {
+                rterms_vec[i] = items[0];
+            } else if(mode==2) {
+                COEFF o;
+                _mul_(o, items[0]->second,  coeff);
+                rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+            } else {
+                COEFF o;
+                _mul_(o, items[1]->second, coeff);
+                _add_(o, o, items[0]->second);
+                rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+            }
+        }
+    }
+    
+    for(int i=0; i<itr_vec.size(); i++) *(itr_vec[i]) = rterms_vec[i];
+    itr1 = terms1.begin();
+    while (itr1 != terms1.end()) {
+        if(is_zero((*itr1)->second)) itr1 = terms1.erase(itr1);
+        else ++itr1;
+    }
+}
+void mul_add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last) {
+    pc_pair_ptr_lst::const_iterator termsB = terms2.begin();
+    pc_pair_ptr_lst::const_iterator termsE = terms2.end();
     auto eq2end = termsE;
     if (skip_last) { eq2end--; }
     auto itr1 = terms1.begin();
@@ -2655,41 +2550,6 @@ void mul_add_to(pc_pair_ptr_lst &terms1, pc_pair_ptr_lst::const_iterator termsB,
         }
     }
 }
-void mul_add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last) {
-    mul_add_to(terms1, terms2.begin(), terms2.end(), coeff, skip_last);
-}
-
-void add_to(pc_pair_ptr_lst &terms1, pc_pair_ptr_lst::const_iterator termsB, pc_pair_ptr_lst::const_iterator termsE, bool skip_last) {
-    auto eq2end = termsE;
-    if (skip_last) { eq2end--; }
-    auto itr1 = terms1.begin();
-    auto itr2 = termsB;
-    while (itr2 != eq2end) {
-        if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
-            ++itr1;
-        } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
-            if(!is_zero((*itr2)->second)) {
-                itr1 = terms1.emplace(itr1, *itr2);
-                ++itr1;
-            }
-            ++itr2;
-        } else { // both equations. have to multiply and add
-            COEFF o;
-            _add_(o, (*itr1)->second, (*itr2)->second);
-            if(!o.is_zero()) {
-                (*itr1) = make_pc_ptr((*itr1)->first, std::move(o));
-                ++itr1;
-            } else {
-                itr1 = terms1.erase(itr1);
-            }
-            ++itr2;
-        }
-    }
-}
-void add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, bool skip_last) {
-    add_to(terms1, terms2.begin(), terms2.end(), skip_last);
-}
-
 void apply_table(const pc_pair_ptr_vec &terms,
                  sector_count_t fixed_database_sector, unsigned short sector_level) {
     bool changed = false;
@@ -2709,7 +2569,8 @@ void apply_table(const pc_pair_ptr_vec &terms,
             } else {
                 changed = true;
                 _div_neg_(o, (*itr)->second, terms2.back()->second);
-                mul_add_to(result, terms2, o, true); // we add the second expression with the last term killed
+                if(common::t3b<2) mul_add_to(result, terms2, o, true); // we add the second expression with the last term killed
+                else mul_add_to(common::t3b, common::lmt3b, result, terms2, o, true); // we add the second expression with the last term killed
             }
         }
     }
@@ -2751,7 +2612,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
     int worker_total = 0;
     mutex worker_mutex;
     condition_variable worker_cond;
-    int total_threads = common::lt2;
+    int total_threads = common::t2b;
     if(total_threads<1) total_threads = 1;
     thread worker[total_threads];
     map<int,bool> item_ready;
@@ -2851,7 +2712,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
                 }
             }
 
-            if(worker_left>common::lmt2) {
+            if(worker_left>common::lmt2b) {
                 for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
                 for(int i=0; i<total_threads; ++i) worker[i].join();
             } else {
