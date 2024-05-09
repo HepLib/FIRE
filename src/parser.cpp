@@ -2145,11 +2145,6 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                     }
                 }
             }
-            if (common::t1a <= 0) {
-                cerr << "No proper #threads setting, exiting" << endl;
-                fclose(config_file);
-                return 1;
-            }
 
             {
                 if (iniCalc(fermat.c_str(), variables.c_str()) != 0) {
@@ -2661,7 +2656,7 @@ void parseArgcArgv(int argc, char *argv[]) {
             if(common::run_sector) common::run_mode = 2;
             else { common::run_mode = 3; common::silent = true; }
             i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-t1"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-t1") || !strcmp(argv[i],"-t"))) {
             string str(argv[i + 1]);
             auto pos = str.find(',');
             if(pos==str.npos) {

@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
             cout << "-c <fn>: config file name." << endl;
             cout << "-prime <n>: prime index, higher priority than config file." << endl;
             cout << "-t1 <n|n1,n2>: threads at 1st level, n1-forward & n2-backward." << endl;
+            cout << "-t: just the same as -t1." << endl;
             cout << "-t2 <n|n1,n2>: threads at 2nd level, n1-forward & n2-backward." << endl;
             cout << "-t3 <n|n1,n2>: threads at 3rd level, n1-forward & n2-backward." << endl;
             cout << "-lmt2 <n|n1,n2>: limit to activate -t2, (n terms)." << endl;
