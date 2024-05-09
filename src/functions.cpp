@@ -757,7 +757,7 @@ void add_mode2_p(int t, int lmt, const pc_pair_ptr_lst &terms1, const pc_pair_pt
     }
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    if(todo_vec.size()>lmt && len>common::len) {
+    if(todo_vec.size()>lmt || len>common::len) {
         atomic<long> atomic_index(0);
         auto call_back = [&]() {
             while(true) {
@@ -786,9 +786,9 @@ void add_mode2_p(int t, int lmt, const pc_pair_ptr_lst &terms1, const pc_pair_pt
         int tn = t;
         if(tn>todo_vec.size()) tn = todo_vec.size();
         std::thread threads[tn];
-        for (int i=0; i<tn; i++) threads[i] = std::thread(call_back);
+        if(tn>1) for (int i=0; i<tn-1; i++) threads[i] = std::thread(call_back);
         call_back(); // reuse the current thread
-        for (int i=0; i<tn; i++) threads[i].join();
+        if(tn>1) for (int i=0; i<tn-1; i++) threads[i].join();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;
@@ -1013,136 +1013,138 @@ void forward_stage(sector_count_t ssector_number) {
     vector<pc_pair_ptr_lst> worker_pcs;
     list<worker_item_type_ifm2> worker_items_ifm2;
     map<int,bool> item_ready;
-            
-    if(if_mode==1) worker_main = [&]() {
-        while(true) {
-            list<worker_item_type_ifm1> wi_items;
-            {
-                unique_lock<mutex> guard(worker_mutex);
-                worker_cond.wait(guard, [&]() {
-                    if(worker_stop) return true;
-                    if(!worker_left) return false;
-                    bool first = true;
-                    int last_i2;
-                    auto itr = worker_items_ifm1.begin();
-                    while(itr!=worker_items_ifm1.end()) {
-                        auto & ii1 = itr->i1;
-                        auto & ii2 = itr->i2;
-                        if(first) {
-                            if(ii1<ii2 && item_left[ii1]==0 && !item_in_use[ii2]) {
+    
+    if(total_threads>1) {
+        if(if_mode==1) worker_main = [&]() {
+            while(true) {
+                list<worker_item_type_ifm1> wi_items;
+                {
+                    unique_lock<mutex> guard(worker_mutex);
+                    worker_cond.wait(guard, [&]() {
+                        if(worker_stop) return true;
+                        if(!worker_left) return false;
+                        bool first = true;
+                        int last_i2;
+                        auto itr = worker_items_ifm1.begin();
+                        while(itr!=worker_items_ifm1.end()) {
+                            auto & ii1 = itr->i1;
+                            auto & ii2 = itr->i2;
+                            if(first) {
+                                if(ii1<ii2 && item_left[ii1]==0 && !item_in_use[ii2]) {
+                                    wi_items.emplace_back(itr->i1, itr->i2, itr->o);
+                                    itr = worker_items_ifm1.erase(itr);
+                                    first = false;
+                                    last_i2 = ii2;
+                                } else if(ii1==ii2 && item_left[ii1]==1 && !item_in_use[ii2]) {
+                                    wi_items.emplace_back(itr->i1, itr->i2, itr->i3);
+                                    itr = worker_items_ifm1.erase(itr);
+                                    last_i2 = ii2;
+                                    break;
+                                } else itr++;
+                            } else if(ii2==last_i2 && ii1<ii2 && item_left[ii1]==0) {
                                 wi_items.emplace_back(itr->i1, itr->i2, itr->o);
                                 itr = worker_items_ifm1.erase(itr);
-                                first = false;
-                                last_i2 = ii2;
-                            } else if(ii1==ii2 && item_left[ii1]==1 && !item_in_use[ii2]) {
+                            } else if(ii2==last_i2 && ii1==ii2 && item_left[ii1]==wi_items.size()+1) {
                                 wi_items.emplace_back(itr->i1, itr->i2, itr->i3);
                                 itr = worker_items_ifm1.erase(itr);
-                                last_i2 = ii2;
                                 break;
                             } else itr++;
-                        } else if(ii2==last_i2 && ii1<ii2 && item_left[ii1]==0) {
-                            wi_items.emplace_back(itr->i1, itr->i2, itr->o);
-                            itr = worker_items_ifm1.erase(itr);
-                        } else if(ii2==last_i2 && ii1==ii2 && item_left[ii1]==wi_items.size()+1) {
-                            wi_items.emplace_back(itr->i1, itr->i2, itr->i3);
-                            itr = worker_items_ifm1.erase(itr);
-                            break;
-                        } else itr++;
-                    }
-                    if(wi_items.size()>0) {
-                        item_in_use[last_i2] = true;
-                        return true;
-                    } else return false;
-                });
-            }
-            if (worker_stop) {
-                flint_cleanup();
-                return;
-            }
-            
-            bool hasii = false, todo = true;
-            int i2;
-            for(auto item : wi_items) {
-                auto const & i1 = item.i1;
-                i2 = item.i2;
-                auto const & i3 = item.i3;
-                const COEFF & o = item.o;
+                        }
+                        if(wi_items.size()>0) {
+                            item_in_use[last_i2] = true;
+                            return true;
+                        } else return false;
+                    });
+                }
+                if (worker_stop) {
+                    flint_cleanup();
+                    return;
+                }
+                
+                bool hasii = false, todo = true;
+                int i2;
+                for(auto item : wi_items) {
+                    auto const & i1 = item.i1;
+                    i2 = item.i2;
+                    auto const & i3 = item.i3;
+                    const COEFF & o = item.o;
 
-                auto itrFrom = worker_itr[i1];
-                auto itrTo = worker_itr[i2];
+                    auto itrFrom = worker_itr[i1];
+                    auto itrTo = worker_itr[i2];
 
-                if(i1==i2) {
-                    pc_pair_ptr_lst::iterator new_start;
-                    { // write locker block
-                        std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
-                        new_start = split(*itrTo, ssector_number, i3);
+                    if(i1==i2) {
+                        pc_pair_ptr_lst::iterator new_start;
+                        { // write locker block
+                            std::lock_guard<std::shared_mutex> write_locker(db_rw_mutex);
+                            new_start = split(*itrTo, ssector_number, i3);
+                        }
+                        while (itrTo->begin() != new_start) itrTo->pop_front();
+                        hasii = true;
+                    } else {
+                        COEFF c;
+                        _div_neg_(c, o, (*(itrFrom->back())).second);
+                        if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, c, false);
+                        else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, c, false);
                     }
-                    while (itrTo->begin() != new_start) itrTo->pop_front();
-                    hasii = true;
-                } else {
-                    COEFF c;
-                    _div_neg_(c, o, (*(itrFrom->back())).second);
-                    if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, c, false);
-                    else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, c, false);
+                }
+                {
+                    lock_guard<mutex> guard(worker_mutex);
+                    item_left[i2] -= wi_items.size();
+                    item_in_use[i2] = false;
+                    if(hasii) worker_left--;
+                    if(!worker_left) todo = false;
+                }
+                if(hasii) {
+                    if(todo) worker_cond.notify_all();
+                    else worker_done_cond.notify_one();
                 }
             }
-            {
-                lock_guard<mutex> guard(worker_mutex);
-                item_left[i2] -= wi_items.size();
-                item_in_use[i2] = false;
-                if(hasii) worker_left--;
-                if(!worker_left) todo = false;
-            }
-            if(hasii) {
+        };
+        if(if_mode==2) worker_main = [&]() {
+            while(true) {
+                int i;
+                {
+                    unique_lock<mutex> guard(worker_mutex);
+                    worker_cond.wait(guard, [&]() {
+                        if(worker_stop) return true;
+                        if(!worker_left) return false;
+                        auto itr = worker_items_ifm2.begin();
+                        while(itr!=worker_items_ifm2.end()) {
+                            auto & iset = itr->iset;
+                            bool ok = true;
+                            for(auto ii : iset) if(!item_ready[ii]) {
+                                ok = false;
+                                break;
+                            }
+                            if(ok) {
+                                i = itr->i;
+                                worker_items_ifm2.erase(itr);
+                                return true;
+                            }
+                            itr++;
+                        }
+                        return false;
+                    });
+                }
+                if (worker_stop) {
+                    flint_cleanup();
+                    return;
+                }
+                
+                auto const & terms = worker_pcs[i];
+                apply_table_mode2(terms, true, true, ssector_number, 0, db_rw_mutex, virts_number);
+                bool todo = true;
+                {
+                    lock_guard<mutex> guard(worker_mutex);
+                    worker_left--;
+                    item_ready[i] = true;
+                    if(!worker_left) todo = false;
+                }
                 if(todo) worker_cond.notify_all();
                 else worker_done_cond.notify_one();
             }
-        }
-    };
-    if(if_mode==2) worker_main = [&]() {
-        while(true) {
-            int i;
-            {
-                unique_lock<mutex> guard(worker_mutex);
-                worker_cond.wait(guard, [&]() {
-                    if(worker_stop) return true;
-                    if(!worker_left) return false;
-                    auto itr = worker_items_ifm2.begin();
-                    while(itr!=worker_items_ifm2.end()) {
-                        auto & iset = itr->iset;
-                        bool ok = true;
-                        for(auto ii : iset) if(!item_ready[ii]) {
-                            ok = false;
-                            break;
-                        }
-                        if(ok) {
-                            i = itr->i;
-                            worker_items_ifm2.erase(itr);
-                            return true;
-                        }
-                        itr++;
-                    }
-                    return false;
-                });
-            }
-            if (worker_stop) {
-                flint_cleanup();
-                return;
-            }
-            
-            auto const & terms = worker_pcs[i];
-            apply_table_mode2(terms, true, true, ssector_number, 0, db_rw_mutex, virts_number);
-            bool todo = true;
-            {
-                lock_guard<mutex> guard(worker_mutex);
-                worker_left--;
-                item_ready[i] = true;
-                if(!worker_left) todo = false;
-            }
-            if(todo) worker_cond.notify_all();
-            else worker_done_cond.notify_one();
-        }
-    };
+        };
+    }
     
     if(total_threads>1) for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
     
@@ -2085,7 +2087,7 @@ void forward_stage(sector_count_t ssector_number) {
     }
     finish_sector(set_needed_lower, ssector_number);
     done_and_return:
-    worker_join();
+    if(total_threads>1) worker_join();
 }
 
 /**
@@ -2238,7 +2240,7 @@ void Evaluate() {
             int nts = common::t1a;
             if(nts==0) nts = omp_get_num_procs();
             if(nts>worker_tasks_n) nts = worker_tasks_n;
-            #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(common::t1a>1 && worker_tasks_n>1 && common::run_mode!=3)
+            #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(nts>1 && common::run_mode!=3)
             for(int ti=0; ti<worker_tasks_n; ++ti) {
                 while (lock.test_and_set(std::memory_order_acquire)) ;
                 if (!common::silent) cout << "\r                       \r  \\--Evaluating " << (++n) << "/" << worker_tasks_n << " @ " << now() << flush;
@@ -2362,7 +2364,7 @@ void Evaluate() {
                 int nts = common::t1b;
                 if(nts==0) nts = omp_get_num_procs();
                 if(nts>worker_tasks_n) nts = worker_tasks_n;
-                #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(common::t1b>1 && worker_tasks_n>1 && common::run_mode!=3)
+                #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(nts>1 && common::run_mode!=3)
                 for(int ti=0; ti<worker_tasks_n; ++ti) {
                     while (lock.test_and_set(std::memory_order_acquire)) ;
                     if (!common::silent) cout << "\r                       \r  \\--Evaluating " << (++n) << "/" << worker_tasks_n << " @ " << now() << flush;
@@ -2446,7 +2448,7 @@ void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &
     }
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    if(todo_vec.size()>lmt && len>common::len) {
+    if(todo_vec.size()>lmt || len>common::len) {
         atomic<long> atomic_index(0);
         auto call_back = [&]() {
             while(true) {
@@ -2475,9 +2477,9 @@ void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &
         int tn = t;
         if(tn>todo_vec.size()) tn = todo_vec.size();
         std::thread threads[tn];
-        for (int i=0; i<tn; i++) threads[i] = std::thread(call_back);
+        if(tn>1) for (int i=0; i<tn-1; i++) threads[i] = std::thread(call_back);
         call_back(); // reuse the current thread
-        for (int i=0; i<tn; i++) threads[i].join();
+        if(tn>1) for (int i=0; i<tn-1; i++) threads[i].join();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;

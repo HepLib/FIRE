@@ -70,17 +70,17 @@ unsigned int common::t2b = 1;
 unsigned int common::t3a = 1; // Level 3
  unsigned int common::t3b = 1;
 #if defined(FMPQ) || defined(FloatR)
-unsigned int common::lmt2a = 10; // Limit Level 2
-unsigned int common::lmt2b = 5000;
-unsigned int common::lmt3a = 1000;
+unsigned int common::lmt2a = 1000; // Limit Level 2
+unsigned int common::lmt2b = 1000;
+unsigned int common::lmt3a = 5000; // Limit Level 3
 unsigned int common::lmt3b = 5000;
-unsigned int common::len = 0;
-#else
-unsigned int common::lmt2a = 10; // Limit Level 2
-unsigned int common::lmt2b = 100;
-unsigned int common::lmt3a = 500;
-unsigned int common::lmt3b = 500;
 unsigned int common::len = 5000;
+#else
+unsigned int common::lmt2a = 100; // Limit Level 2
+unsigned int common::lmt2b = 100;
+unsigned int common::lmt3a = 100; // Limit Level 3
+unsigned int common::lmt3b = 100;
+unsigned int common::len = 200;
 #endif
 
 vector<vector<vector<t_index> > > common::iorderings;

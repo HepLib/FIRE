@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-export tn=4
-
-echo M/FIRE -c box -t1 $tn
-time ../../M/FIRE -c box -t1 $tn
+echo M/FIRE -c box
+time ../../M/FIRE -c box
 echo
 
-echo M/FIRE -c box -t1 $tn
-time ../../M/FIRE -c boxr -t1 $tn
+echo M/FIRE -c boxr
+time ../../M/FIRE -c boxr
 echo

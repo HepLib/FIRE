@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# due to more variables, we can increase t3 with small lmt3
+# due to more variables, we can increase t3 with small lmt3 or len
 
-export tn=4
+t3=8
 
-echo M/FIRE -c bananaUnequal -t1 $tn -t2 $tn -t3 $tn -lmt3 10
-time ../../M/FIRE -c bananaUnequal -t1 $tn -t2 $tn -t3 $tn -lmt3 10
+echo M/FIRE -c bananaUnequal -t3 $t3 -len 100
+time ../../M/FIRE -c bananaUnequal -t3 $t3 -len 100
 echo
