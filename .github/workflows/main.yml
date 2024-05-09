@@ -17,3 +17,8 @@ jobs:
           sudo apt-get install -y git
           make -j 4 dep
           make -j 4
+      - name: "check examples"
+        run: |
+          cd examples/box
+          ./run.sh
+        
