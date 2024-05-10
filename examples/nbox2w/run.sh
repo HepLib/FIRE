@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-#!/usr/bin/env bash
+# due to more variables, we can increase -tp with small -lmt/-len
 
-# due to more variables, we can increase t3 with small lmt3
+tp=16 # thread pool size
 
-export tn=4
-export t3=16
-
-echo M/FIRE -c nbox2w -t1 $tn -t2 $tn -t3 $t3 -lmt3 10
-time ../../M/FIRE -c nbox2w -t1 $tn -t2 $tn -t3 $t3 -lmt3 10
+echo M/FIRE -c nbox2w -tp $tp -len 100
+time ../../M/FIRE -c nbox2w -tp $tp -len 100
 echo

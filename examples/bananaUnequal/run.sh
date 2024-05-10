@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# due to more variables, we can increase t3 with small lmt3 or len
+# due to more variables, we can increase -tp with small -lmt or -len
 
-t3=8
+tp=8 # thread pool size
 
-echo M/FIRE -c bananaUnequal -t3 $t3 -len 100
-time ../../M/FIRE -c bananaUnequal -t3 $t3 -len 100
+echo M/FIRE -c bananaUnequal -tp $tp -len 100
+time ../../M/FIRE -c bananaUnequal -tp $tp -len 100
 echo

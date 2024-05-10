@@ -61,25 +61,23 @@ int common::abs_max_level = 0;
 
 int common::abs_min_level = 100;
 
+TasksPool common::TPool;
 unsigned int common::global_pn = 0;
 int common::ifm = 0;
-unsigned int common::t1a = 0; // Level 1
-unsigned int common::t1b = 0; // 0 for all CPU cores
-unsigned int common::t2a = 1; // Level 2
-unsigned int common::t2b = 1;
-unsigned int common::t3a = 1; // Level 3
- unsigned int common::t3b = 1;
+unsigned int common::t1 = 0; // 0 for all CPU cores
+unsigned int common::t2 = 0; // 0 for all CPU cores
+unsigned int common::lt1 = 1;
+unsigned int common::lt2 = 1;
+unsigned int common::tp = 1; // pool size
 #if defined(FMPQ) || defined(FloatR)
-unsigned int common::lmt2a = 1000; // Limit Level 2
-unsigned int common::lmt2b = 1000;
-unsigned int common::lmt3a = 5000; // Limit Level 3
-unsigned int common::lmt3b = 5000;
-unsigned int common::len = 5000;
+unsigned int common::llmt1 = 1000; // Level Limit
+unsigned int common::llmt2 = 1000; // Level Limit
+unsigned int common::lmt = 5000;
+unsigned int common::len = 100;
 #else
-unsigned int common::lmt2a = 100; // Limit Level 2
-unsigned int common::lmt2b = 100;
-unsigned int common::lmt3a = 100; // Limit Level 3
-unsigned int common::lmt3b = 100;
+unsigned int common::llmt1 = 100; // Level Limit
+unsigned int common::llmt2 = 100; // Level Limit
+unsigned int common::lmt = 100;
 unsigned int common::len = 200;
 #endif
 

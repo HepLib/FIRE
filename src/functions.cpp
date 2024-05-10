@@ -21,7 +21,6 @@
 #include <malloc.h>
 #endif
 
-#include "flint/thread_support.h"
 #include <omp.h>
 
 inline char digit2char(const int i) {
@@ -724,7 +723,7 @@ void add_mode2(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
     }
 }
 
-void add_mode2_p(int t, int lmt, const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+void add_mode2_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
     rterms.clear();
     auto eq2end = terms2.end();
     eq2end--;
@@ -757,7 +756,7 @@ void add_mode2_p(int t, int lmt, const pc_pair_ptr_lst &terms1, const pc_pair_pt
     }
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    if(todo_vec.size()>lmt || len>common::len) {
+    if(todo_vec.size()>common::lmt || len>common::len) {
         atomic<long> atomic_index(0);
         auto call_back = [&]() {
             while(true) {
@@ -783,12 +782,12 @@ void add_mode2_p(int t, int lmt, const pc_pair_ptr_lst &terms1, const pc_pair_pt
             }
         };
     
-        int tn = t;
+        int tn = common::tp;
         if(tn>todo_vec.size()) tn = todo_vec.size();
-        std::thread threads[tn];
-        if(tn>1) for (int i=0; i<tn-1; i++) threads[i] = std::thread(call_back);
+        vector<std::future<void>> tasks;
+        if(tn>1) for (int i=0; i<tn-1; i++) tasks.emplace_back(common::TPool.add(call_back));
         call_back(); // reuse the current thread
-        if(tn>1) for (int i=0; i<tn-1; i++) threads[i].join();
+        if(tn>1) for (int i=0; i<tn-1; i++) tasks[i].wait();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;
@@ -846,22 +845,12 @@ void apply_table_mode2(const pc_pair_ptr_lst &terms, bool forward_mode, bool fix
                 _div_neg_(o, (*itr)->second, terms2.back()->second);
                 if(!is_zero(o)) {
                     if (first) {
-                        if(forward_mode) {
-                            if(common::t3a<2) add_mode2(rterms1, terms2, rterms2, o);
-                            else add_mode2_p(common::t3a, common::lmt3a, rterms1, terms2, rterms2, o);
-                        } else {
-                            if(common::t3b<2) add_mode2(rterms1, terms2, rterms2, o);
-                            else add_mode2_p(common::t3b, common::lmt3b, rterms1, terms2, rterms2, o);
-                        }
+                        if(common::tp<2) add_mode2(rterms1, terms2, rterms2, o);
+                        else add_mode2_p(rterms1, terms2, rterms2, o);
                         first = false;
                     } else {
-                        if(forward_mode) {
-                            if(common::t3a<2) add_mode2(rterms2, terms2, rterms1, o);
-                            else add_mode2_p(common::t3a, common::lmt3a, rterms2, terms2, rterms1, o);
-                        } else {
-                            if(common::t3b<2) add_mode2(rterms2, terms2, rterms1, o);
-                            else add_mode2_p(common::t3b, common::lmt3b, rterms2, terms2, rterms1, o);
-                        }
+                        if(common::tp<2) add_mode2(rterms2, terms2, rterms1, o);
+                        else add_mode2_p(rterms2, terms2, rterms1, o);
                         first = true;
                     }
                 }
@@ -1001,7 +990,7 @@ void forward_stage(sector_count_t ssector_number) {
     condition_variable worker_cond;
     condition_variable worker_done_cond;
     bool worker_stop = false;
-    int total_threads = common::t2a;
+    int total_threads = common::lt1;
     if(total_threads<1) total_threads = 1;
     thread worker[total_threads];
     
@@ -1083,8 +1072,8 @@ void forward_stage(sector_count_t ssector_number) {
                     } else {
                         COEFF c;
                         _div_neg_(c, o, (*(itrFrom->back())).second);
-                        if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, c, false);
-                        else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, c, false);
+                        if(common::tp<2) mul_add_to(*itrTo, *itrFrom, c, false);
+                        else mul_add_to_p(*itrTo, *itrFrom, c, false);
                     }
                 }
                 {
@@ -1707,8 +1696,8 @@ void forward_stage(sector_count_t ssector_number) {
                                             to_substitute.emplace_front(terms2l);
                                             COEFF o;
                                             _div_neg_(o, (*itr)->second, terms2l.back()->second);
-                                            if(common::t3a<2) mul_add_to(result, terms2l, o, true); // last term still stays here
-                                            else mul_add_to(common::t3a, common::lmt3a, result, terms2l, o, true); // last term still stays here
+                                            if(common::tp<2) mul_add_to(result, terms2l, o, true); // last term still stays here
+                                            else mul_add_to_p(result, terms2l, o, true); // last term still stays here
                                             result.erase(next(itr--).base());
                                             if (result.empty()) break;
                                         }
@@ -1785,7 +1774,7 @@ void forward_stage(sector_count_t ssector_number) {
                                                 term_vec[j] = itrTerm;
                                             }
                                         }
-                                        parallel = worker_left>=common::lmt2a;
+                                        parallel = worker_left>=common::llmt1;
                                         if(!parallel) worker_left = 0;
                                     }
 
@@ -1812,8 +1801,8 @@ void forward_stage(sector_count_t ssector_number) {
                                                 while (itrTo->begin() != new_start) itrTo->pop_front();
                                             } else {
                                                 _div_neg_(c, c, (*(itrFrom->back())).second);
-                                                if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, c, false);
-                                                else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, c, false);
+                                                if(common::tp<2) mul_add_to(*itrTo, *itrFrom, c, false);
+                                                else mul_add_to_p(*itrTo, *itrFrom, c, false);
                                             }
                                         }
                                     }
@@ -1829,8 +1818,8 @@ void forward_stage(sector_count_t ssector_number) {
                                             for (; itrTerm != itrTo->end(); ++itrTerm) {
                                                 if (p == (*itrTerm)->first) {
                                                     _div_neg_(o, (*itrTerm)->second, (*(itrFrom->back())).second);
-                                                    if(common::t3a<2) mul_add_to(*itrTo, *itrFrom, o, false);
-                                                    else mul_add_to(common::t3a, common::lmt3a, *itrTo, *itrFrom, o, false);
+                                                    if(common::tp<2) mul_add_to(*itrTo, *itrFrom, o, false);
+                                                    else mul_add_to_p(*itrTo, *itrFrom, o, false);
                                                     changed = true;
                                                     ++itrTerm; // we move it before, or it will be invalidated
                                                     break;
@@ -1931,7 +1920,7 @@ void forward_stage(sector_count_t ssector_number) {
                                                 worker_items_ifm2.emplace_back(worker_left, std::move(iset));
                                                 worker_left++;
                                             }
-                                            parallel = worker_left>=common::lmt2a;
+                                            parallel = worker_left>=common::llmt1;
                                             if(!parallel) worker_left = 0;
                                         }
 
@@ -2237,7 +2226,7 @@ void Evaluate() {
             std::atomic<int> n{0};
             auto worker_tasks_n = worker_tasks.size();
             if (!common::silent && worker_tasks_n) cout << "  \\--Start @ " << now(true) << endl;
-            int nts = common::t1a;
+            int nts = common::t1;
             if(nts==0) nts = omp_get_num_procs();
             if(nts>worker_tasks_n) nts = worker_tasks_n;
             #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(nts>1 && common::run_mode!=3)
@@ -2361,7 +2350,7 @@ void Evaluate() {
                 std::atomic<int> n{0};
                 std::atomic_flag lock = ATOMIC_FLAG_INIT;
                 if (!common::silent && worker_tasks_n) cout << "  \\--Start @ " << now(true) << endl;
-                int nts = common::t1b;
+                int nts = common::t2;
                 if(nts==0) nts = omp_get_num_procs();
                 if(nts>worker_tasks_n) nts = worker_tasks_n;
                 #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(nts>1 && common::run_mode!=3)
@@ -2411,7 +2400,7 @@ set<point, indirect_more>::reverse_iterator expressed_by(set<point, indirect_mor
     return to_test.rbegin();
 }
 
-void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last) {
+void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last) {
     pc_pair_ptr_lst::const_iterator termsB = terms2.begin();
     pc_pair_ptr_lst::const_iterator termsE = terms2.end();
     auto eq2end = termsE;
@@ -2427,7 +2416,7 @@ void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &
             ++itr1;
         } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
             if(!is_zero((*itr2)->second)) {
-                itr1 = terms1.emplace(itr1, *itr2); // to set point from *itr2
+                itr1 = terms1.emplace(itr1, make_pc_ptr((*itr2)->first, CO_0)); // to set point from *itr2
                 itr_vec.push_back(itr1);
                 vector<pc_pair_ptr> items { *itr2 };
                 size_t l = (*itr2)->second.length();
@@ -2448,7 +2437,7 @@ void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &
     }
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    if(todo_vec.size()>lmt || len>common::len) {
+    if(todo_vec.size()>common::lmt || len>common::len) {
         atomic<long> atomic_index(0);
         auto call_back = [&]() {
             while(true) {
@@ -2469,17 +2458,17 @@ void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &
                     COEFF o;
                     _mul_(o, items[1]->second, coeff);
                     _add_(o, o, items[0]->second);
-                    rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+                    rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
                 }
             }
         };
     
-        int tn = t;
+        int tn = common::tp;
         if(tn>todo_vec.size()) tn = todo_vec.size();
-        std::thread threads[tn];
-        if(tn>1) for (int i=0; i<tn-1; i++) threads[i] = std::thread(call_back);
+        vector<std::future<void>> tasks;
+        if(tn>1) for (int i=0; i<tn-1; i++) tasks.emplace_back(common::TPool.add(call_back));
         call_back(); // reuse the current thread
-        if(tn>1) for (int i=0; i<tn-1; i++) threads[i].join();
+        if(tn>1) for (int i=0; i<tn-1; i++) tasks[i].wait();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;
@@ -2494,16 +2483,14 @@ void mul_add_to(int t, int lmt, pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &
                 COEFF o;
                 _mul_(o, items[1]->second, coeff);
                 _add_(o, o, items[0]->second);
-                rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+                rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
             }
         }
     }
     
-    for(int i=0; i<itr_vec.size(); i++) *(itr_vec[i]) = rterms_vec[i];
-    itr1 = terms1.begin();
-    while (itr1 != terms1.end()) {
-        if(is_zero((*itr1)->second)) itr1 = terms1.erase(itr1);
-        else ++itr1;
+    for(int i=0; i<itr_vec.size(); i++) {
+        if(is_zero(rterms_vec[i]->second)) terms1.erase(itr_vec[i]);
+        else *(itr_vec[i]) = rterms_vec[i];
     }
 }
 void mul_add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const COEFF &coeff, bool skip_last) {
@@ -2538,8 +2525,7 @@ void mul_add_to(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const CO
         }
     }
 }
-void apply_table(const pc_pair_ptr_vec &terms,
-                 sector_count_t fixed_database_sector, unsigned short sector_level) {
+void apply_table(const pc_pair_ptr_vec &terms, sector_count_t fixed_database_sector, unsigned short sector_level) {
     bool changed = false;
     auto end = terms.cend();
     --end;
@@ -2557,8 +2543,8 @@ void apply_table(const pc_pair_ptr_vec &terms,
             } else {
                 changed = true;
                 _div_neg_(o, (*itr)->second, terms2.back()->second);
-                if(common::t3b<2) mul_add_to(result, terms2, o, true); // we add the second expression with the last term killed
-                else mul_add_to(common::t3b, common::lmt3b, result, terms2, o, true); // we add the second expression with the last term killed
+                if(common::tp<2) mul_add_to(result, terms2, o, true); // we add the second expression with the last term killed
+                else mul_add_to_p(result, terms2, o, true); // we add the second expression with the last term killed
             }
         }
     }
@@ -2600,7 +2586,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
     int worker_total = 0;
     mutex worker_mutex;
     condition_variable worker_cond;
-    int total_threads = common::t2b;
+    int total_threads = common::lt2;
     if(total_threads<1) total_threads = 1;
     thread worker[total_threads];
     map<int,bool> item_ready;
@@ -2700,7 +2686,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
                 }
             }
 
-            if(worker_left>common::lmt2b) {
+            if(worker_left>=common::llmt2) {
                 for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
                 for(int i=0; i<total_threads; ++i) worker[i].join();
             } else {

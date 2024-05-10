@@ -51,13 +51,12 @@ int main(int argc, char *argv[]) {
             cout << "---------------------------------------------------------------" << endl;
             cout << "-c <fn>: config file name." << endl;
             cout << "-prime <n>: prime index, higher priority than config file." << endl;
-            cout << "-t1 <n|n1,n2>: threads at 1st level, n1-forward & n2-backward." << endl;
-            cout << "-t: just the same as -t1." << endl;
-            cout << "-t2 <n|n1,n2>: threads at 2nd level, n1-forward & n2-backward." << endl;
-            cout << "-t3 <n|n1,n2>: threads at 3rd level, n1-forward & n2-backward." << endl;
-            cout << "-lmt2 <n|n1,n2>: limit to activate -t2, (n terms)." << endl;
-            cout << "-lmt3 <n|n1,n2>: limit to activate -t3, (n terms)." << endl;
-            cout << "-len <n>: length limit to activate -t3, (in one term)." << endl;
+            cout << "-t <n|n1,n2>: threads size, n1-forward & n2-backward." << endl;
+            cout << "-lt <n|n1,n2>: level threads, n1-forward & n2-backward." << endl;
+            cout << "-tp <n>: tasks/threads pool size." << endl;
+            cout << "-lmt <n|n1,n2>: limit to activate -lt (n terms)." << endl;
+            cout << "-lmtp <n>: limit to activate -tp, (n terms)." << endl;
+            cout << "-len <n>: length limit to activate -tp, (in a term)." << endl;
             cout << "-ifm <n>: instruction flow mode, 0-auto | 1-prime | 2-poly." << endl;
             cout << "-dbo: DB exported to and imported from file to save memory." << endl;
             cout << "-re:  continue to run from the saving point (imply -dbo)." << endl;
@@ -103,6 +102,7 @@ int main(int argc, char *argv[]) {
     static_assert(sizeof(point) == POINT_SIZE, "Strange size of point class");
 
     parseArgcArgv(argc, argv);
+    if(common::tp>1) common::TPool.init(common::tp);
 
     set<point, indirect_more> points;
     string output;
@@ -137,12 +137,11 @@ int main(int argc, char *argv[]) {
         #if defined(FloatR)
         cout << "Float Precision: 2^" << COEFF::fp << endl;
         #endif
-        cout << "Forward : T1/T2/T3: " << common::t1a << "/" << common::t2a << "/" << common::t3a;
-        cout << ", LMT2/LMT3: " << common::lmt2a << "/" << common::lmt3a << endl;
-        cout << "Backward: T1/T2/T3: " << common::t1b << "/" << common::t2b << "/" << common::t3b;
-         cout << ", LMT2/LMT3: " << common::lmt2b << "/" << common::lmt3b << endl;
+        cout << "Forward : T/LT/LLMT: " << common::t1 << "/" << common::lt1 << "/" << common::llmt1 << endl;
+        cout << "Backward: T/LT/LLMT: " << common::t2 << "/" << common::lt2 << "/" << common::llmt2 << endl;
+        cout << "Tasks/LMT/LEN: " << common::tp << "/" << common::lmt << "/" << common::len << endl;
         if(common::prt_rule_counter) cout << "Rules: " << common::prt_rule_counter << endl;
-        cout << "DB Mode: " << common::run_mode << ", LEN@T3: " << common::len << endl;
+        cout << "DB Mode: " << common::run_mode << endl;
         if(!common::prt_replace.empty()) {
             cout << "Parameters: " << endl;
             for(auto kv : common::prt_replace) cout << "  " << kv.first << " -> " << kv.second << endl;

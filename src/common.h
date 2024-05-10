@@ -23,6 +23,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <shared_mutex>
+#include "taskspool.h"
 
 using namespace std;
 
@@ -180,17 +181,16 @@ public:
     static common_lbases_t lbases;
     static unsigned int global_pn;
 
-    static unsigned int t1a; // Level 1
-    static unsigned int t1b;
-    static unsigned int t2a; // Level 2
-    static unsigned int t2b;
-    static unsigned int t3a; // Level 3
-    static unsigned int t3b;
-    static unsigned int lmt2a; // Limit Level 2
-    static unsigned int lmt2b;
-    static unsigned int lmt3a; // Limit Level 2
-    static unsigned int lmt3b;
+    static unsigned int t1; // threads @ Forward
+    static unsigned int t2; // threads @ Backward
+    static unsigned int lt1; // level threads
+    static unsigned int lt2; // level threads
+    static unsigned int tp; // pool size
+    static unsigned int llmt1; // Level Limit @ Forward
+    static unsigned int llmt2;
+    static unsigned int lmt; // Limit Level 2
     static unsigned int len;
+    static TasksPool TPool;
     static int ifm; // 0-auto, 1-prime, 2-poly
     static map<string, string> variable_replacements;
     static bool small;

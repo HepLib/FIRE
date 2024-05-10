@@ -2656,55 +2656,43 @@ void parseArgcArgv(int argc, char *argv[]) {
             if(common::run_sector) common::run_mode = 2;
             else { common::run_mode = 3; common::silent = true; }
             i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-t1") || !strcmp(argv[i],"-t"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-t"))) {
             string str(argv[i + 1]);
             auto pos = str.find(',');
             if(pos==str.npos) {
-                s2u(str.c_str(), common::t1a);
-                common::t1b = common::t1a;
+                s2u(str.c_str(), common::t1);
+                common::t2 = common::t1;
             } else {
-                sscanf(str.c_str(),"%u,%u", &common::t1a, &common::t1b);
+                sscanf(str.c_str(),"%u,%u", &common::t1, &common::t2);
             }
             i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-t2"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-lt"))) {
             string str(argv[i + 1]);
             auto pos = str.find(',');
             if(pos==str.npos) {
-                s2u(str.c_str(), common::t2a);
-                common::t2b = common::t2a;
+                s2u(str.c_str(), common::lt1);
+                common::lt2 = common::lt1;
             } else {
-                sscanf(str.c_str(),"%u,%u", &common::t2a, &common::t2b);
+                sscanf(str.c_str(),"%u,%u", &common::lt1, &common::lt2);
             }
             i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-t3"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-tp"))) {
+            string str(argv[i + 1]);
+            s2u(str.c_str(), common::tp);
+            i++;
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-llmt"))) {
             string str(argv[i + 1]);
             auto pos = str.find(',');
             if(pos==str.npos) {
-                s2u(str.c_str(), common::t3a);
-                common::t3b = common::t3a;
+                s2u(str.c_str(), common::llmt1);
+                common::llmt2 = common::llmt1;
             } else {
-                sscanf(str.c_str(),"%u,%u", &common::t3a, &common::t3b);
+                sscanf(str.c_str(),"%u,%u", &common::llmt1, &common::llmt2);
             }
             i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt2"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt"))) {
             string str(argv[i + 1]);
-            auto pos = str.find(',');
-            if(pos==str.npos) {
-                s2u(str.c_str(), common::lmt2a);
-                common::lmt2b = common::lmt2a;
-            } else {
-                sscanf(str.c_str(),"%u,%u", &common::lmt2a, &common::lmt2b);
-            }
-            i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt3"))) {
-            string str(argv[i + 1]);
-            auto pos = str.find(',');
-            if(pos==str.npos) {
-                s2u(str.c_str(), common::lmt3a);
-                common::lmt3b = common::lmt3a;
-            } else {
-                sscanf(str.c_str(),"%u,%u", &common::lmt3a, &common::lmt3b);
-            }
+            s2u(str.c_str(), common::lmt);
             i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-len"))) {
             string str(argv[i + 1]);
