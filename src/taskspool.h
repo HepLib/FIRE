@@ -33,7 +33,10 @@ inline void TasksPool::init(size_t nt) {
                 {
                     std::unique_lock<std::mutex> lock(this->queue_mutex);
                     this->condition.wait(lock, [this]{ return this->done || !this->tasks.empty(); });
-                    if(this->done && this->tasks.empty()) return;
+                    if(this->done && this->tasks.empty()) {
+                        flint_cleanup();
+                        return;
+                    }
                     task = std::move(this->tasks.front());
                     this->tasks.pop();
                 }

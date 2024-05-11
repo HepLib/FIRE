@@ -761,10 +761,7 @@ void add_mode2_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, p
         auto call_back = [&]() {
             while(true) {
                 long i = atomic_index.fetch_add(1);
-                if(i>=todo_vec.size()) {
-                    flint_cleanup();
-                    return;
-                }
+                if(i>=todo_vec.size()) return;
                 auto mode = todo_vec[i].first;
                 auto items = todo_vec[i].second;
                 if(mode==1) {
@@ -1808,7 +1805,6 @@ void forward_stage(sector_count_t ssector_number) {
                                     }
                                 } else { // original version
                                     COEFF o;
-                                    //if(common::run_sector && !common::silent) cout << to_substitute.size() << flush;
                                     for (auto itrTo = to_substitute.begin(); itrTo != to_substitute.end(); ++itrTo) {
                                         bool changed = false;
                                         auto startTerm = itrTo->begin();
@@ -1818,10 +1814,10 @@ void forward_stage(sector_count_t ssector_number) {
                                             for (; itrTerm != itrTo->end(); ++itrTerm) {
                                                 if (p == (*itrTerm)->first) {
                                                     _div_neg_(o, (*itrTerm)->second, (*(itrFrom->back())).second);
+                                                    ++itrTerm; // we move it before, or it will be invalidated
                                                     if(common::tp<2) mul_add_to(*itrTo, *itrFrom, o, false);
                                                     else mul_add_to_p(*itrTo, *itrFrom, o, false);
                                                     changed = true;
-                                                    ++itrTerm; // we move it before, or it will be invalidated
                                                     break;
                                                 } else if (p < (*itrTerm) -> first) {
                                                     break; // this relation does not go there
@@ -2416,7 +2412,7 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
             ++itr1;
         } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
             if(!is_zero((*itr2)->second)) {
-                itr1 = terms1.emplace(itr1, make_pc_ptr((*itr2)->first, CO_0)); // to set point from *itr2
+                itr1 = terms1.emplace(itr1, *itr2); // to set point from *itr2
                 itr_vec.push_back(itr1);
                 vector<pc_pair_ptr> items { *itr2 };
                 size_t l = (*itr2)->second.length();
@@ -2442,10 +2438,7 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
         auto call_back = [&]() {
             while(true) {
                 long i = atomic_index.fetch_add(1);
-                if(i>=todo_vec.size()) {
-                    flint_cleanup();
-                    return;
-                }
+                if(i>=todo_vec.size()) return;
                 auto mode = todo_vec[i].first;
                 auto items = todo_vec[i].second;
                 if(mode==1) {
@@ -2473,18 +2466,16 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
         for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;
             auto items = todo_vec[i].second;
-            if(mode==1) {
-                rterms_vec[i] = items[0];
-            } else if(mode==2) {
+            if(mode==2) {
                 COEFF o;
                 _mul_(o, items[0]->second,  coeff);
                 rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
-            } else {
+            } else if(mode==3) {
                 COEFF o;
                 _mul_(o, items[1]->second, coeff);
                 _add_(o, o, items[0]->second);
                 rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
-            }
+            } else throw std::runtime_error("strange mode found.");
         }
     }
     
