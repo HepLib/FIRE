@@ -25,3 +25,7 @@ make -j 8 dep
 make -j 8
 make test
 ```
+## 3-versions
+- `M/FIRE` for polynormial version with ration polynomial coefficients in IBP equations.
+- `Q/FIRE` for ration version with rational integer coefficients in IBP equations.
+- `F/FIRE` for float version with fix-precision float coefficients in IBP equations.
