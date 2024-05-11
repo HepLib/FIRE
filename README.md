@@ -1,3 +1,4 @@
+## About
 `FIRE` was developed by [A. Smirnov](https://gitlab.com/feynmanintegrals/fire). All credit for the original code goes to him and we would like to take this opportunity to thank [A. Smirnov](https://gitlab.com/feynmanintegrals/fire) for his great work!
 
 More information, please visit [Wiki Section](https://github.com/HepLib/FIRE/wiki).
@@ -16,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Installation
+## Installation
 ```
 git clone https://github.com/HepLib/FIRE.git
 cd FIRE
