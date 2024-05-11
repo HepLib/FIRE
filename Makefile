@@ -58,6 +58,14 @@ make cleanall -C FIREs; \
 /bin/rm -f FIREs/.DS_Store FIREs/*/.DS_Store FIREs/*/*/.DS_Store FIREs/*/*/*/.DS_Store;\
 gtar cfz FIREs.tar.gz FIREs; \
 /bin/rm -rf FIREs
+
+test:
+	cd examples/box; \
+./run.sh; \
+cd ../doublebox; \
+./run.sh; \
+cd ../v2; \
+./run.sh
 	
 UNAME_S:=$(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
