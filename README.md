@@ -14,3 +14,13 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# Installation
+```
+git clone https://github.com/HepLib/FIRE.git
+cd FIRE
+make -j 8 dep
+make -j 8
+make test
+```
