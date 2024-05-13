@@ -20,7 +20,7 @@ unsigned short common::dimension;
 unique_ptr<sector_count_t[]> common::sector_numbers_fast;
 unique_ptr<unique_ptr<t_index[]>[]> common::orderings_fast;
 
-const string common::version = "2024/05/01 (based on v6.5)";
+const string common::version = "2024/05/13 (based on v6.5.2)";
 map<string, string> common::prt_replace;
 int common::prt_rule_counter = 0;
 bool common::skip_if_exist = false;
@@ -31,6 +31,7 @@ int common::pos_pref = 1;
 bool common::silent = false;
 bool common::disable_presolve = false;
 bool common::hint;
+map<string,bool> common::opt_set;
 string common::hint_path;
 string common::fermat;
 string common::variables;
@@ -72,13 +73,13 @@ unsigned int common::tp = 1; // pool size
 #if defined(FMPQ) || defined(FloatR)
 unsigned int common::llmt1 = 1000; // Level Limit
 unsigned int common::llmt2 = 1000; // Level Limit
-unsigned int common::lmt = 5000;
+unsigned int common::lmt = 500;
 unsigned int common::len = 100;
 #else
 unsigned int common::llmt1 = 100; // Level Limit
 unsigned int common::llmt2 = 100; // Level Limit
 unsigned int common::lmt = 100;
-unsigned int common::len = 200;
+unsigned int common::len = 100;
 #endif
 
 vector<vector<vector<t_index> > > common::iorderings;

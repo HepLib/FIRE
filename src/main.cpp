@@ -53,11 +53,13 @@ int main(int argc, char *argv[]) {
             cout << "-prime <n>: prime index, higher priority than config file." << endl;
             cout << "-t <n|n1,n2>: threads size, n1-forward & n2-backward." << endl;
             cout << "-lt <n|n1,n2>: level threads, n1-forward & n2-backward." << endl;
+            cout << "-llmt <n|n1,n2>: limit to activate -lt (n terms)." << endl;
             cout << "-tp <n>: tasks/threads pool size." << endl;
-            cout << "-lmt <n|n1,n2>: limit to activate -lt (n terms)." << endl;
-            cout << "-lmtp <n>: limit to activate -tp, (n terms)." << endl;
-            cout << "-len <n>: length limit to activate -tp, (in a term)." << endl;
+            cout << "-lmt <n>: limit to activate -tp, (n terms)." << endl;
+            cout << "-len <n>: length limit to activate -tp, (in one term)." << endl;
             cout << "-ifm <n>: instruction flow mode, 0-auto | 1-prime | 2-poly." << endl;
+            cout << "-pos <n>: set #pos_pref, higher priority than config file." << endl;
+            cout << "-db <fn>: set DB file name, higher priority than config file." << endl;
             cout << "-dbo: DB exported to and imported from file to save memory." << endl;
             cout << "-re:  continue to run from the saving point (imply -dbo)." << endl;
             cout << "-skip: just by pass if .tables exists." << endl;

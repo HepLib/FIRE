@@ -1978,12 +1978,14 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
         } else if (str.substr(0, 6) == "#clean") {
             continue; // skip
         } else if (str.substr(0, 9) == "#pos_pref") {
-            size_t pos = 10;
-            while (str[pos] == ' ' || str[pos] == '\t') pos++;
-            str = str.substr(pos);
-            int pos_pref;
-            s2i(str.c_str(), pos_pref);
-            common::pos_pref = pos_pref;
+            if(common::opt_set.find("#pos_pref")==common::opt_set.end() || !common::opt_set["#pos_pref"]) {
+                size_t pos = 10;
+                while (str[pos] == ' ' || str[pos] == '\t') pos++;
+                str = str.substr(pos);
+                int pos_pref;
+                s2i(str.c_str(), pos_pref);
+                common::pos_pref = pos_pref;
+            }
         } else if (str.substr(0, 10) == "#variables") {
             size_t pos = 10;
             while (str[pos] == ' ' || str[pos] == '\t') pos++;
@@ -2063,7 +2065,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                     }
                 }
             } else {
-                cout<<"#database setting ignored"<<endl;
+                //cout<<"#database setting ignored"<<endl;
             }
         } else if (str.substr(0, 6) == "#prime") {
             #if defined(PRIME) || defined(FloatR)
@@ -2126,9 +2128,9 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                 fclose(config_file);
                 return 1;
             }
-            if (common::path == "") {
-                common::path = "db-"+common::config_file;
-                if (common::run_mode) {
+            if (common::run_mode) {
+                if (common::path == "" || (common::opt_set.find("#database")!=common::opt_set.end() && common::opt_set["#database"])) {
+                    if (common::path == "") common::path = "db-"+common::config_file;
                     if(access(common::path.c_str(), 0)) mkpath(common::path, 0777);
                     // clean on database
                     if(!common::run_sector) {
@@ -2714,6 +2716,17 @@ void parseArgcArgv(int argc, char *argv[]) {
             common::silent = true;
         } else if (!strcmp(argv[i],"-skip")) {
             common::skip_if_exist = true;
+        } if ((i + 1 != argc) && (!strcmp(argv[i],"-pos"))) {
+            string str(argv[i + 1]);
+            int pos_pref;
+            s2i(str.c_str(), pos_pref);
+            common::pos_pref = pos_pref;
+            common::opt_set["#pos_pref"] = true;
+            i++;
+        } if ((i + 1 != argc) && (!strcmp(argv[i],"-db"))) {
+            common::path = string(argv[i + 1]);
+            common::opt_set["#database"] = true;
+            i++;
         } else if (!strcmp(argv[i],"-dbo")) {
             if(common::run_mode<1) common::run_mode = 1;
         } else if (!strcmp(argv[i],"-re")) {

@@ -140,6 +140,7 @@ SECTOR sector_fast(const vector<t_index> &v);
 
 class common {
 public:
+    static map<string, bool> opt_set; // check the option has been set in command line argument
     static map<string, string> prt_replace;
     static int prt_rule_counter;
     const static string version;
