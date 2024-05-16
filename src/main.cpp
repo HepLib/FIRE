@@ -53,9 +53,8 @@ int main(int argc, char *argv[]) {
             cout << "-prime <n>: prime index, higher priority than config file." << endl;
             cout << "-t <n|n1,n2>: threads size, n1-forward & n2-backward." << endl;
             cout << "-lt <n|n1,n2>: level threads, n1-forward & n2-backward." << endl;
-            cout << "-llmt <n|n1,n2>: limit to activate -lt (n terms)." << endl;
+            cout << "-lmt <n|n1,n2>: limit to activate -lt (n terms)." << endl;
             cout << "-tp <n>: tasks/threads pool size." << endl;
-            cout << "-lmt <n>: limit to activate -tp, (n terms)." << endl;
             cout << "-len <n>: length limit to activate -tp, (in one term)." << endl;
             cout << "-ifm <n>: instruction flow mode, 0-auto | 1-prime | 2-poly." << endl;
             cout << "-pos <n>: set #pos_pref, higher priority than config file." << endl;
@@ -139,11 +138,13 @@ int main(int argc, char *argv[]) {
         #if defined(FloatR)
         cout << "Float Precision: 2^" << COEFF::fp << endl;
         #endif
-        cout << "Forward : T/LT/LLMT: " << common::t1 << "/" << common::lt1 << "/" << common::llmt1 << endl;
-        cout << "Backward: T/LT/LLMT: " << common::t2 << "/" << common::lt2 << "/" << common::llmt2 << endl;
-        cout << "Tasks/LMT/LEN: " << common::tp << "/" << common::lmt << "/" << common::len << endl;
+        cout << "Forward : T/LT/LLMT: " << common::t1 << "/" << common::lt1 << "/" << common::lmt1 << endl;
+        cout << "Backward: T/LT/LLMT: " << common::t2 << "/" << common::lt2 << "/" << common::lmt2 << endl;
+        cout << "Tasks/LEN: " << common::tp << "/" << common::len << endl;
         if(common::prt_rule_counter) cout << "Rules: " << common::prt_rule_counter << endl;
-        cout << "DB Mode: " << common::run_mode << endl;
+        ;
+        if(common::run_mode) cout << "DB: " << common::path << " (Mode " << common::run_mode << ")" << endl;
+        else cout << "DB: Mode " << common::run_mode << endl;
         if(!common::prt_replace.empty()) {
             cout << "Parameters: " << endl;
             for(auto kv : common::prt_replace) cout << "  " << kv.first << " -> " << kv.second << endl;
@@ -153,8 +154,6 @@ int main(int argc, char *argv[]) {
             for(int i=1; i<COEFF::vs.size(); i++) cout << ", " << COEFF::vs[i];
             cout << endl;
         }
-        // TODO: to print variables HERE
-        if(common::run_mode) cout << "Database: " << common::path << endl;
         if(common::only_masters) cout << "Masters: " << output << endl;
         else cout << "Output: " << output << endl;
     }
@@ -401,7 +400,7 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    flint_cleanup();
+    flint_cleanup_master();
     
     closeCalc();
     if(common::run_mode) system(("rm -rf "+common::path).c_str());

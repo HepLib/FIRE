@@ -2682,19 +2682,15 @@ void parseArgcArgv(int argc, char *argv[]) {
             string str(argv[i + 1]);
             s2u(str.c_str(), common::tp);
             i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-llmt"))) {
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt"))) {
             string str(argv[i + 1]);
             auto pos = str.find(',');
             if(pos==str.npos) {
-                s2u(str.c_str(), common::llmt1);
-                common::llmt2 = common::llmt1;
+                s2u(str.c_str(), common::lmt1);
+                common::lmt2 = common::lmt1;
             } else {
-                sscanf(str.c_str(),"%u,%u", &common::llmt1, &common::llmt2);
+                sscanf(str.c_str(),"%u,%u", &common::lmt1, &common::lmt2);
             }
-            i++;
-        } else if((i + 1 != argc) && (!strcmp(argv[i],"-lmt"))) {
-            string str(argv[i + 1]);
-            s2u(str.c_str(), common::lmt);
             i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-len"))) {
             string str(argv[i + 1]);

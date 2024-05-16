@@ -71,14 +71,12 @@ unsigned int common::lt1 = 1;
 unsigned int common::lt2 = 1;
 unsigned int common::tp = 1; // pool size
 #if defined(FMPQ) || defined(FloatR)
-unsigned int common::llmt1 = 1000; // Level Limit
-unsigned int common::llmt2 = 1000; // Level Limit
-unsigned int common::lmt = 500;
+unsigned int common::lmt1 = 1000; // Level Limit
+unsigned int common::lmt2 = 1000; // Level Limit
 unsigned int common::len = 100;
 #else
-unsigned int common::llmt1 = 100; // Level Limit
-unsigned int common::llmt2 = 100; // Level Limit
-unsigned int common::lmt = 100;
+unsigned int common::lmt1 = 100; // Level Limit
+unsigned int common::lmt2 = 100; // Level Limit
 unsigned int common::len = 100;
 #endif
 

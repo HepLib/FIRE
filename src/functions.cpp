@@ -689,7 +689,7 @@ string now(bool use_date=false) {
     return tmp;
 }
 
-void add_mode2(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+void mul_add(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
     rterms.clear();
     auto eq2end = terms2.end();
     eq2end--;
@@ -723,7 +723,7 @@ void add_mode2(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
     }
 }
 
-void add_mode2_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
+void mul_add_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
     rterms.clear();
     auto eq2end = terms2.end();
     eq2end--;
@@ -733,7 +733,8 @@ void add_mode2_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, p
     itr1 = terms1.begin();
     itr2 = terms2.begin();
     vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
-    size_t len = 0;
+    vector<int> todo_idx_p;
+    size_t idx = 0;
     while (itr2 != eq2end) {
         if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
             vector<pc_pair_ptr> items { *itr1 };
@@ -741,27 +742,29 @@ void add_mode2_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, p
             ++itr1;
         } else if ((itr1 == terms1.end()) || ((*itr2)->first < (*itr1)->first)) { // second equation only. have to multiply
             vector<pc_pair_ptr> items { *itr2 };
-            size_t l = (*itr2)->second.length();
-            if(l>len) len = l;
             todo_vec.emplace_back(make_pair(2, items));
+            size_t len = (*itr2)->second.length();
+            if(len>=common::len) todo_idx_p.push_back(idx);
             ++itr2;
         } else { // both equations. have to multiply and add
             vector<pc_pair_ptr> items { *itr1, *itr2 };
-            size_t l = (*itr1)->second.length() + (*itr2)->second.length();
-            if(l>len) len = l;
             todo_vec.emplace_back(make_pair(3, items));
+            size_t len = (*itr1)->second.length() + (*itr2)->second.length();
+            if(len>=common::len) todo_idx_p.push_back(idx);
             ++itr1;
             ++itr2;
         }
+        ++idx;
     }
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    if(todo_vec.size()>common::lmt || len>common::len) {
-        atomic<long> atomic_index(0);
+    if(todo_idx_p.size()>0) {
+        atomic<int> atomic_index(0);
         auto call_back = [&]() {
             while(true) {
-                long i = atomic_index.fetch_add(1);
-                if(i>=todo_vec.size()) return;
+                int j = atomic_index.fetch_add(1);
+                if(j>=todo_idx_p.size()) return;
+                auto i = todo_idx_p[j];
                 auto mode = todo_vec[i].first;
                 auto items = todo_vec[i].second;
                 if(mode==1) {
@@ -780,10 +783,33 @@ void add_mode2_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, p
         };
     
         int tn = common::tp;
-        if(tn>todo_vec.size()) tn = todo_vec.size();
+        if(tn>todo_idx_p.size()) tn = todo_idx_p.size();
         vector<std::future<void>> tasks;
         if(tn>1) for (int i=0; i<tn-1; i++) tasks.emplace_back(common::TPool.add(call_back));
+        
+        int curj = 0;
+        for(int i=0; i<todo_vec.size(); i++) {
+            if(curj<todo_idx_p.size() && i==todo_idx_p[curj]) {
+                curj++;
+                continue;
+            }
+            auto mode = todo_vec[i].first;
+            auto items = todo_vec[i].second;
+            if(mode==1) {
+                rterms_vec[i] = items[0];
+            } else if(mode==2) {
+                COEFF o;
+                _mul_(o, items[0]->second,  coeff);
+                rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+            } else {
+                COEFF o;
+                _mul_(o, items[1]->second, coeff);
+                _add_(o, o, items[0]->second);
+                rterms_vec[i] = make_pc_ptr(items[1]->first, std::move(o));
+            }
+        }
         call_back(); // reuse the current thread
+        
         if(tn>1) for (int i=0; i<tn-1; i++) tasks[i].wait();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
@@ -810,6 +836,7 @@ void add_mode2_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, p
         ++itr1;
     }
 }
+
 void apply_table_mode2(const pc_pair_ptr_lst &terms, bool forward_mode, bool fixed_last, sector_count_t fixed_database_sector, unsigned short sector_level, std::shared_mutex & db_rw_mutex, atomic<uint64_t> & virts_number) {
 
     bool changed = false;
@@ -842,12 +869,12 @@ void apply_table_mode2(const pc_pair_ptr_lst &terms, bool forward_mode, bool fix
                 _div_neg_(o, (*itr)->second, terms2.back()->second);
                 if(!is_zero(o)) {
                     if (first) {
-                        if(common::tp<2) add_mode2(rterms1, terms2, rterms2, o);
-                        else add_mode2_p(rterms1, terms2, rterms2, o);
+                        if(common::tp<2) mul_add(rterms1, terms2, rterms2, o);
+                        else mul_add_p(rterms1, terms2, rterms2, o);
                         first = false;
                     } else {
-                        if(common::tp<2) add_mode2(rterms2, terms2, rterms1, o);
-                        else add_mode2_p(rterms2, terms2, rterms1, o);
+                        if(common::tp<2) mul_add(rterms2, terms2, rterms1, o);
+                        else mul_add_p(rterms2, terms2, rterms1, o);
                         first = true;
                     }
                 }
@@ -1505,6 +1532,7 @@ void forward_stage(sector_count_t ssector_number) {
                 size_t level_tasks_n = level_tasks.size();
                 // seems only a few level_tasks is slow
                 for(int level_tasks_i=0; level_tasks_i<level_tasks_n; level_tasks_i++) {
+                    flint_cleanup();
                     sector_count_t ssector_number = Corner.s_number();
 
                     vector<t_index> v = Corner.get_vector();
@@ -1771,7 +1799,7 @@ void forward_stage(sector_count_t ssector_number) {
                                                 term_vec[j] = itrTerm;
                                             }
                                         }
-                                        parallel = worker_left>=common::llmt1;
+                                        parallel = worker_left>=common::lmt1;
                                         if(!parallel) worker_left = 0;
                                     }
 
@@ -1916,7 +1944,7 @@ void forward_stage(sector_count_t ssector_number) {
                                                 worker_items_ifm2.emplace_back(worker_left, std::move(iset));
                                                 worker_left++;
                                             }
-                                            parallel = worker_left>=common::llmt1;
+                                            parallel = worker_left>=common::lmt1;
                                             if(!parallel) worker_left = 0;
                                         }
 
@@ -2225,6 +2253,7 @@ void Evaluate() {
             int nts = common::t1;
             if(nts==0) nts = omp_get_num_procs();
             if(nts>worker_tasks_n) nts = worker_tasks_n;
+            
             #pragma omp parallel for schedule(dynamic,1) num_threads(nts) if(nts>1 && common::run_mode!=3)
             for(int ti=0; ti<worker_tasks_n; ++ti) {
                 while (lock.test_and_set(std::memory_order_acquire)) ;
@@ -2406,7 +2435,8 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
     
     vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
     vector<pc_pair_ptr_lst::iterator> itr_vec;
-    size_t len = 0;
+    vector<int> todo_idx_p;
+    size_t idx = 0;
     while (itr2 != eq2end) {
         if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
             ++itr1;
@@ -2415,30 +2445,33 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
                 itr1 = terms1.emplace(itr1, *itr2); // to set point from *itr2
                 itr_vec.push_back(itr1);
                 vector<pc_pair_ptr> items { *itr2 };
-                size_t l = (*itr2)->second.length();
-                if(l>len) len = l;
                 todo_vec.emplace_back(make_pair(2, items));
+                size_t len = (*itr2)->second.length();
+                if(len>=common::len) todo_idx_p.push_back(idx);
+                idx++;
                 ++itr1;
             }
             ++itr2;
         } else { // both equations. have to multiply and add
             itr_vec.push_back(itr1);
             vector<pc_pair_ptr> items { *itr1, *itr2 };
-            size_t l = (*itr1)->second.length() + (*itr2)->second.length();
-            if(l>len) len = l;
             todo_vec.emplace_back(make_pair(3, items));
+            size_t len = (*itr1)->second.length() + (*itr2)->second.length();
+            if(len>=common::len) todo_idx_p.push_back(idx);
+            idx++;
             ++itr1;
             ++itr2;
         }
     }
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    if(todo_vec.size()>common::lmt || len>common::len) {
-        atomic<long> atomic_index(0);
+    if(todo_idx_p.size()>0) {
+        atomic<int> atomic_index(0);
         auto call_back = [&]() {
             while(true) {
-                long i = atomic_index.fetch_add(1);
-                if(i>=todo_vec.size()) return;
+                int j = atomic_index.fetch_add(1);
+                if(j>=todo_idx_p.size()) return;
+                auto i = todo_idx_p[j];
                 auto mode = todo_vec[i].first;
                 auto items = todo_vec[i].second;
                 if(mode==1) {
@@ -2457,10 +2490,31 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
         };
     
         int tn = common::tp;
-        if(tn>todo_vec.size()) tn = todo_vec.size();
+        if(tn>todo_idx_p.size()) tn = todo_idx_p.size();
         vector<std::future<void>> tasks;
         if(tn>1) for (int i=0; i<tn-1; i++) tasks.emplace_back(common::TPool.add(call_back));
+        
+        int curj = 0;
+        for(int i=0; i<todo_vec.size(); i++) {
+            if(curj<todo_idx_p.size() && i==todo_idx_p[curj]) {
+                curj++;
+                continue;
+            }
+            auto mode = todo_vec[i].first;
+            auto items = todo_vec[i].second;
+            if(mode==2) {
+                COEFF o;
+                _mul_(o, items[0]->second,  coeff);
+                rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+            } else if(mode==3) {
+                COEFF o;
+                _mul_(o, items[1]->second, coeff);
+                _add_(o, o, items[0]->second);
+                rterms_vec[i] = make_pc_ptr(items[0]->first, std::move(o));
+            } else throw std::runtime_error("strange mode found.");
+        }
         call_back(); // reuse the current thread
+        
         if(tn>1) for (int i=0; i<tn-1; i++) tasks[i].wait();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
@@ -2677,7 +2731,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
                 }
             }
 
-            if(worker_left>=common::llmt2) {
+            if(worker_left>=common::lmt2) {
                 for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
                 for(int i=0; i<total_threads; ++i) worker[i].join();
             } else {

@@ -5,8 +5,6 @@ typedef uint32_t virt_t;
 #include <iomanip>
 class point_fast;
 
-//#include "parallel_hashmap/phmap.h"
-
 typedef vector<pair<vector<COEFF>, point_fast > > ibp_type;
 
 
@@ -199,10 +197,66 @@ inline pc_pair_ptr make_pc_ptr(PC && pc) {
     //return pc_pair_ptr(new pc_pair(std::forward<PC>(pc)));
 }
 
+//#include "parallel_hashmap/phmap.h"
+//namespace std {
+//    template<> struct hash<point>
+//    {
+//        std::size_t operator()(point const &p) const
+//        {
+//            phmap::HashState hc;
+//            std::size_t seed = 0;
+//            for(int i=0; i<POINT_SIZE; i++) {
+//                seed = hc.combine(seed, p.ww[i]);
+//            }
+//            return seed;
+//        }
+//    };
+//    template<> struct hash<pair<unsigned int, unsigned int>>
+//    {
+//        std::size_t operator()(pair<unsigned int, unsigned int> const &p) const
+//        {
+//            phmap::HashState hc;
+//            std::size_t seed = 0;
+//            hc.combine(seed, p.first);
+//            hc.combine(seed, p.second);
+//            return seed;
+//        }
+//    };
+//}
 //typedef phmap::parallel_node_hash_map<pair<unsigned int, unsigned int>, bool> umap_type;
 //typedef phmap::parallel_node_hash_map<point, pair<unsigned char, pc_pair_ptr_vec>> pmap_type;
+
+//#include "sparsepp/spp.h"
+//namespace std
+//{
+//    template<> struct hash<point>
+//    {
+//        std::size_t operator()(point const &p) const
+//        {
+//            std::size_t seed = 0;
+//            for(int i=0; i<POINT_SIZE; i++) {
+//                spp::hash_combine(seed, p.ww[i]);
+//            }
+//            return seed;
+//        }
+//    };
+//    template<> struct hash<pair<unsigned int, unsigned int>>
+//    {
+//        std::size_t operator()(pair<unsigned int, unsigned int> const &p) const
+//        {
+//            std::size_t seed = 0;
+//            spp::hash_combine(seed, p.first);
+//            spp::hash_combine(seed, p.second);
+//            return seed;
+//        }
+//    };
+//}
+//typedef spp::sparse_hash_map<pair<unsigned int, unsigned int>, bool> umap_type;
+//typedef spp::sparse_hash_map<point, pair<unsigned char, pc_pair_ptr_vec>> pmap_type;
+
 typedef map<pair<unsigned int, unsigned int>, bool> umap_type;
 typedef map<point, pair<unsigned char, pc_pair_ptr_vec>> pmap_type;
+
 struct DB {
     bool need_write = false;
     bool keep = false;

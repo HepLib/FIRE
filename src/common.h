@@ -187,10 +187,9 @@ public:
     static unsigned int lt1; // level threads
     static unsigned int lt2; // level threads
     static unsigned int tp; // pool size
-    static unsigned int llmt1; // Level Limit @ Forward
-    static unsigned int llmt2;
-    static unsigned int lmt; // Limit Level 2
-    static unsigned int len;
+    static unsigned int lmt1; // Level Limit @ Forward
+    static unsigned int lmt2;
+    static unsigned int len; // len limit in Tasks Pools
     static TasksPool TPool;
     static int ifm; // 0-auto, 1-prime, 2-poly
     static map<string, string> variable_replacements;
