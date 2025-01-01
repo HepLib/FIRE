@@ -722,7 +722,6 @@ void mul_add(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pa
         ++itr1;
     }
 }
-
 void mul_add_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_pair_ptr_lst &rterms, const COEFF &coeff) {
     rterms.clear();
     auto eq2end = terms2.end();
@@ -733,8 +732,10 @@ void mul_add_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
     itr1 = terms1.begin();
     itr2 = terms2.begin();
     vector<pair<int,vector<pc_pair_ptr>>> todo_vec;
-    vector<int> todo_idx_p;
+    vector<pair<int, long>> todo_pairs; // pair<index, length>
+    vector<int> todo_idx;
     size_t idx = 0;
+    auto cl = coeff.length();
     while (itr2 != eq2end) {
         if ((itr1 != terms1.end()) && ((*itr1)->first < (*itr2)->first)) { // first equation only. just adding to result
             vector<pc_pair_ptr> items { *itr1 };
@@ -744,27 +745,35 @@ void mul_add_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
             vector<pc_pair_ptr> items { *itr2 };
             todo_vec.emplace_back(make_pair(2, items));
             size_t len = (*itr2)->second.length();
-            if(len>=common::len) todo_idx_p.push_back(idx);
+            if(cl>=common::len || len>=common::len) {
+                todo_pairs.emplace_back(make_pair(idx, len));
+                todo_idx.emplace_back(idx);
+            }
             ++itr2;
         } else { // both equations. have to multiply and add
             vector<pc_pair_ptr> items { *itr1, *itr2 };
             todo_vec.emplace_back(make_pair(3, items));
-            size_t len = (*itr1)->second.length() + (*itr2)->second.length();
-            if(len>=common::len) todo_idx_p.push_back(idx);
+            size_t len1 = (*itr1)->second.length();
+            size_t len2 = (*itr2)->second.length();
+            if(cl>=common::len || len1>=common::len || len2>=common::len) {
+                todo_pairs.push_back(make_pair(idx, len1+len2));
+                todo_idx.emplace_back(idx);
+            }
             ++itr1;
             ++itr2;
         }
         ++idx;
     }
+    sort(todo_pairs.begin(), todo_pairs.end());
     
     pc_pair_ptr_vec rterms_vec(todo_vec.size());
-    if(todo_idx_p.size()>0) {
+    if(todo_pairs.size()>0) {
         atomic<int> atomic_index(0);
         auto call_back = [&]() {
             while(true) {
                 int j = atomic_index.fetch_add(1);
-                if(j>=todo_idx_p.size()) return;
-                auto i = todo_idx_p[j];
+                if(j>=todo_pairs.size()) return;
+                auto i = todo_pairs[j].first;
                 auto mode = todo_vec[i].first;
                 auto items = todo_vec[i].second;
                 if(mode==1) {
@@ -783,13 +792,13 @@ void mul_add_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
         };
     
         int tn = common::tp;
-        if(tn>todo_idx_p.size()) tn = todo_idx_p.size();
+        if(tn>todo_pairs.size()) tn = todo_pairs.size();
         vector<std::future<void>> tasks;
         if(tn>1) for (int i=0; i<tn-1; i++) tasks.emplace_back(common::TPool.add(call_back));
         
         int curj = 0;
         for(int i=0; i<todo_vec.size(); i++) {
-            if(curj<todo_idx_p.size() && i==todo_idx_p[curj]) {
+            if(curj<todo_idx.size() && i==todo_idx[curj]) {
                 curj++;
                 continue;
             }
@@ -2336,7 +2345,7 @@ void Evaluate() {
                     if(common::run_mode>1 && read_status(test_sector)==2) continue;
                     open_database(test_sector);
                     auto & dbn = DBM[test_sector];
-                    map<sector_count_t, set<point> > needed_lower;
+                    map<sector_count_t, set<point>> needed_lower;
                     
                     // here we read and fill needed_for for the current sector
                     int64_t new_size = dbn.lower_size;
@@ -2734,6 +2743,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
             if(worker_left>=common::lmt2) {
                 for(int i=0; i<total_threads; ++i) worker[i] = thread(worker_main);
                 for(int i=0; i<total_threads; ++i) worker[i].join();
+                if(common::run_sector && !common::silent) cout << endl;
             } else {
                 for(auto & item : worker_items) {
                     const point & p = worker_point[item.i];
@@ -2750,7 +2760,7 @@ void pass_back(const set<point, indirect_more> &cur_set, set<point, indirect_mor
                 }
             }
         } else { // original version
-            if(common::run_sector && !common::silent) cout << cur_set.size() << flush;
+            //if(common::run_sector && !common::silent) cout << cur_set.size() << flush;
             for (auto itr = ritr; itr != cur_set.rend(); ++itr) {
                 point p = *itr;
                 if(if_mode==1) {

@@ -504,9 +504,9 @@ inline void db_export(unsigned int sn) {
     auto & dbn = DBM[sn];
     ostringstream oss;
     // status
-    oss << dbn.status << endl;
+    oss << dbn.status << '\n';
     // lower_size
-    oss << dbn.lower_size << endl;
+    oss << dbn.lower_size << '\n';
     mpz_t z;
     mpz_init(z);
     void (*free_mp_str)(void *, size_t);
@@ -514,23 +514,23 @@ inline void db_export(unsigned int sn) {
     // vector<point> lower;
     for(int i=0; i<dbn.lower_size; i++) point_output(dbn.lower[i],z,oss,free_mp_str);
     // map<pair<unsigned int, unsigned int>, bool> umap;
-    oss << dbn.umap.size() << endl;
+    oss << dbn.umap.size() << '\n';
     for(auto const & kv : dbn.umap) {
-        oss << kv.first.first << " " << kv.first.second << " " << kv.second << endl;
+        oss << kv.first.first << " " << kv.first.second << " " << kv.second << '\n';
     }
     // map<point, pair<unsigned char, pc_pair_vec>> pmap;
-    oss << dbn.pmap.size() << endl;
+    oss << dbn.pmap.size() << '\n';
     for(auto & kv : dbn.pmap) {
         point_output(kv.first,z,oss,free_mp_str);
         int c = kv.second.first; // char to int
-        oss << c << endl;
-        oss << kv.second.second.size() << endl;
+        oss << c << '\n';
+        oss << kv.second.second.size() << '\n';
         for(auto & pcr : kv.second.second) {
             point_output(pcr->first,z,oss,free_mp_str);
             pcr->second.export_to(oss, 62);
         }
     }
-    oss << "#DONE#" << endl;
+    oss << "#DONE#" << '\n';
     string oss_str = oss.str();
     fstream db(common::path+"/"+to_string(sn)+".map", fstream::out|std::ios::binary);
     db.write(oss_str.c_str(), oss_str.size());
@@ -563,7 +563,7 @@ inline void db_import(unsigned int sn, int mode, const set<point> *pset) {
         db >> s;
         point p;
         str_z_point(s,z,p);
-        dbn.lower.push_back(p);
+        dbn.lower.emplace_back(p);
     }
     if(mode==0) {
         auto uend(end(dbn.umap));
@@ -600,9 +600,12 @@ inline void db_import(unsigned int sn, int mode, const set<point> *pset) {
                     str_z_point(s,z,pp);
                     COEFF c;
                     c.import_from(db,62);
-                    vec.push_back(make_pc_ptr(pp,c));
+                    vec.emplace_back(make_pc_ptr(pp,c));
                 } else {
-                    for(int l=0; l<COEFF::io_lines; l++) db >> s; // need to read and skip
+                    //for(int l=0; l<COEFF::io_lines; l++) db >> s; // need to read and skip
+                    char c = db.peek();
+                    if(c=='\n') db.ignore(1); // make sure a new line here
+                    for(int l=0; l<COEFF::io_lines; l++) db.ignore(numeric_limits<streamsize>::max(), '\n');
                 }
             }
             if(needed) pend = dbn.pmap.insert(pend,make_pair(p, make_pair(c, std::move(vec))));

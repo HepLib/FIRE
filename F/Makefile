@@ -3,7 +3,7 @@
 vpath %.cpp ../src
 vpath %.h ../src
 
-CC:=g++ -std=c++17 -fopenmp
+CC:=g++ -std=c++20 -fopenmp
 cc:=gcc
 CFLAGS:=-O3 -Wno-unused-result -Wno-deprecated-declarations -I${USR_DIR}/include -DFloatR
 

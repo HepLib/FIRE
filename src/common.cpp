@@ -68,16 +68,16 @@ int common::ifm = 0;
 unsigned int common::t1 = 0; // 0 for all CPU cores
 unsigned int common::t2 = 0; // 0 for all CPU cores
 unsigned int common::lt1 = 1;
-unsigned int common::lt2 = 1;
+unsigned int common::lt2 = 4;
 unsigned int common::tp = 1; // pool size
 #if defined(FMPQ) || defined(FloatR)
 unsigned int common::lmt1 = 1000; // Level Limit
 unsigned int common::lmt2 = 1000; // Level Limit
-unsigned int common::len = 100;
+unsigned int common::len = 10; // no effect
 #else
 unsigned int common::lmt1 = 100; // Level Limit
 unsigned int common::lmt2 = 100; // Level Limit
-unsigned int common::len = 100;
+unsigned int common::len = 50;
 #endif
 
 vector<vector<vector<t_index> > > common::iorderings;

@@ -293,9 +293,9 @@ public:
         return 1;
         #elif defined(FlintM)
         fmpz_mpoly_q_struct* mp = (fmpz_mpoly_q_struct*)r;
-        size_t len = fmpz_mpoly_length(fmpz_mpoly_q_numref(mp), TO_CTX(ctx));
-        len += fmpz_mpoly_length(fmpz_mpoly_q_denref(mp), TO_CTX(ctx));
-        return len;
+        size_t num_len = fmpz_mpoly_length(fmpz_mpoly_q_numref(mp), TO_CTX(ctx));
+        size_t den_len = fmpz_mpoly_length(fmpz_mpoly_q_denref(mp), TO_CTX(ctx));
+        return num_len>den_len ? num_len : den_len;
         #endif
     }
     
@@ -377,10 +377,10 @@ public:
     #endif
     void export_to(ostream & oss, int base) const { // total lines: io_lines
         #if defined(PRIME)
-        oss << static_cast<uint64_t>(p) << endl;
+        oss << static_cast<uint64_t>(p) << '\n';
         #elif defined(FMPQ)
         char * cs = fmpq_get_str(NULL,base,(fmpq*)r);
-        oss << cs << endl;
+        oss << cs << '\n';
         flint_free(cs);
         #elif defined(FlintM)
         fmpz_mpoly_q_struct* mp = (fmpz_mpoly_q_struct*)r;
@@ -393,21 +393,21 @@ public:
             string ds(cs);
             flint_free(cs);
         }
-        oss << endl;
+        oss << '\n';
         #elif defined(FloatR)
         fmpz_t z1, z2;
         fmpz_init(z1);
         fmpz_init(z2);
         gr_get_fmpz_2exp_fmpz(z1, z2, r, ctx);
         auto s = fmpz_get_str(NULL, base, z1);
-        oss << s << endl;
+        oss << s << '\n';
         flint_free(s);
         s = fmpz_get_str(NULL, base, z2);
-        oss << s << endl;
+        oss << s << '\n';
         flint_free(s);
         fmpz_clear(z1);
         fmpz_clear(z2);
-        oss << static_cast<uint64_t>(p) << endl; // export prime
+        oss << static_cast<uint64_t>(p) << '\n'; // export prime
         #endif
     }
     void import_from(fstream & db, int base) {

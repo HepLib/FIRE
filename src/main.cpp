@@ -138,8 +138,8 @@ int main(int argc, char *argv[]) {
         #if defined(FloatR)
         cout << "Float Precision: 2^" << COEFF::fp << endl;
         #endif
-        cout << "Forward : T/LT/LLMT: " << common::t1 << "/" << common::lt1 << "/" << common::lmt1 << endl;
-        cout << "Backward: T/LT/LLMT: " << common::t2 << "/" << common::lt2 << "/" << common::lmt2 << endl;
+        cout << "Forward : T/LT/LMT: " << common::t1 << "/" << common::lt1 << "/" << common::lmt1 << endl;
+        cout << "Backward: T/LT/LMT: " << common::t2 << "/" << common::lt2 << "/" << common::lmt2 << endl;
         cout << "Tasks/LEN: " << common::tp << "/" << common::len << endl;
         if(common::prt_rule_counter) cout << "Rules: " << common::prt_rule_counter << endl;
         ;
