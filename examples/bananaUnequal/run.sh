@@ -4,6 +4,6 @@
 
 tp=8 # thread pool size
 
-echo M/FIRE -c bananaUnequal -tp $tp -len 100
-time ../../M/FIRE -c bananaUnequal -tp $tp -len 100
+echo M/FIRE -c bananaUnequal -tp $tp
+time ../../M/FIRE -c bananaUnequal -tp $tp
 echo

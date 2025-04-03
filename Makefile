@@ -2,10 +2,10 @@
 GMP:=gmp-6.3.0
 GMPx:=tar.gz
 # MPFR
-MPFR:=mpfr-4.2.1
+MPFR:=mpfr-4.2.2
 MPFRx:=tar.gz
 # Flint
-FLINT:=flint-3.1.3
+FLINT:=flint-3.2.1
 FLINTx:=tar.gz
 # XMalloc
 XMALLOC:=jemalloc-5.3.0 # mimalloc-2.1.4 | gperftools-2.10
@@ -84,7 +84,7 @@ tar xf $(strip $(XMALLOC)).$(XMALLOCx);
 
 	cd usr-src/$(FLINT); \
 ./bootstrap.sh; \
-./configure --disable-static --with-gmp=/opt/homebrew --with-mpfr=/opt/homebrew --prefix=$(USR_DIR) CFLAGS="-O3"; \
+./configure CFLAGS="-Wno-incompatible-pointer-types -O3" --disable-static --with-gmp=/opt/homebrew --with-mpfr=/opt/homebrew --prefix=$(USR_DIR); \
 $(MAKE) install
 
 	cd usr-src/$(XMALLOC); \

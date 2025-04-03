@@ -10,6 +10,7 @@
 #include "common.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <omp.h>
 /* initializations of static variables
 * refer to common.h for details
 */
@@ -68,16 +69,17 @@ int common::ifm = 0;
 unsigned int common::t1 = 0; // 0 for all CPU cores
 unsigned int common::t2 = 0; // 0 for all CPU cores
 unsigned int common::lt1 = 1;
-unsigned int common::lt2 = 4;
-unsigned int common::tp = 1; // pool size
+unsigned int common::lt2 = 1;
 #if defined(FMPQ) || defined(FloatR)
 unsigned int common::lmt1 = 1000; // Level Limit
 unsigned int common::lmt2 = 1000; // Level Limit
 unsigned int common::len = 10; // no effect
+unsigned int common::tp = 4; // pool size
 #else
 unsigned int common::lmt1 = 100; // Level Limit
 unsigned int common::lmt2 = 100; // Level Limit
 unsigned int common::len = 50;
+unsigned int common::tp = omp_get_num_procs()/2; // pool size
 #endif
 
 vector<vector<vector<t_index> > > common::iorderings;
