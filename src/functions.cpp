@@ -991,7 +991,7 @@ void forward_stage(sector_count_t ssector_number) {
     unsigned int n = ssector.size();
     bool first_pass = true;
     
-    // {======Moved form reduce_in_level section======
+    // {======Moved from reduce_in_level section======
     int if_mode = common::ifm;
     if(if_mode==0) {
         #if defined(FlintM)
