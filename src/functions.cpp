@@ -1536,6 +1536,15 @@ void forward_stage(sector_count_t ssector_number) {
                 level_tasks.push_back(*level_itr);
             }
             
+            if(common::time_out>0) {
+                time_t now = time(nullptr);
+                if(now-common::start_time > common::time_out) {
+                    cout << endl << "EXIT: Timed out!" << endl;
+                    abort();
+                    exit(0);
+                }
+            }
+            
             { // ======BEGIN reduce_in_level BEGIN======
                 
                 size_t level_tasks_n = level_tasks.size();

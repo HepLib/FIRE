@@ -7,7 +7,11 @@
 
 #include "parser.h"
 #include <math.h>
+#ifdef NO_FILE_SYSTEM
+#include <dirent.h>
+#else
 #include <filesystem>
+#endif
 
 inline bool file_remove(string fn) {
     return remove(fn.c_str())==0;
@@ -2052,6 +2056,39 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                     if(access(common::path.c_str(), 0)) mkpath(common::path, 0777);
                     // clean on database
                     if(!common::run_sector) {
+                        #ifdef NO_FILE_SYSTEM
+                        DIR *dir = opendir(common::path.c_str());
+                        if (!dir) {
+                            cout << "Can not open: " << common::path << endl;
+                            abort();
+                        }
+
+                        struct dirent *entry;
+                        while ((entry = readdir(dir)) != nullptr) {
+                            std::string fileName = entry->d_name;
+                            if (fileName == "." || fileName == "..") continue;
+
+                            std::string fullPath = common::path + "/" + fileName;
+                            struct stat statbuf;
+                            if (stat(fullPath.c_str(), &statbuf) == -1) {
+                                cout << "Can not open: " << fullPath << endl;
+                                abort();
+                            }
+
+                            if (S_ISDIR(statbuf.st_mode)) continue; // skip directory
+                            else {
+                                if(common::run_mode==1) file_remove(fullPath);
+                                else {
+                                    int status = 0;
+                                    fstream db(fullPath, fstream::in);
+                                    db >> status;
+                                    db.close();
+                                    if(status==0) file_remove(fullPath);
+                                }
+                            }
+                        }
+                        closedir(dir);
+                        #else
                         for (const auto & file : std::filesystem::directory_iterator(common::path)) {
                             if(common::run_mode==1) file_remove(file.path());
                             else {
@@ -2062,6 +2099,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                                 if(status==0) file_remove(file.path());
                             }
                         }
+                        #endif
                     }
                 }
             } else {
@@ -2134,6 +2172,39 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                     if(access(common::path.c_str(), 0)) mkpath(common::path, 0777);
                     // clean on database
                     if(!common::run_sector) {
+                        #ifdef NO_FILE_SYSTEM
+                        DIR *dir = opendir(common::path.c_str());
+                        if (!dir) {
+                            cout << "Can not open: " << common::path << endl;
+                            abort();
+                        }
+
+                        struct dirent *entry;
+                        while ((entry = readdir(dir)) != nullptr) {
+                            std::string fileName = entry->d_name;
+                            if (fileName == "." || fileName == "..") continue;
+
+                            std::string fullPath = common::path + "/" + fileName;
+                            struct stat statbuf;
+                            if (stat(fullPath.c_str(), &statbuf) == -1) {
+                                cout << "Can not open: " << fullPath << endl;
+                                abort();
+                            }
+
+                            if (S_ISDIR(statbuf.st_mode)) continue; // skip directory
+                            else {
+                                if(common::run_mode==1) file_remove(fullPath);
+                                else {
+                                    int status = 0;
+                                    fstream db(fullPath, fstream::in);
+                                    db >> status;
+                                    db.close();
+                                    if(status==0) file_remove(fullPath);
+                                }
+                            }
+                        }
+                        closedir(dir);
+                        #else
                         for (const auto & file : std::filesystem::directory_iterator(common::path)) {
                             if(common::run_mode==1) file_remove(file.path());
                             else {
@@ -2144,6 +2215,7 @@ int parse_config(const string &filename, set<point, indirect_more> &points, stri
                                 if(status==0) file_remove(file.path());
                             }
                         }
+                        #endif
                     }
                 }
             }
@@ -2701,6 +2773,12 @@ void parseArgcArgv(int argc, char *argv[]) {
             int t = 0;
             s2i(str.c_str(), t);
             if(t>1) flint_set_num_threads(t);
+            i++;
+        } else if((i + 1 != argc) && (!strcmp(argv[i],"-timeout"))) {
+            string str(argv[i + 1]);
+            int t = 0;
+            s2i(str.c_str(), t);
+            if(t>0) common::time_out = t;
             i++;
         } else if((i + 1 != argc) && (!strcmp(argv[i],"-ifm"))) {
             string str(argv[i + 1]);

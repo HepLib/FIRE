@@ -9,7 +9,11 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <omp.h>
+#ifdef NO_FILE_SYSTEM
+#include <stdio.h>
+#else
 #include <filesystem>
+#endif
 
 static const pc_pair_ptr_vec empty_terms;
 static map<point, pc_pair_ptr_vec> temp_db;
@@ -73,6 +77,7 @@ int main(int argc, char *argv[]) {
             #if defined(FloatR)
             cout << "-fp <n>: set 2^n as float precision." << endl;
             #endif
+            cout << "-timeout <n>: set timeout(in seconds) in forward reduction." << endl;
             cout << "---------------------------------------------------------------" << endl;
             return 0;
         }
@@ -145,6 +150,7 @@ int main(int argc, char *argv[]) {
         ;
         if(common::run_mode) cout << "DB: " << common::path << " (Mode " << common::run_mode << ")" << endl;
         else cout << "DB: Mode " << common::run_mode << endl;
+        if(common::time_out>0) cout << "Timed Out: " << common::time_out << " seconds" << endl;
         if(!common::prt_replace.empty()) {
             cout << "Parameters: " << endl;
             for(auto kv : common::prt_replace) cout << "  " << kv.first << " -> " << kv.second << endl;
@@ -389,14 +395,22 @@ int main(int argc, char *argv[]) {
         }
         
         if((out.rdstate() & std::ofstream::failbit) || !file_exists(output) || !ok) {
+            #ifndef NO_FILE_SYSTEM
             string tdir = std::filesystem::temp_directory_path().string();
+            #else
+            string tdir = "/tmp";
+            #endif
             string tfn = tdir + "/" + output;
             fstream out;
             out.open(tfn, fstream::out);
             out << oss.str() << flush;
             out.flush();
             out.close();
+            #ifndef NO_FILE_SYSTEM
             std::filesystem::rename(tfn, output);
+            #else
+            rename(tfn.c_str(), output.c_str());
+            #endif
         }
     }
     

@@ -21,6 +21,9 @@ unsigned short common::dimension;
 unique_ptr<sector_count_t[]> common::sector_numbers_fast;
 unique_ptr<unique_ptr<t_index[]>[]> common::orderings_fast;
 
+time_t common::start_time = time(nullptr);
+int common::time_out = 0;
+
 const string common::version = "2024/05/13 (based on v6.5.2)";
 map<string, string> common::prt_replace;
 int common::prt_rule_counter = 0;

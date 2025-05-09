@@ -1,5 +1,6 @@
 #pragma once
 #include <gmp.h>
+#include <ctime>
 
 #include "flint/fmpq.h"
 #include "flint/fmpz_mpoly_q.h"
@@ -140,6 +141,8 @@ SECTOR sector_fast(const vector<t_index> &v);
 
 class common {
 public:
+    static time_t start_time;
+    static int time_out;
     static map<string, bool> opt_set; // check the option has been set in command line argument
     static map<string, string> prt_replace;
     static int prt_rule_counter;
