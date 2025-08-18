@@ -83,8 +83,7 @@ tar xf $(strip $(FLINT)).$(FLINTx); \
 tar xf $(strip $(XMALLOC)).$(XMALLOCx);
 
 	cd usr-src/$(FLINT); \
-./bootstrap.sh; \
-./configure CFLAGS="-Wno-incompatible-pointer-types -O3" --disable-static --with-gmp=/opt/homebrew --with-mpfr=/opt/homebrew --prefix=$(USR_DIR); \
+./configure CFLAGS="-Wno-incompatible-pointer-types -O3" --enable-static=no --with-gmp=/opt/homebrew --with-mpfr=/opt/homebrew --prefix=$(USR_DIR); \
 $(MAKE) install
 
 	cd usr-src/$(XMALLOC); \
@@ -122,8 +121,7 @@ $(MAKE) install
 $(MAKE) install
 
 	cd usr-src/$(FLINT); \
-./bootstrap.sh; \
-./configure --disable-static --enable-avx2 --with-gmp=$(USR_DIR) --with-mpfr=$(USR_DIR) --prefix=$(USR_DIR) CFLAGS="-O3"; \
+./configure --enable-static=no --enable-avx2 --with-gmp=$(USR_DIR) --with-mpfr=$(USR_DIR) --prefix=$(USR_DIR) CFLAGS="-O3"; \
 $(MAKE) install
 	
 	cd usr-src/$(XMALLOC); \
