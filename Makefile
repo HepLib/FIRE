@@ -5,7 +5,7 @@ GMPx:=tar.gz
 MPFR:=mpfr-4.2.2
 MPFRx:=tar.gz
 # Flint
-FLINT:=flint-3.2.1
+FLINT:=flint-3.4.0
 FLINTx:=tar.gz
 # XMalloc
 XMALLOC:=jemalloc-5.3.0 # mimalloc-2.1.4 | gperftools-2.10
