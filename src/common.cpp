@@ -82,7 +82,7 @@ unsigned int common::tp = 4; // pool size
 unsigned int common::lmt1 = 100; // Level Limit
 unsigned int common::lmt2 = 100; // Level Limit
 unsigned int common::len = 50;
-unsigned int common::tp = omp_get_num_procs()/2; // pool size
+unsigned int common::tp = omp_get_num_procs(); // pool size
 #endif
 
 vector<vector<vector<t_index> > > common::iorderings;

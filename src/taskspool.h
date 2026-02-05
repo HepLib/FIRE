@@ -14,7 +14,9 @@ class TasksPool {
 public:
     void init(size_t nt);
     template<class Func, class... Args>
-    auto add(Func&& f, Args&&... args) -> std::future<typename std::result_of<Func(Args...)>::type>;
+    std::future<typename std::result_of<Func(Args...)>::type> add(Func&& f, Args&&... args);
+    template<class Func, class... Args>
+    std::vector<std::future<typename std::result_of<Func(Args...)>::type>> add(Func&& f, int n, Args&&... args);
     void exit();
     ~TasksPool();
 private:
@@ -47,7 +49,7 @@ inline void TasksPool::init(size_t nt) {
 }
 
 template<class Func, class... Args>
-auto TasksPool::add(Func&& f, Args&&... args) -> std::future<typename std::result_of<Func(Args...)>::type> {
+std::future<typename std::result_of<Func(Args...)>::type> TasksPool::add(Func&& f, Args&&... args) {
     using return_type = typename std::result_of<Func(Args...)>::type;
     auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<Func>(f), std::forward<Args>(args)...));
     std::future<return_type> res = task->get_future();
@@ -57,6 +59,23 @@ auto TasksPool::add(Func&& f, Args&&... args) -> std::future<typename std::resul
         tasks.emplace([task](){ (*task)(); });
     }
     condition.notify_one();
+    return res;
+}
+
+template<class Func, class... Args>
+std::vector<std::future<typename std::result_of<Func(Args...)>::type>> TasksPool::add(Func&& f, int n, Args&&... args) {
+    using return_type = typename std::result_of<Func(Args...)>::type;
+    std::vector<std::future<return_type>> res(n);
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        if(done) throw std::runtime_error("tasks exit, don't not add any more.");
+        for(int i=0; i<n; i++) {
+            auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<Func>(f), std::forward<Args>(args)...));
+            tasks.emplace([task](){ (*task)(); });
+            res[i] = task->get_future();
+        }
+    }
+    condition.notify_all();
     return res;
 }
 

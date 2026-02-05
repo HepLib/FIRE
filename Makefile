@@ -8,11 +8,11 @@ MPFRx:=tar.gz
 FLINT:=flint-3.4.0
 FLINTx:=tar.gz
 # XMalloc
-XMALLOC:=jemalloc-5.3.0 # mimalloc-2.1.4 | gperftools-2.10
-XMALLOCx:=tar.bz2
+XMALLOC:=mimalloc-3.2.8 # jemalloc-5.3.0 | gperftools-2.10
+XMALLOCx:=tar.gz
 
 ifeq ($(strip $(MALLOC)),)
-MALLOC:=-ljemalloc # -lmimalloc | -ltcmalloc
+MALLOC:=-lmimalloc # -ljemalloc | -ltcmalloc
 endif
 
 ifeq ($(strip $(USR_DIR)),)
@@ -86,9 +86,15 @@ tar xf $(strip $(XMALLOC)).$(XMALLOCx);
 ./configure CFLAGS="-Wno-incompatible-pointer-types -O3" --enable-static=no --with-gmp=/opt/homebrew --with-mpfr=/opt/homebrew --prefix=$(USR_DIR); \
 $(MAKE) install
 
+ifeq ($(strip $(MALLOC)),-lmimalloc)
+	cd usr-src/$(XMALLOC); \
+cmake -DCMAKE_INSTALL_PREFIX=$(USR_DIR) .; \
+$(MAKE) install
+else
 	cd usr-src/$(XMALLOC); \
 ./configure --prefix=$(USR_DIR); \
 $(MAKE) install
+endif
 
 cleandepall: cleandep
 	rm -rf usr/include/*
@@ -123,10 +129,16 @@ $(MAKE) install
 	cd usr-src/$(FLINT); \
 ./configure --enable-static=no --enable-avx2 --with-gmp=$(USR_DIR) --with-mpfr=$(USR_DIR) --prefix=$(USR_DIR) CFLAGS="-O3"; \
 $(MAKE) install
-	
+
+ifeq ($(strip $(MALLOC)),-lmimalloc)
+	cd usr-src/$(XMALLOC); \
+cmake -DCMAKE_INSTALL_PREFIX=$(USR_DIR) .; \
+$(MAKE) install
+else
 	cd usr-src/$(XMALLOC); \
 ./configure --prefix=$(USR_DIR); \
 $(MAKE) install
+endif
 
 cleandep:
 	rm -rf usr-src/$(GMP)

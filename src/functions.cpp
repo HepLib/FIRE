@@ -792,9 +792,11 @@ void mul_add_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
         };
     
         int tn = common::tp;
-        if(tn>todo_pairs.size()) tn = todo_pairs.size();
+        if(tn>todo_pairs.size()-1) {
+            tn = todo_pairs.size()-1;
+        }
         vector<std::future<void>> tasks;
-        if(tn>1) for (int i=0; i<tn-1; i++) tasks.emplace_back(common::TPool.add(call_back));
+        if(tn>0) for (int i=0; i<tn; i++) tasks.emplace_back(common::TPool.add(call_back));
         
         int curj = 0;
         for(int i=0; i<todo_vec.size(); i++) {
@@ -819,7 +821,7 @@ void mul_add_p(const pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, pc_
         }
         call_back(); // reuse the current thread
         
-        if(tn>1) for (int i=0; i<tn-1; i++) tasks[i].wait();
+        if(tn>0) for (int i=0; i<tn; i++) tasks[i].wait();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;
@@ -2508,9 +2510,11 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
         };
     
         int tn = common::tp;
-        if(tn>todo_idx_p.size()) tn = todo_idx_p.size();
+        if(tn>todo_idx_p.size()-1) {
+            tn = todo_idx_p.size()-1;
+        }
         vector<std::future<void>> tasks;
-        if(tn>1) for (int i=0; i<tn-1; i++) tasks.emplace_back(common::TPool.add(call_back));
+        if(tn>0) for (int i=0; i<tn; i++) tasks.emplace_back(common::TPool.add(call_back));
         
         int curj = 0;
         for(int i=0; i<todo_vec.size(); i++) {
@@ -2533,7 +2537,7 @@ void mul_add_to_p(pc_pair_ptr_lst &terms1, const pc_pair_ptr_lst &terms2, const 
         }
         call_back(); // reuse the current thread
         
-        if(tn>1) for (int i=0; i<tn-1; i++) tasks[i].wait();
+        if(tn>0) for (int i=0; i<tn; i++) tasks[i].wait();
     } else {
         for(int i=0; i<todo_vec.size(); i++) {
             auto mode = todo_vec[i].first;
