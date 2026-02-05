@@ -8,12 +8,18 @@ MPFRx:=tar.gz
 FLINT:=flint-3.4.0
 FLINTx:=tar.gz
 # XMalloc
-XMALLOC:=mimalloc-3.2.8 # jemalloc-5.3.0 | gperftools-2.10
+#############################################
+#XMALLOC:=jemalloc-5.3.0
+#XMALLOCx:=tar.bz2
+#MALLOC:=-ljemalloc
+#############################################
+XMALLOC:=mimalloc-3.2.8
 XMALLOCx:=tar.gz
-
-ifeq ($(strip $(MALLOC)),)
-MALLOC:=-lmimalloc # -ljemalloc | -ltcmalloc
-endif
+MALLOC:=-lmimalloc
+#############################################
+#XMALLOC:=gperftools-2.10
+#XMALLOCx:=tar.gz
+#MALLOC:=-ltcmalloc
 
 ifeq ($(strip $(USR_DIR)),)
 USR_DIR:=$(PWD)/usr
